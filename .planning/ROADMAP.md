@@ -32,7 +32,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. NQ bar data and touch/signal data are present in 01-data/data/bar_data/ and 01-data/data/touches/ for both P1 and P2 date ranges
   4. shared/scoring_models/ contains _template.json and scoring_adapter.py with three adapter stubs; shared/archetypes/ contains exit_templates.md for the signal-touch archetype
   5. The P1a/P1b split boundary is committed in period_config.md before any evaluation file exists in the repository
-**Plans**: TBD
+**Plans:** 6 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Prerequisites: clone reference repos and migrate data
+- [ ] 01-02-PLAN.md — Root structure, CLAUDE.md, CONTEXT.md, and all _config/ files
+- [ ] 01-03-PLAN.md — Shared resources: feature definitions, rules, catalog, scoring models
+- [ ] 01-04-PLAN.md — Stage 01-04 CONTEXT.md files and reference docs
+- [ ] 01-05-PLAN.md — Stage 05-07 CONTEXT.md files and supporting files
+- [ ] 01-06-PLAN.md — Dashboard stubs, audit infrastructure, strategy archetypes
 
 ### Phase 2: HMM Regime Fitter
 **Goal**: The regime fitter is written, validated for P1-only fitting with no look-ahead, and has produced a serialized model and regime_labels.csv that later stages can consume read-only
@@ -106,7 +114,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Scaffold | 0/TBD | Not started | - |
+| 1. Scaffold | 0/6 | Planning complete | - |
 | 2. HMM Regime Fitter | 0/TBD | Not started | - |
 | 3. Git Infrastructure | 0/TBD | Not started | - |
 | 4. Backtest Engine | 0/TBD | Not started | - |
