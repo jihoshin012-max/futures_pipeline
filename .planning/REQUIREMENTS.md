@@ -186,8 +186,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-13 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 57 total
-- Mapped to phases: 57
+- v1 requirements: 58 total
+- Mapped to phases: 58
 - Unmapped: 0 ✓
 
 ---
