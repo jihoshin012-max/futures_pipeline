@@ -1,0 +1,8 @@
+{
+  "model_id": "zone_touch_v1",
+  "frozen_date": "uncalibrated",
+  "description": "Placeholder scoring model with all-zero weights. Real calibration is Phase 5+ work. Do not use for live trading.",
+  "features": [],
+  "weights": {},
+  "bin_edges": {}
+}
