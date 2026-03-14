@@ -35,6 +35,16 @@ last_reviewed: 2026-03-13
       }
     }
   },
+  "archetypes": {
+    "{archetype_name}": {
+      "periods": {
+        "P1":  {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "role": "IS"},
+        "P1a": {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"},
+        "P1b": {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"},
+        "P2":  {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "role": "OOS"}
+      }
+    }
+  },
   "bar_offset": {
     "verified": true,
     "offset_bars": 0,
@@ -52,11 +62,15 @@ last_reviewed: 2026-03-13
 ## Field Definitions
 
 - **generated**: ISO timestamp when Stage 01 last ran validation
-- **periods.P1/P2.start/end**: Date boundaries from _config/period_config.md
+- **periods**: Backwards-compatible flat structure using zone_touch dates. Kept so downstream consumers not yet updated continue to work. Do not remove.
+- **periods.P1/P2.start/end**: Date boundaries — zone_touch values used for the flat alias
 - **sources.{source_id}.path**: Relative path from pipeline root — no hardcoded absolutes
 - **sources.{source_id}.row_count**: Row count at validation time; downstream stages use for sanity checks
 - **sources.{source_id}.schema_version**: References the schema doc filename in 01-data/references/
 - **sources.{source_id}.validation_status**: PASS or FAIL; any FAIL → overall status FAIL
+- **archetypes**: Per-archetype period boundaries. Preferred over flat `periods` for new consumers.
+- **archetypes.{name}.periods.P1/P2**: Full IS/OOS boundaries for the archetype (role field included)
+- **archetypes.{name}.periods.P1a/P1b**: Internal replication sub-periods computed from P1 using p1_split_rule in period_config.md. P1a = first half (calibration search), P1b = second half (replication gate).
 - **bar_offset.offset_bars**: Number of bars between signal bar and entry bar (0 = same bar)
 - **bar_offset.method**: Free text — e.g. "visual alignment on 5 sample dates" or "automated correlation"
 - **validation_summary.status**: PASS only if all sources PASS and no errors

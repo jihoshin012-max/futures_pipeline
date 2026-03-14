@@ -1,0 +1,127 @@
+{
+  "generated": "2026-03-14 23:40:14",
+  "periods": {
+    "P1": {
+      "start": "2025-09-16",
+      "end": "2025-12-14",
+      "sources": {
+        "regime_labels": {
+          "path": "stages/01-data/data/labels/regime_labels.csv",
+          "row_count": 144,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "zra_hist_p1": {
+          "path": "stages/01-data/data/touches/ZRA_Hist_P1.csv",
+          "row_count": 6232,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "zra_hist_p2": {
+          "path": "stages/01-data/data/touches/ZRA_Hist_P2.csv",
+          "row_count": 5891,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "nq_bardata_250tick_rot_p1": {
+          "path": "stages/01-data/data/bar_data/tick/NQ_BarData_250tick_rot_P1.csv",
+          "row_count": 127567,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "nq_bardata_250tick_rot_p2": {
+          "path": "stages/01-data/data/bar_data/tick/NQ_BarData_250tick_rot_P2.csv",
+          "row_count": 121595,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "nq_bardata_250vol_rot_p1": {
+          "path": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P1.csv",
+          "row_count": 138704,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "nq_bardata_250vol_rot_p2": {
+          "path": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P2.csv",
+          "row_count": 131709,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "nq_bardata_250vol_p1": {
+          "path": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_P1.txt",
+          "row_count": 146166,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "nq_bardata_250vol_p2": {
+          "path": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_P2.txt",
+          "row_count": 110156,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        }
+      }
+    },
+    "P2": {
+      "start": "2025-12-15",
+      "end": "2026-03-02",
+      "sources": {}
+    }
+  },
+  "archetypes": {
+    "zone_touch": {
+      "periods": {
+        "P1": {
+          "start": "2025-09-16",
+          "end": "2025-12-14",
+          "role": "IS"
+        },
+        "P1a": {
+          "start": "2025-09-16",
+          "end": "2025-10-31"
+        },
+        "P1b": {
+          "start": "2025-11-01",
+          "end": "2025-12-14"
+        },
+        "P2": {
+          "start": "2025-12-15",
+          "end": "2026-03-02",
+          "role": "OOS"
+        }
+      }
+    },
+    "rotational": {
+      "periods": {
+        "P1": {
+          "start": "2025-09-21",
+          "end": "2025-12-14",
+          "role": "IS"
+        },
+        "P1a": {
+          "start": "2025-09-21",
+          "end": "2025-11-02"
+        },
+        "P1b": {
+          "start": "2025-11-03",
+          "end": "2025-12-14"
+        },
+        "P2": {
+          "start": "2025-12-15",
+          "end": "2026-03-13",
+          "role": "OOS"
+        }
+      }
+    }
+  },
+  "bar_offset": {
+    "verified": false,
+    "offset_bars": 0,
+    "verified_date": null,
+    "method": "not yet verified"
+  },
+  "validation_summary": {
+    "status": "PASS",
+    "warnings": [],
+    "errors": []
+  }
+}
