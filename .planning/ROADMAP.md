@@ -60,7 +60,11 @@ Plans:
   1. hmm_regime_fitter.py runs without error and fits the GaussianHMM exclusively on P1 bar data (P2 rows are never passed to fit())
   2. regime_labels.csv exists covering the full P1+P2 date range, with labels generated from the frozen P1-fitted model applied forward (filtered probabilities, not Viterbi)
   3. hmm_regime_v1.pkl is serialized to shared/scoring_models/hmm_regime_v1.pkl
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — TDD: Write tests and implement hmm_regime_fitter.py (fit, label, serialize)
+- [ ] 02-02-PLAN.md — Run fitter on real data, validate outputs, register model
 
 ### Phase 3: Git Infrastructure
 **Goal**: Every file change during autoresearch is automatically committed, the holdout flag structurally blocks P2 data commits, and audit entries are appended automatically on OOS runs and deployments
@@ -76,12 +80,13 @@ Plans:
 ### Phase 4: Backtest Engine
 **Goal**: The backtest engine is a fixed, deterministic evaluation harness that any autoresearch loop can run safely — verified by two identical-config runs producing byte-identical output and a manual 01-to-05 pass succeeding
 **Depends on**: Phase 1, Phase 3
-**Requirements**: ENGINE-01, ENGINE-02, ENGINE-03, ENGINE-04, ENGINE-05, ENGINE-06, ENGINE-07, ENGINE-08
+**Requirements**: ENGINE-01, ENGINE-02, ENGINE-03, ENGINE-04, ENGINE-05, ENGINE-06, ENGINE-07, ENGINE-08, ENGINE-09
 **Success Criteria** (what must be TRUE):
   1. Running the engine twice with the same config.json produces byte-for-byte identical trade ledgers (verified by diff returning empty)
   2. The engine aborts at import time if holdout_locked_P2.flag is present and the mode is not explicitly OOS — this cannot be bypassed by config
   3. A manual run from Stage 01 through Stage 04 through Stage 05 produces a well-formed verdict_report.md with a net-of-cost Sharpe that is less than 80% of the gross Sharpe, confirming realistic cost modeling
   4. config_schema.json and config_schema.md document every field, distinguish FIXED from CANDIDATE parameters, and trail step validation rules are enforced by the engine on load
+  5. Loading the engine with a config pointing to an unimplemented adapter stub aborts at load time with a clear error naming the adapter — not silently failing mid-experiment
 **Plans**: TBD
 
 ### Phase 5: Stage 04 Autoresearch
@@ -126,7 +131,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 |-------|----------------|--------|-----------|
 | 1. Scaffold | 6/6 | Complete   | 2026-03-14 |
 | 01.1. Scoring Adapter Scaffold Generator | 1/1 | Complete    | 2026-03-14 |
-| 2. HMM Regime Fitter | 0/TBD | Not started | - |
+| 2. HMM Regime Fitter | 0/2 | Planning complete | - |
 | 3. Git Infrastructure | 0/TBD | Not started | - |
 | 4. Backtest Engine | 0/TBD | Not started | - |
 | 5. Stage 04 Autoresearch | 0/TBD | Not started | - |
