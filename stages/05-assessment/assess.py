@@ -52,16 +52,18 @@ def main(input_path: str, output_path: str) -> None:
     # Note: without trade_log.csv, we report aggregate Sharpe from total_pnl
     net_pnl_per_trade = total_pnl / n_trades if n_trades > 0 else 0.0
 
-    # Read cost_ticks from instruments.md for gross reconstruction
+    # Read cost_ticks from instruments.md using same regex as data_loader.parse_instruments_md
     _repo_root = Path(__file__).resolve().parents[2]
-    instruments_md = _repo_root / "_config/instruments.md"
+    sys.path.insert(0, str(_repo_root))
     cost_ticks = 0.0
-    if instruments_md.exists():
-        text = instruments_md.read_text(encoding="utf-8")
-        import re
-        m = re.search(r"cost_ticks[:\s]+([0-9.]+)", text, re.IGNORECASE)
-        if m:
-            cost_ticks = float(m.group(1))
+    try:
+        from shared.data_loader import parse_instruments_md
+        instrument_info = parse_instruments_md(
+            "NQ", config_path=str(_repo_root / "_config/instruments.md")
+        )
+        cost_ticks = float(instrument_info["cost_ticks"])
+    except Exception:
+        pass  # cost_ticks stays 0.0 if lookup fails
 
     gross_pnl_per_trade = net_pnl_per_trade + cost_ticks
     net_sharpe = (net_pnl_per_trade / (abs(net_pnl_per_trade) + 1e-9) *
