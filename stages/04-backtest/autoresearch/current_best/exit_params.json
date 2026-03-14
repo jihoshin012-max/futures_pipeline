@@ -9,20 +9,38 @@
     "simulator_module": "zone_touch_simulator",
     "scoring_adapter": "BinnedScoringAdapter"
   },
-  "active_modes": ["M1"],
+  "active_modes": [
+    "M1"
+  ],
   "routing": {
     "score_threshold": 0,
     "seq_limit": 3
   },
   "M1": {
-    "stop_ticks": 135,
-    "leg_targets": [50, 120, 240],
-    "trail_steps": [
-      {"trigger_ticks": 30, "new_stop_ticks": 0},
-      {"trigger_ticks": 60, "new_stop_ticks": 20},
-      {"trigger_ticks": 120, "new_stop_ticks": 50},
-      {"trigger_ticks": 200, "new_stop_ticks": 100}
+    "stop_ticks": 171,
+    "leg_targets": [
+      57,
+      63,
+      238
     ],
-    "time_cap_bars": 80
+    "trail_steps": [
+      {
+        "trigger_ticks": 79,
+        "new_stop_ticks": 39
+      },
+      {
+        "trigger_ticks": 83,
+        "new_stop_ticks": 39
+      },
+      {
+        "trigger_ticks": 121,
+        "new_stop_ticks": 39
+      },
+      {
+        "trigger_ticks": 205,
+        "new_stop_ticks": 95
+      }
+    ],
+    "time_cap_bars": 96
   }
 }
