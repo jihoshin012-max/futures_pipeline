@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01.1-01-PLAN.md (scaffold_adapter.py committed, SCAF-27 integration tests green)
-last_updated: "2026-03-14T01:41:09.760Z"
+stopped_at: Completed 02-01-PLAN.md (hmm_regime_fitter.py committed, 7 tests green, regime_labels.csv and hmm_regime_v1.pkl generated)
+last_updated: "2026-03-14T02:08:21.070Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 8
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
   percent: 17
 ---
 
@@ -58,6 +58,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-scaffold P04 | 10 | 2 tasks | 8 files |
 | Phase 01-scaffold P06 | 1 | 2 tasks | 5 files |
 | Phase 01.1-scoring-adapter-scaffold-generator P01 | 1 | 2 tasks | 2 files |
+| Phase 02-hmm-regime-fitter P01 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Recent decisions affecting current work:
 - [Phase 01-scaffold]: Simulator interface: def run(bar_df, touch_row, config, bar_offset) -> SimResult -- pure function, no I/O, returns pnl_ticks/win/exit_reason/bars_held
 - [Phase 01.1-scoring-adapter-scaffold-generator]: Tests monkeypatch all 4 module-level Path constants for test isolation without touching live audit_log.md and scoring_adapter.py
 - [Phase 01.1-scoring-adapter-scaffold-generator]: tests/ directory created at repo root as first integration test location for pipeline
+- [Phase 02-hmm-regime-fitter]: Three independent GaussianHMMs (trend 2-state, vol 3-state) plus calendar macro — not joint HMM — for independent per-dimension label columns in regime_labels.csv
+- [Phase 02-hmm-regime-fitter]: predict_proba().argmax() (filtered posteriors) for regime labels, not predict() (Viterbi) — per pipeline requirements
+- [Phase 02-hmm-regime-fitter]: P1 standardization stats stored as _p1_mean/_p1_std on fitted model; P1 mask uses <= P1_END (inclusive); P1 row count asserted == 77 before fit()
 
 ### Pending Todos
 
@@ -104,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T01:38:56.946Z
-Stopped at: Completed 01.1-01-PLAN.md (scaffold_adapter.py committed, SCAF-27 integration tests green)
+Last session: 2026-03-14T02:08:21.067Z
+Stopped at: Completed 02-01-PLAN.md (hmm_regime_fitter.py committed, 7 tests green, regime_labels.csv and hmm_regime_v1.pkl generated)
 Resume file: None

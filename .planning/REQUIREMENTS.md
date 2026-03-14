@@ -46,9 +46,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### HMM Regime
 
-- [ ] **HMM-01**: hmm_regime_fitter.py written (fit on P1 only, apply frozen model to P2)
-- [ ] **HMM-02**: regime_labels.csv generated covering P1 and P2 date ranges
-- [ ] **HMM-03**: hmm_regime_v1.pkl serialized and registered in strategy_archetypes.md
+- [x] **HMM-01**: hmm_regime_fitter.py written (fit on P1 only, apply frozen model to P2)
+- [x] **HMM-02**: regime_labels.csv generated covering P1 and P2 date ranges
+- [x] **HMM-03**: hmm_regime_v1.pkl serialized and registered in strategy_archetypes.md
 
 ### Git Infrastructure
 
@@ -67,6 +67,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **ENGINE-06**: Determinism verified (identical config → identical output, diffed)
 - [ ] **ENGINE-07**: Manual end-to-end pass (01 → 04 → 05, verdict_report.md well-formed)
 - [ ] **ENGINE-08**: shared/archetypes/{archetype}/simulation_rules.md written from actual source
+- [ ] **ENGINE-09**: Scoring adapter interface validated at engine load time (instantiate + call score() on empty df), not at first experiment run. Unimplemented adapter aborts with clear error identifying which adapter stub needs implementation.
 
 ### Autoresearch Loops
 
@@ -158,9 +159,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCAF-25 | Phase 1 | Complete |
 | SCAF-26 | Phase 1 | Complete |
 | SCAF-27 | Phase 1.1 | Complete |
-| HMM-01 | Phase 2 | Pending |
-| HMM-02 | Phase 2 | Pending |
-| HMM-03 | Phase 2 | Pending |
+| HMM-01 | Phase 2 | Complete |
+| HMM-02 | Phase 2 | Complete |
+| HMM-03 | Phase 2 | Complete |
 | GIT-01 | Phase 3 | Pending |
 | GIT-02 | Phase 3 | Pending |
 | GIT-03 | Phase 3 | Pending |
@@ -173,6 +174,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENGINE-06 | Phase 4 | Pending |
 | ENGINE-07 | Phase 4 | Pending |
 | ENGINE-08 | Phase 4 | Pending |
+| ENGINE-09 | Phase 4 | Pending |
 | AUTO-01 | Phase 5 | Pending |
 | AUTO-02 | Phase 5 | Pending |
 | AUTO-03 | Phase 5 | Pending |
@@ -188,8 +190,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-13 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 59 total
-- Mapped to phases: 59
+- v1 requirements: 60 total
+- Mapped to phases: 60
 - Unmapped: 0 ✓
 
 ---
