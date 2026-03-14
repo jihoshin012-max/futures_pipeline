@@ -109,10 +109,10 @@ Plans:
 **Plans:** 4/4 plans complete
 
 Plans:
-- [ ] 04-01-PLAN.md — Reference docs: QA answers, simulation rules, config schema and documentation
-- [ ] 04-02-PLAN.md — Data loader and scoring adapter factory implementation with tests
-- [ ] 04-03-PLAN.md — Zone touch simulator and backtest engine implementation with tests
-- [ ] 04-04-PLAN.md — Determinism verification and manual end-to-end pass
+- [x] 04-01-PLAN.md — Reference docs: QA answers, simulation rules, config schema and documentation
+- [x] 04-02-PLAN.md — Data loader and scoring adapter factory implementation with tests
+- [x] 04-03-PLAN.md — Zone touch simulator and backtest engine implementation with tests
+- [x] 04-04-PLAN.md — Determinism verification and manual end-to-end pass
 
 ### Phase 5: Stage 04 Autoresearch
 **Goal**: The Stage 04 overnight loop runs unattended against the fixed backtest engine, enforces its iteration budget from statistical_gates config, and populates results.tsv with keep/revert decisions that a human can review in the morning
@@ -122,7 +122,12 @@ Plans:
   1. An overnight test of 50 experiments completes without human intervention and results.tsv has 50 rows with monotonically increasing experiment IDs
   2. The driver refuses to launch experiment N+1 when N equals the budget declared in statistical_gates config — verified by setting budget to 3 and confirming the driver stops after 3 runs
   3. A kept experiment's config change is visible in git history (autocommit captured it); a reverted experiment's config is identical to the prior kept state
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Driver.py keep/revert loop with program.md and seeded baseline
+- [ ] 05-02-PLAN.md — evaluate_features.py dispatcher and zone_touch feature_evaluator.py
+- [ ] 05-03-PLAN.md — 50-experiment overnight test and human verification
 
 ### Phase 6: Stage 02 Autoresearch
 **Goal**: The Stage 02 overnight loop evaluates feature candidates using MWU spread, enforces the entry-time-only rule structurally, and produces a feature catalog update after each overnight run
@@ -160,6 +165,6 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | 2. HMM Regime Fitter | 2/2 | Complete | 2026-03-14 |
 | 3. Git Infrastructure | 2/2 | Complete | 2026-03-14 |
 | 4. Backtest Engine | 4/4 | Complete   | 2026-03-14 |
-| 5. Stage 04 Autoresearch | 0/TBD | Not started | - |
+| 5. Stage 04 Autoresearch | 0/3 | Planning complete | - |
 | 6. Stage 02 Autoresearch | 0/TBD | Not started | - |
 | 7. Stage 03 Autoresearch | 0/TBD | Not started | - |
