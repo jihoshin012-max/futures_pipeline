@@ -16,16 +16,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Scaffold
 
-- [ ] **SCAF-01**: Root folder structure created (stages 01-07, _config, shared, dashboard, archive, audit)
-- [ ] **SCAF-02**: CLAUDE.md written (≤60 lines, 5 rules in first 20, hard prohibitions)
-- [ ] **SCAF-03**: Root CONTEXT.md routing file (active stage, stage status table, human checkpoints)
-- [ ] **SCAF-04**: _config/instruments.md (NQ registered with all fields, template for new instruments)
-- [ ] **SCAF-05**: _config/data_registry.md (all sources registered, type taxonomy, add-source workflow)
-- [ ] **SCAF-06**: _config/period_config.md (P1 IS + P2 OOS boundaries, P1a/P1b split, rolling-forward rules)
-- [ ] **SCAF-07**: _config/pipeline_rules.md (all 5 rules including Rule 4 + Rule 5, grandfathering note)
-- [ ] **SCAF-08**: _config/statistical_gates.md (verdict thresholds, iteration budgets, Bonferroni gates, drawdown gate)
-- [ ] **SCAF-09**: _config/regime_definitions.md (3 dimensions, Stage 05 usage rules)
-- [ ] **SCAF-10**: _config/context_review_protocol.md (file length limits, front-loading rule, staleness flag)
+- [x] **SCAF-01**: Root folder structure created (stages 01-07, _config, shared, dashboard, archive, audit)
+- [x] **SCAF-02**: CLAUDE.md written (≤60 lines, 5 rules in first 20, hard prohibitions)
+- [x] **SCAF-03**: Root CONTEXT.md routing file (active stage, stage status table, human checkpoints)
+- [x] **SCAF-04**: _config/instruments.md (NQ registered with all fields, template for new instruments)
+- [x] **SCAF-05**: _config/data_registry.md (all sources registered, type taxonomy, add-source workflow)
+- [x] **SCAF-06**: _config/period_config.md (P1 IS + P2 OOS boundaries, P1a/P1b split, rolling-forward rules)
+- [x] **SCAF-07**: _config/pipeline_rules.md (all 5 rules including Rule 4 + Rule 5, grandfathering note)
+- [x] **SCAF-08**: _config/statistical_gates.md (verdict thresholds, iteration budgets, Bonferroni gates, drawdown gate)
+- [x] **SCAF-09**: _config/regime_definitions.md (3 dimensions, Stage 05 usage rules)
+- [x] **SCAF-10**: _config/context_review_protocol.md (file length limits, front-loading rule, staleness flag)
 - [ ] **SCAF-11**: shared/feature_definitions.md (entry-time rule, template, empty registered features)
 - [ ] **SCAF-12**: 02-features/references/feature_rules.md (5 rules, ≤30 lines)
 - [ ] **SCAF-13**: 02-features/references/feature_catalog.md (active/dropped/dead-end tables)
@@ -130,16 +130,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PREREQ-02 | Phase 1 | Complete |
 | PREREQ-03 | Phase 1 | Complete |
 | PREREQ-04 | Phase 1 | Complete |
-| SCAF-01 | Phase 1 | Pending |
-| SCAF-02 | Phase 1 | Pending |
-| SCAF-03 | Phase 1 | Pending |
-| SCAF-04 | Phase 1 | Pending |
-| SCAF-05 | Phase 1 | Pending |
-| SCAF-06 | Phase 1 | Pending |
-| SCAF-07 | Phase 1 | Pending |
-| SCAF-08 | Phase 1 | Pending |
-| SCAF-09 | Phase 1 | Pending |
-| SCAF-10 | Phase 1 | Pending |
+| SCAF-01 | Phase 1 | Complete |
+| SCAF-02 | Phase 1 | Complete |
+| SCAF-03 | Phase 1 | Complete |
+| SCAF-04 | Phase 1 | Complete |
+| SCAF-05 | Phase 1 | Complete |
+| SCAF-06 | Phase 1 | Complete |
+| SCAF-07 | Phase 1 | Complete |
+| SCAF-08 | Phase 1 | Complete |
+| SCAF-09 | Phase 1 | Complete |
+| SCAF-10 | Phase 1 | Complete |
 | SCAF-11 | Phase 1 | Pending |
 | SCAF-12 | Phase 1 | Pending |
 | SCAF-13 | Phase 1 | Pending |
