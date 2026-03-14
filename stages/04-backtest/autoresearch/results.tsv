@@ -1,0 +1,2 @@
+run_id	stage	timestamp	hypothesis_name	archetype	version	features	pf_p1	pf_p2	trades_p1	trades_p2	mwu_p	perm_p	pctile	n_prior_tests	verdict	sharpe_p1	max_dd_ticks	avg_winner_ticks	dd_multiple	win_rate	regime_breakdown	api_cost_usd	notes
+2836418	04-backtest	2026-03-14T10:36:29		zone_touch	v1		0.4533655411476163		4674					0	seeded		83094.0			0.3380402225074882			
