@@ -31,9 +31,20 @@ _DEFAULT_OUTPUT_DIR = _REPO_ROOT / "stages" / "02-features" / "output"
 def _load_feature_engine(current_best_dir: Path):
     """Load current_best/feature_engine.py via importlib.
 
+    feature_engine.py uses Path(__file__).resolve().parents[N] to locate the repo root.
+    This resolution only works from the canonical depth (shared/archetypes/<archetype>/).
+    When loaded from current_best/ the depth is wrong and instrument lookups fail.
+
+    Strategy: read the archetype name from the comment on line 1, then load the module
+    using spec_from_file_location with the CANONICAL path as the origin (so __file__
+    resolves correctly) but execute the SOURCE from current_best/ (so we get the agent's
+    latest edits, not the canonical copy which may be older).
+
     Returns the loaded module.
     Raises FileNotFoundError if feature_engine.py is not found.
     """
+    import types
+
     feature_engine_path = current_best_dir / "feature_engine.py"
     if not feature_engine_path.exists():
         raise FileNotFoundError(
@@ -41,9 +52,27 @@ def _load_feature_engine(current_best_dir: Path):
             f"Ensure the autoresearch loop has run and produced a current_best/ directory."
         )
 
-    spec = importlib.util.spec_from_file_location("feature_engine", str(feature_engine_path))
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    # Read source from current_best (agent's latest version)
+    source_text = feature_engine_path.read_text(encoding="utf-8")
+
+    # Determine canonical path from archetype comment on line 1
+    # e.g. "# archetype: zone_touch" -> shared/archetypes/zone_touch/feature_engine.py
+    archetype = "zone_touch"  # default
+    for line in source_text.splitlines()[:3]:
+        if line.startswith("# archetype:"):
+            archetype = line.split(":", 1)[1].strip()
+            break
+
+    # Use canonical path as __file__ so parents[3] = repo root
+    canonical_path = _REPO_ROOT / "shared" / "archetypes" / archetype / "feature_engine.py"
+    load_path = canonical_path if canonical_path.exists() else feature_engine_path
+
+    # Compile source from current_best but set __file__ to canonical path
+    code = compile(source_text, str(load_path), "exec")
+    module = types.ModuleType("feature_engine_freeze")
+    module.__file__ = str(load_path)
+    module.__spec__ = None
+    exec(code, module.__dict__)  # noqa: S102
     return module
 
 
