@@ -1,0 +1,13 @@
+{
+  "model_id": "{archetype}_{variant}",
+  "frozen_date": "YYYY-MM-DD",
+  "max_score": 0,
+  "threshold": 0,
+  "description": "Frozen scoring weights for {archetype} {variant} -- do not modify after freezing",
+  "weights": {
+    "{feature_name}": { "bins": ["low", "mid", "high"], "scores": [0, 0, 0] }
+  },
+  "bin_edges": {
+    "{feature_name}": [0.0, 0.0]
+  }
+}
