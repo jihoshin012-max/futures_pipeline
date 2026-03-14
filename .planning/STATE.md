@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-01-PLAN.md (hmm_regime_fitter.py committed, 7 tests green, regime_labels.csv and hmm_regime_v1.pkl generated)
-last_updated: "2026-03-14T02:08:21.070Z"
+stopped_at: Completed 02-02-PLAN.md (regime_labels.csv and hmm_regime_v1.pkl committed, strategy_archetypes.md updated, 13 tests green)
+last_updated: "2026-03-14T02:11:42.237Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 8
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 17
 ---
 
@@ -59,6 +59,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-scaffold P06 | 1 | 2 tasks | 5 files |
 | Phase 01.1-scoring-adapter-scaffold-generator P01 | 1 | 2 tasks | 2 files |
 | Phase 02-hmm-regime-fitter P01 | 4 | 2 tasks | 4 files |
+| Phase 02-hmm-regime-fitter P02 | 5 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase 02-hmm-regime-fitter]: Three independent GaussianHMMs (trend 2-state, vol 3-state) plus calendar macro — not joint HMM — for independent per-dimension label columns in regime_labels.csv
 - [Phase 02-hmm-regime-fitter]: predict_proba().argmax() (filtered posteriors) for regime labels, not predict() (Viterbi) — per pipeline requirements
 - [Phase 02-hmm-regime-fitter]: P1 standardization stats stored as _p1_mean/_p1_std on fitted model; P1 mask uses <= P1_END (inclusive); P1 row count asserted == 77 before fit()
+- [Phase 02-hmm-regime-fitter]: Artifacts (regime_labels.csv, hmm_regime_v1.pkl) committed in Plan 02 after validation — separates fitter code delivery from validated artifact delivery
+- [Phase 02-hmm-regime-fitter]: Shared Scoring Models section in strategy_archetypes.md placed above archetype placeholder — shared resources registration pattern established for pkl model artifacts
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T02:08:21.067Z
-Stopped at: Completed 02-01-PLAN.md (hmm_regime_fitter.py committed, 7 tests green, regime_labels.csv and hmm_regime_v1.pkl generated)
+Last session: 2026-03-14T02:11:42.234Z
+Stopped at: Completed 02-02-PLAN.md (regime_labels.csv and hmm_regime_v1.pkl committed, strategy_archetypes.md updated, 13 tests green)
 Resume file: None
