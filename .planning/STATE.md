@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Futures Pipeline
 status: complete
 stopped_at: v1.0 milestone completed and archived
-last_updated: "2026-03-14T22:45:00.000Z"
-last_activity: 2026-03-14 — v1.0 milestone completed, archived, and tagged
+last_updated: "2026-03-14T23:00:00.000Z"
+last_activity: 2026-03-14 — quick task 1 complete: per-archetype period boundaries (PM-01)
 progress:
   total_phases: 9
   completed_phases: 9
@@ -75,6 +75,8 @@ Progress: [██████████] 100%
 
 See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 
+- quick-1 (PM-01): Per-archetype period boundaries in period_config.md; validate.py generates archetypes key in data_manifest.json. Flat periods kept as zone_touch-aliased backwards-compat structure.
+
 ### Pending Todos
 
 None — milestone complete.
@@ -85,6 +87,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-14T22:45:00.000Z
-Stopped at: v1.0 milestone completed and archived
+Last session: 2026-03-14T23:00:00.000Z
+Stopped at: Completed quick task 1 — per-archetype period boundaries
 Resume file: None
