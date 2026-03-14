@@ -1,0 +1,55 @@
+# Strategy Archetypes
+last_reviewed: 2026-03-14
+# Add new archetype here before running Stage 03 autoresearch for it.
+# Required fields: simulator module, required data, optimization surface.
+
+---
+
+## [Add first archetype here after completing NEW ARCHETYPE INTAKE checklist]
+
+See Futures_Pipeline_Architecture_ICM.md "New strategy archetype" checklist for intake requirements.
+
+---
+
+## [future archetype template]
+- Description: [what this strategy does]
+- Instrument: [symbol from _config/instruments.md]
+- Required data: [source_ids from data_registry.md]
+- Simulator module: [shared/archetypes/{name}/{name}_simulator.py]
+- Scoring model: [shared/scoring_models/{name}_v1.json -- or none if no scoring]
+- Scoring adapter: [BinnedScoringAdapter | SklearnScoringAdapter | ONNXScoringAdapter]
+- feature_evaluator: shared/archetypes/{name}/feature_evaluator.py
+- feature_engine: shared/archetypes/{name}/feature_engine.py
+- Optimization surface: [params the agent may vary in Stage 04]
+- Structural reference: [stages/06-deployment/references/{name}_reference.cpp or equivalent]
+- Current status: hypothesis stage
+
+---
+
+## Simulator Interface Contract
+
+backtest_engine.py loads simulators by module name at runtime via config.archetype.simulator_module.
+
+Interface:
+
+```python
+def run(bar_df, touch_row, config, bar_offset) -> SimResult
+```
+
+Rules:
+- Pure function -- no I/O, no side effects, no global state
+- Returns SimResult dataclass with: pnl_ticks, win (bool), exit_reason, bars_held
+- Violation breaks backtest_engine.py and all autoresearch loops
+- Adding a new strategy = write a new module conforming to this interface
+
+SimResult dataclass (reference):
+```python
+from dataclasses import dataclass
+
+@dataclass
+class SimResult:
+    pnl_ticks: float
+    win: bool
+    exit_reason: str
+    bars_held: int
+```
