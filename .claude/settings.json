@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Read(//c/Users/jshin/.claude/get-shit-done/templates/research-project/**)",
+      "WebSearch",
+      "Read(//c/Users/jshin/.claude/get-shit-done/templates/**)",
+      "Skill(gsd:insert-phase)",
+      "Skill(gsd:insert-phase:*)"
+    ],
+    "additionalDirectories": [
+      "C:\\Projects\\pipeline"
+    ]
+  }
+}

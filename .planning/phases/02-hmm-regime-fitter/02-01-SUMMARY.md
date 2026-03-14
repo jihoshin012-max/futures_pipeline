@@ -138,3 +138,16 @@ None - no external service configuration required.
 ---
 *Phase: 02-hmm-regime-fitter*
 *Completed: 2026-03-14*
+
+## Self-Check: PASSED
+
+- FOUND: stages/01-data/hmm_regime_fitter.py (442 lines, 10 functions — min 150 required)
+- FOUND: tests/test_hmm_regime_fitter.py (276 lines, 7 test functions — min 80 required)
+- FOUND: stages/01-data/data/labels/regime_labels.csv (144 rows, 4 columns confirmed)
+- FOUND: shared/scoring_models/hmm_regime_v1.pkl (round-trip verified in main())
+- FOUND: .planning/phases/02-hmm-regime-fitter/02-01-SUMMARY.md
+- COMMIT 97a6a8b: test(02-01) RED phase — verified in git log
+- COMMIT e4036a2: feat(02-01) GREEN phase — verified in git log
+- COMMIT 854067f: docs(02-01) metadata — verified in git log
+- 7 pytest tests: PASSED in 2.92s
+- 13 total tests (full suite): PASSED

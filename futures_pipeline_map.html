@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Futures Pipeline — Architecture Map</title>
+<style>
+  :root {
+    --bg:#ffffff; --bg2:#f5f4f0; --bg3:#eeede8;
+    --text:#1a1a18; --text2:#5f5e5a; --text3:#6b6a65;
+    --line:rgba(0,0,0,0.52); --dash:rgba(0,0,0,0.40);
+    --purple-50:#EEEDFE; --purple-600:#534AB7; --purple-800:#3C3489;
+    --teal-50:#E1F5EE;   --teal-600:#0F6E56;   --teal-800:#085041;
+    --blue-50:#E6F1FB;   --blue-600:#185FA5;   --blue-800:#0C447C;
+    --coral-50:#FAECE7;  --coral-600:#993C1D;  --coral-800:#712B13;
+    --amber-50:#FAEEDA;  --amber-100:#FAC775;  --amber-600:#854F0B; --amber-800:#633806;
+    --gray-50:#F1EFE8;   --gray-600:#5F5E5A;   --gray-800:#444441;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#1a1a18; --bg2:#242420; --bg3:#2e2e2a;
+      --text:#e8e6dc; --text2:#b4b2a9; --text3:#9c9a92;
+      --line:rgba(255,255,255,0.60); --dash:rgba(255,255,255,0.42);
+      --purple-50:#26215C; --purple-600:#AFA9EC; --purple-800:#CECBF6;
+      --teal-50:#04342C;   --teal-600:#5DCAA5;   --teal-800:#9FE1CB;
+      --blue-50:#042C53;   --blue-600:#85B7EB;   --blue-800:#B5D4F4;
+      --coral-50:#4A1B0C;  --coral-600:#F0997B;  --coral-800:#F5C4B3;
+      --amber-50:#412402;  --amber-100:#633806;  --amber-600:#EF9F27; --amber-800:#FAC775;
+      --gray-50:#2C2C2A;   --gray-600:#B4B2A9;   --gray-800:#D3D1C7;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px 12px 60px}
+  header{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:0.5px solid var(--dash)}
+  header h1{font-size:16px;font-weight:500}
+  header p{font-size:12px;color:var(--text3)}
+  .toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+  .btn{font-size:12px;padding:4px 12px;border:0.5px solid var(--dash);border-radius:6px;background:var(--bg2);color:var(--text2);cursor:pointer;transition:background .12s}
+  .btn:hover{background:var(--bg3)}
+  .btn.active{background:var(--blue-50);color:var(--blue-800);border-color:var(--blue-600)}
+  .hint{font-size:12px;color:var(--text3);margin-left:auto}
+  #wrap{width:100%;overflow-x:auto}
+  svg{display:block}
+  .nd{cursor:pointer}
+  .nd>rect{transition:opacity .14s}
+  .nd:hover>rect{opacity:.80}
+  .nd.dimmed{opacity:.07}
+  .f-purple{fill:var(--purple-50);stroke:var(--purple-600)}
+  .f-teal  {fill:var(--teal-50);  stroke:var(--teal-600)}
+  .f-blue  {fill:var(--blue-50);  stroke:var(--blue-600)}
+  .f-coral {fill:var(--coral-50); stroke:var(--coral-600)}
+  .f-amber {fill:var(--amber-50); stroke:var(--amber-600)}
+  .f-gray  {fill:var(--gray-50);  stroke:var(--gray-600)}
+  .f-ambox {fill:var(--bg);       stroke:var(--amber-600)}
+  .t-purple{fill:var(--purple-800)}
+  .t-teal  {fill:var(--teal-800)}
+  .t-blue  {fill:var(--blue-800)}
+  .t-coral {fill:var(--coral-800)}
+  .t-amber {fill:var(--amber-800)}
+  .t-gray  {fill:var(--gray-800)}
+  .t-sub   {fill:var(--text3)}
+  .cn {stroke:var(--line); stroke-width:1.2; fill:none}
+  .das{stroke:var(--dash); stroke-width:1.1; fill:none; stroke-dasharray:5 4}
+  .icm-arr{stroke:var(--amber-600); stroke-width:1.4; fill:none}
+  .lgb{fill:var(--bg2);stroke:var(--dash);stroke-width:0.5}
+  .tooltip{position:fixed;background:var(--bg);border:0.5px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;max-width:290px;pointer-events:none;opacity:0;transition:opacity .12s;z-index:100;box-shadow:0 4px 18px rgba(0,0,0,0.14)}
+  .tooltip.show{opacity:1}
+  .tooltip strong{display:block;font-size:13px;margin-bottom:4px}
+  .tooltip span{color:var(--text2);line-height:1.55}
+  .notes{max-width:1260px;margin:32px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .note{background:var(--bg2);border-radius:10px;padding:20px 22px;border-left:3px solid var(--blue-600)}
+  .note:nth-child(1){border-left-color:var(--amber-600)}
+  .note:nth-child(2){border-left-color:var(--blue-600)}
+  .note:nth-child(3){border-left-color:var(--teal-600)}
+  .note:nth-child(4){border-left-color:var(--coral-600)}
+  .note h3{font-size:13px;font-weight:500;margin-bottom:8px;color:var(--text)}
+  .note p{font-size:12px;color:var(--text2);line-height:1.65}
+  .note code{font-family:monospace;font-size:11px;background:var(--bg3);padding:1px 5px;border-radius:3px;color:var(--text)}
+  @media(max-width:700px){.notes{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Futures Pipeline &#8212; Architecture Map</h1>
+  <p>Hover nodes for details &middot; Filter by layer</p>
+</header>
+<div class="toolbar">
+  <button class="btn active" onclick="filterLayer('all',this)">All</button>
+  <button class="btn" onclick="filterLayer('icm',this)">ICM layer</button>
+  <button class="btn" onclick="filterLayer('stages',this)">Stages</button>
+  <button class="btn" onclick="filterLayer('config',this)">_config</button>
+  <button class="btn" onclick="filterLayer('shared',this)">shared</button>
+  <button class="btn" onclick="filterLayer('audit',this)">Audit / infra</button>
+  <span class="hint">&#x1F501; autoresearch &nbsp;&middot;&nbsp; &#x270F;&#xFE0F; agent edits &nbsp;&middot;&nbsp; - - - reads/feeds</span>
+</div>
+
+<div id="wrap">
+<svg width="1260" viewBox="0 0 1260 838" xmlns="http://www.w3.org/2000/svg" id="svg">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- ICM STRIP -->
+<rect x="10" y="10" width="1240" height="90" rx="10"
+      fill="var(--amber-50)" stroke="var(--amber-600)"
+      stroke-width="1.5" stroke-dasharray="7 4"/>
+<text font-family="system-ui" font-size="15" font-weight="600" fill="var(--amber-800)" x="30" y="46">ICM layer</text>
+<text font-family="system-ui" font-size="11" fill="var(--amber-600)" x="30" y="64">agent navigation</text>
+
+<g class="nd" data-layer="icm" data-id="claude-md"
+   data-tip="Always loaded first. Hard limit: 60 lines. Carries the FIVE pipeline rules in first 20 lines: (1) P1 calibrate freely, (2) P2 one-shot only with holdout flag enforcement, (3) entry-time features only, (4) P1a+P1b internal replication before P2, (5) all instrument constants from _config/instruments.md. Also covers CONVENTIONS block, hard prohibitions, stage routing, agent permissions.">
+  <rect class="f-ambox" x="330" y="18" width="170" height="62" rx="6" stroke-width="1"/>
+  <text class="t-amber" font-family="system-ui" font-size="13" font-weight="500" x="415" y="38" text-anchor="middle" dominant-baseline="central">CLAUDE.md</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="415" y="57" text-anchor="middle" dominant-baseline="central">global rules &middot; 60 line cap</text>
+</g>
+
+<line class="icm-arr" x1="500" y1="49" x2="548" y2="49" marker-end="url(#arr)"/>
+
+<g class="nd" data-layer="icm" data-id="context-md"
+   data-tip="Per-stage context file. Hard limit: 80 lines. Contains inputs/outputs table, file path contract, locally-repeated constraints. Never relies on agent cross-referencing CLAUDE.md from memory. Carries last_reviewed front-matter with reviewed_by field. Stale if &gt;90 days.">
+  <rect class="f-ambox" x="550" y="18" width="170" height="62" rx="6" stroke-width="1"/>
+  <text class="t-amber" font-family="system-ui" font-size="13" font-weight="500" x="635" y="38" text-anchor="middle" dominant-baseline="central">stage CONTEXT.md</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="635" y="57" text-anchor="middle" dominant-baseline="central">per-stage &middot; 80 line cap</text>
+</g>
+
+<line class="icm-arr" x1="720" y1="49" x2="768" y2="49" marker-end="url(#arr)"/>
+
+<g class="nd" data-layer="icm" data-id="program-md"
+   data-tip="Agent's immediate task file. Hard limit: 30 lines. Three machine-readable fields parsed by driver loop: METRIC: (what to optimize), KEEP RULE: (improvement threshold), BUDGET: (experiment limit). Human updates each evening to steer the overnight run. Never accumulates experiment history -- that lives in results.tsv. Changing optimization target requires only editing this file; no Python changes needed.">
+  <rect class="f-ambox" x="770" y="18" width="170" height="62" rx="6" stroke-width="1"/>
+  <text class="t-amber" font-family="system-ui" font-size="13" font-weight="500" x="855" y="38" text-anchor="middle" dominant-baseline="central">program.md</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="855" y="57" text-anchor="middle" dominant-baseline="central">immediate task &middot; 30 line cap</text>
+</g>
+
+<text font-family="system-ui" font-size="12" fill="var(--amber-800)" x="968" y="38" dominant-baseline="central">agent reads this sequence</text>
+<text font-family="system-ui" font-size="12" fill="var(--amber-600)" x="968" y="58" dominant-baseline="central">before every stage run</text>
+
+<!-- ICM to root -->
+<line class="icm-arr" x1="635" y1="100" x2="635" y2="116" marker-end="url(#arr)"/>
+
+<!-- ROOT -->
+<g class="nd" data-layer="root" data-id="root"
+   data-tip="Root repository folder. Multi-instrument futures pipeline supporting NQ, ES, GC (extensible). Contains all pipeline stages, shared resources, _config, dashboard, and audit infrastructure. ICM context files live at root level and in each stage subfolder.">
+  <rect class="f-purple" x="545" y="118" width="180" height="44" rx="8" stroke-width="1"/>
+  <text class="t-purple" font-family="system-ui" font-size="14" font-weight="500" x="635" y="140" text-anchor="middle" dominant-baseline="central">futures-pipeline/</text>
+</g>
+
+<line class="cn" x1="635" y1="162" x2="635" y2="200"/>
+<line class="cn" x1="180" y1="200" x2="1090" y2="200"/>
+<line class="cn" x1="220"  y1="200" x2="220"  y2="220"/>
+<line class="cn" x1="420"  y1="200" x2="420"  y2="220"/>
+<line class="cn" x1="635"  y1="200" x2="635"  y2="220"/>
+<line class="cn" x1="870"  y1="200" x2="870"  y2="220"/>
+<line class="cn" x1="1070" y1="200" x2="1070" y2="220"/>
+
+<!-- COLUMN HEADERS -->
+<g class="nd" data-layer="config" data-id="config-root"
+   data-tip="Central config directory. All pipeline rules, period definitions, data registry, statistical gates, and regime definitions live here. No stage hardcodes paths or instrument constants -- everything comes from this directory. The five pipeline rules override any program.md instruction.">
+  <rect class="f-teal" x="130" y="220" width="180" height="38" rx="6" stroke-width="1"/>
+  <text class="t-teal" font-family="system-ui" font-size="14" font-weight="500" x="220" y="239" text-anchor="middle" dominant-baseline="central">_config/</text>
+</g>
+<line class="cn" x1="220" y1="258" x2="220" y2="274"/>
+
+<g class="nd" data-layer="shared" data-id="shared-root"
+   data-tip="Shared resources across stages: feature definitions, feature catalog (failure history), scoring models, scoring adapter interface, and per-archetype files. The archetypes subfolder is the primary extension point -- new strategies add files here without changing any other pipeline structure.">
+  <rect class="f-teal" x="330" y="220" width="180" height="38" rx="6" stroke-width="1"/>
+  <text class="t-teal" font-family="system-ui" font-size="14" font-weight="500" x="420" y="239" text-anchor="middle" dominant-baseline="central">shared/</text>
+</g>
+<line class="cn" x1="420" y1="258" x2="420" y2="274"/>
+
+<g class="nd" data-layer="stages" data-id="stages-header"
+   data-tip="Seven pipeline stages running sequentially. Stages 02, 03, 04 have autoresearch inner loops. Stage 05 writes feedback_to_hypothesis.md which is copied to 03-hypothesis/references/prior_results.md -- the Stage 05 to 03 feedback loop shown by the right-side dashed arrow. Build order for Pass 3: Stage 04 driver first, then 02, then 03.">
+  <rect class="f-blue" x="545" y="220" width="180" height="38" rx="6" stroke-width="1"/>
+  <text class="t-blue" font-family="system-ui" font-size="14" font-weight="500" x="635" y="239" text-anchor="middle" dominant-baseline="central">stages/ (01&#x2013;07)</text>
+</g>
+<line class="cn" x1="635" y1="258" x2="635" y2="278" marker-end="url(#arr)"/>
+
+<g class="nd" data-layer="audit" data-id="dashboard-root"
+   data-tip="Results dashboard. results_master.tsv is 24 columns -- read by header name, never by position. Requires python -m http.server 8000 (fetch() blocked on file://). Full dashboard buildout deferred to Milestone 2 per Futures_Pipeline_Dashboard_Spec.md. Gate to start: Pass 1 complete + at least one row in results_master.tsv.">
+  <rect class="f-teal" x="780" y="220" width="180" height="38" rx="6" stroke-width="1"/>
+  <text class="t-teal" font-family="system-ui" font-size="14" font-weight="500" x="870" y="239" text-anchor="middle" dominant-baseline="central">dashboard/</text>
+</g>
+<line class="cn" x1="870" y1="258" x2="870" y2="274"/>
+
+<g class="nd" data-layer="audit" data-id="audit-root"
+   data-tip="Audit and version control infrastructure. Git hooks auto-append entries on key events: HYPOTHESIS_PROMOTED, OOS_RUN, DEPLOYMENT_APPROVED, PERIOD_CONFIG_CHANGED. EXPERIMENT_ANOMALY entries written by driver loop. All entries append-only -- pre-commit hook blocks line deletions.">
+  <rect class="f-gray" x="980" y="220" width="180" height="38" rx="6" stroke-width="1"/>
+  <text class="t-gray" font-family="system-ui" font-size="14" font-weight="500" x="1070" y="239" text-anchor="middle" dominant-baseline="central">audit/</text>
+</g>
+<line class="cn" x1="1070" y1="258" x2="1070" y2="274"/>
+
+<!-- _config CHILDREN cx=220 pitch=46 -->
+<g class="nd" data-layer="config" data-id="instruments"
+   data-tip="Multi-instrument registry. NQ: tick $5, 0.25pt, 3t round-trip cost. ES: tick $12.50, 0.25pt, 1t cost. GC: tick $10, 0.10pt, 2t cost. Rule 5 of the five pipeline rules: every instrument constant must be read from this file -- no hardcoding anywhere. Changing cost_ticks affects all historical PF calculations; requires human approval.">
+  <rect class="f-teal" x="130" y="274" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="220" y="290" text-anchor="middle" dominant-baseline="central">instruments.md</text>
+</g>
+<line class="cn" x1="220" y1="306" x2="220" y2="320"/>
+
+<g class="nd" data-layer="config" data-id="data-registry"
+   data-tip="Single source of truth for all data sources. Maps source_id to file pattern, periods available, and which stages consume it. Stage 01 reads this to know what to load and validate. Every source_id must have a matching schema doc in 01-data/references/. bar_data source registered with {SYMBOL}_BarData prefix pattern.">
+  <rect class="f-teal" x="130" y="320" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="220" y="336" text-anchor="middle" dominant-baseline="central">data_registry.md</text>
+</g>
+<line class="cn" x1="220" y1="352" x2="220" y2="366"/>
+
+<g class="nd" data-layer="config" data-id="period-config"
+   data-tip="IS/OOS period definitions. P1 2025-09-16 to 2025-12-14 (IS). P2 2025-12-15 to 2026-03-02 (OOS). Sub-splits: P1a 2025-09-16 to 2025-10-31 (calibrate), P1b 2025-11-01 to 2025-12-14 (replicate). P3 expected ~Jun 2026. Pre-commit hook fires CONTEXT.md review reminder whenever this file changes. NEVER edit mid-run.">
+  <rect class="f-teal" x="130" y="366" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="220" y="382" text-anchor="middle" dominant-baseline="central">period_config.md</text>
+</g>
+<line class="cn" x1="220" y1="398" x2="220" y2="412"/>
+
+<g class="nd" data-layer="config" data-id="stat-gates"
+   data-tip="Verdict gates -- YES: PF&gt;=2.5, trades&gt;=50, MWU p&lt;0.05, perm p&lt;0.05, pctile&gt;=99, dd_multiple&lt;3. Bonferroni-adjusted MWU threshold: n&lt;=10 p&lt;0.05, n11-50 p&lt;0.02, n51-200 p&lt;0.01, n&gt;200 automatic NO. Iteration budgets: Stage 02 300, Stage 03 200, Stage 04 500. Stage 05 reads n_prior_tests from results_master.tsv -- failed experiments mechanically raise the significance bar for all future experiments.">
+  <rect class="f-teal" x="130" y="412" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="220" y="428" text-anchor="middle" dominant-baseline="central">statistical_gates.md</text>
+</g>
+<line class="cn" x1="220" y1="444" x2="220" y2="458"/>
+
+<g class="nd" data-layer="config" data-id="pipeline-rules"
+   data-tip="The FIVE rules -- override any program.md instruction. (1) P1 IS used freely. (2) P2 OOS runs exactly once, frozen params, holdout_locked_P2.flag enforces structurally. (3) Every feature entry-time computable only -- features marked NO are blocked. (4) P1a AND P1b both pass before P2 (Rule 4 -- grandfathering applies to strategies calibrated before Rule 4 was introduced). (5) All instrument constants from instruments.md. Done check: all five rules present AND grandfathering note present.">
+  <rect class="f-teal" x="130" y="458" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="220" y="474" text-anchor="middle" dominant-baseline="central">pipeline_rules.md</text>
+</g>
+<line class="cn" x1="220" y1="490" x2="220" y2="504"/>
+
+<g class="nd" data-layer="config" data-id="regime-defs"
+   data-tip="Regime definitions across three dimensions: Trend (ADX&gt;25 trending / ranging), Volatility (daily ATR vs 20-day avg: high/normal/low), Macro (event_day FOMC+CPI+NFP / normal_day). HMM fitter (Task 1-09b) fit on P1 bar data only -- frozen model applied to P2. regime_labels.csv covers both periods. Stage 05 includes breakdown when n&gt;=20 per bucket.">
+  <rect class="f-teal" x="130" y="504" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="220" y="520" text-anchor="middle" dominant-baseline="central">regime_definitions.md</text>
+</g>
+<line class="cn" x1="220" y1="536" x2="220" y2="550"/>
+
+<g class="nd" data-layer="config" data-id="context-review"
+   data-tip="Protocol for keeping CONTEXT.md files fresh. Review triggers: period rollover, new archetype added, &gt;90 days since last review, EXPERIMENT_ANOMALY detected. Each CONTEXT.md carries last_reviewed and reviewed_by front-matter. Pre-commit hook warns on period_config.md changes with reminder to review all CONTEXT.md files.">
+  <rect class="f-teal" x="130" y="550" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="220" y="566" text-anchor="middle" dominant-baseline="central">context_review.md</text>
+</g>
+
+<!-- shared CHILDREN cx=420 pitch=46
+     9 nodes: feature_definitions, feature_catalog (NEW), scoring_models,
+              scoring_adapter (NEW), archetypes/{name}/, feature_engine,
+              feature_evaluator, simulation_rules, exit_templates
+     y: 274, 320, 366, 412, 458, 504, 550, 596, 642 -->
+
+<g class="nd" data-layer="shared" data-id="feature-defs"
+   data-tip="Registers every approved feature: source data, formula, P1-frozen bin edges, entry-time computable flag. Features flagged NO are permanently blocked. Populated from scratch as Stage 02 autoresearch approves features. Bin edges frozen here; BinnedScoringAdapter reads them -- backtest_engine never touches them directly.">
+  <rect class="f-teal" x="330" y="274" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="420" y="290" text-anchor="middle" dominant-baseline="central">feature_definitions.md</text>
+</g>
+<line class="cn" x1="420" y1="306" x2="420" y2="320"/>
+
+<g class="nd" data-layer="shared" data-id="feature-catalog"
+   data-tip="Complete history of all features explored by Stage 02 autoresearch. Three sections: Active (in frozen_features.json), Explored and dropped (spread, p-value, reason, date), Dead ends -- do not retry (human-curated explanation). No line limit -- reference doc. Agent reads this via program.md direction each run to avoid repeating dead ends. Human updates after overnight runs.">
+  <rect class="f-teal" x="330" y="320" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="420" y="336" text-anchor="middle" dominant-baseline="central">feature_catalog.md</text>
+</g>
+<line class="cn" x1="420" y1="352" x2="420" y2="366"/>
+
+<g class="nd" data-layer="shared" data-id="scoring-models"
+   data-tip="JSON scoring models: weights + bin_edges frozen from P1 IS data. backtest_engine.py never touches bin_edges or weights directly -- always accesses via scoring_adapter.py. Path: shared/scoring_models/{archetype}_{variant}.json. _template.json defines required schema. Also holds hmm_regime_v1.pkl (frozen HMM model).">
+  <rect class="f-teal" x="330" y="366" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="420" y="382" text-anchor="middle" dominant-baseline="central">scoring_models/*.json</text>
+</g>
+<line class="cn" x1="420" y1="398" x2="420" y2="412"/>
+
+<g class="nd" data-layer="shared" data-id="scoring-adapter"
+   data-tip="Adapter interface decoupling backtest_engine.py from scoring model format. Protocol: score(touch_df) -&gt; pd.Series. Three implementations: BinnedScoringAdapter (JSON weights + bin_edges -- current default), SklearnScoringAdapter (RF/XGBoost -- future), ONNXScoringAdapter (neural net -- future). Factory: load_scoring_adapter(model_path, adapter_type). adapter_type registered per-archetype in strategy_archetypes.md. Adding a new model format = new adapter class, zero engine changes.">
+  <rect class="f-teal" x="330" y="412" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="420" y="428" text-anchor="middle" dominant-baseline="central">scoring_adapter.py</text>
+</g>
+<line class="cn" x1="420" y1="444" x2="420" y2="458"/>
+
+<g class="nd" data-layer="shared" data-id="archetypes-root"
+   data-tip="One subfolder per strategy archetype -- the primary pipeline extension point. New archetypes add files here without changing any other pipeline structure. New archetype intake checklist (in spec) must be completed before Stage 03 autoresearch can run. simulator_module named here is loaded dynamically by backtest_engine.py (Option B).">
+  <rect class="f-coral" x="330" y="458" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-coral" font-family="system-ui" font-size="12" x="420" y="474" text-anchor="middle" dominant-baseline="central">archetypes/{name}/</text>
+</g>
+<line class="cn" x1="420" y1="490" x2="420" y2="504"/>
+
+<g class="nd" data-layer="shared" data-id="feature-engine"
+   data-tip="AGENT EDITS THIS. Stage 02 autoresearch writes new feature extraction logic here. Agent may only touch this file -- feature_evaluator.py is off-limits (fixed harness). evaluate_features.py dispatcher calls this at runtime. Rule: one feature added or modified per experiment, no batching. Every archetype-specific Python file must include on line 1: # archetype: {name}">
+  <rect class="f-coral" x="330" y="504" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-coral" font-family="system-ui" font-size="12" x="420" y="520" text-anchor="middle" dominant-baseline="central">feature_engine.py &#x270F;</text>
+</g>
+<line class="cn" x1="420" y1="536" x2="420" y2="550"/>
+
+<g class="nd" data-layer="shared" data-id="feature-evaluator"
+   data-tip="Fixed harness -- agent never modifies. Interface: evaluate() -&gt; {features:[{name, spread, mwu_p, kept}], n_touches:int}. Loads P1 data via data_manifest.json (no hardcoded paths), calls feature_engine.py, computes best-bin vs worst-bin predictive spread and Mann-Whitney U p-value per feature. Called by evaluate_features.py dispatcher.">
+  <rect class="f-coral" x="330" y="550" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-coral" font-family="system-ui" font-size="12" x="420" y="566" text-anchor="middle" dominant-baseline="central">feature_evaluator.py</text>
+</g>
+<line class="cn" x1="420" y1="582" x2="420" y2="596"/>
+
+<g class="nd" data-layer="shared" data-id="sim-rules"
+   data-tip="Archetype-specific simulation rules: entry mechanics, bar offset, cost model, exit mechanics per mode, routing waterfall. cost_ticks source: _config/instruments.md (Rule 5 -- never hardcode in config JSON). Transcribed from actual simulator source -- do not invent behavior. backtest_engine.py loads the simulator module named here at runtime (Option B dynamic dispatch).">
+  <rect class="f-coral" x="330" y="596" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-coral" font-family="system-ui" font-size="12" x="420" y="612" text-anchor="middle" dominant-baseline="central">simulation_rules.md</text>
+</g>
+<line class="cn" x1="420" y1="628" x2="420" y2="642"/>
+
+<g class="nd" data-layer="shared" data-id="exit-templates"
+   data-tip="Exit parameter patterns for this archetype -- Stage 04 agent reads before proposing changes. Documents multi-leg partial exit, single-leg exit, trail mechanics. Trail steps: array of {trigger_ticks, new_stop_ticks}. BE is trail_steps[0] with new_stop_ticks=0 -- no separate be_trigger_ticks field. Optimization surface vs fixed fields clearly defined. Agent may vary 1-6 trail steps.">
+  <rect class="f-coral" x="330" y="642" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-coral" font-family="system-ui" font-size="12" x="420" y="658" text-anchor="middle" dominant-baseline="central">exit_templates.md</text>
+</g>
+
+<!-- STAGES SPINE cx=635 h=48 pitch=70 -->
+<g class="nd" data-layer="stages" data-id="stage-01"
+   data-tip="Load, validate, register data. Reads data_registry.md for source catalog. Produces data_manifest.json: paths, row counts, schema versions, bar_offset. Also runs hmm_regime_fitter.py -- fits HMM on P1 bar data only, applies frozen model to P2, writes regime_labels.csv covering both periods, serializes hmm_regime_v1.pkl. Human checkpoint required before any downstream stage runs.">
+  <rect class="f-blue" x="545" y="278" width="180" height="48" rx="7" stroke-width="1"/>
+  <text class="t-blue" font-family="system-ui" font-size="14" font-weight="500" x="635" y="296" text-anchor="middle" dominant-baseline="central">01-data/</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="635" y="316" text-anchor="middle" dominant-baseline="central">validate &middot; manifest &middot; HMM regime</text>
+</g>
+<line class="cn" x1="635" y1="326" x2="635" y2="348" marker-end="url(#arr)"/>
+
+<g class="nd" data-layer="stages" data-id="stage-02"
+   data-tip="Autoresearch loop. evaluate_features.py dispatches to archetype's feature_evaluator.py. Agent edits feature_engine.py only. Metric: best-bin vs worst-bin predictive spread on P1. Keep rule: spread &gt; 0.15 AND MWU p &lt; 0.10. Budget: 300. Reads feature_catalog.md to avoid dead ends. Approved features flow to frozen_features.json then to Stage 03.">
+  <rect class="f-blue" x="545" y="348" width="180" height="48" rx="7" stroke-width="1"/>
+  <text class="t-blue" font-family="system-ui" font-size="14" font-weight="500" x="635" y="366" text-anchor="middle" dominant-baseline="central">02-features/ &#x1F501;</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="635" y="386" text-anchor="middle" dominant-baseline="central">evaluate_features.py</text>
+</g>
+<line class="cn" x1="635" y1="396" x2="635" y2="418" marker-end="url(#arr)"/>
+
+<g class="nd" data-layer="stages" data-id="stage-03"
+   data-tip="Autoresearch loop. Agent edits hypothesis_config.json. Fixed harness: hypothesis_generator.py enforces Rule 4 structurally -- runs P1a then P1b independently; replication_pass:false yields verdict NO regardless of PF. Metric: P1 PF@3t. Keep rule: PF improves &gt;0.1 AND replication_pass:true. Budget: 200. Reads prior_results.md (wired from Stage 05 feedback loop).">
+  <rect class="f-blue" x="545" y="418" width="180" height="48" rx="7" stroke-width="1"/>
+  <text class="t-blue" font-family="system-ui" font-size="14" font-weight="500" x="635" y="436" text-anchor="middle" dominant-baseline="central">03-hypothesis/ &#x1F501;</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="635" y="456" text-anchor="middle" dominant-baseline="central">hypothesis_config.json</text>
+</g>
+<line class="cn" x1="635" y1="466" x2="635" y2="488" marker-end="url(#arr)"/>
+
+<g class="nd" data-layer="stages" data-id="stage-04"
+   data-tip="Autoresearch loop. Agent edits exit_params.json. backtest_engine.py loads simulator via config.archetype.simulator_module (Option B dynamic dispatch) and scoring adapter via config.archetype.scoring_adapter -- engine never hardcodes either. Holdout guard aborts if holdout_locked_P2.flag + P2 paths detected (engine-level, not just hook). Metric: P1 PF@3t. Keep rule: PF &gt;0.05. Budget: 500. Writes run_id (git short hash) to results_master.tsv.">
+  <rect class="f-blue" x="545" y="488" width="180" height="48" rx="7" stroke-width="1"/>
+  <text class="t-blue" font-family="system-ui" font-size="14" font-weight="500" x="635" y="506" text-anchor="middle" dominant-baseline="central">04-backtest/ &#x1F501;</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="635" y="526" text-anchor="middle" dominant-baseline="central">backtest_engine.py</text>
+</g>
+<line class="cn" x1="635" y1="536" x2="635" y2="558" marker-end="url(#arr)"/>
+
+<g class="nd" data-layer="stages" data-id="stage-05"
+   data-tip="Statistical assessment -- deterministic, no exploration. Reads n_prior_tests from results_master.tsv to apply Bonferroni-adjusted MWU gate. Computes: MWU, permutation test (10k shuffles), percentile rank (10k random strategies), drawdown multiple (dd/avg_winner). Regime breakdown when n&gt;=20 per bucket. Outputs verdict_report.md + feedback_to_hypothesis.md (copied to 03-hypothesis/references/prior_results.md). Human decides promotion.">
+  <rect class="f-blue" x="545" y="558" width="180" height="48" rx="7" stroke-width="1"/>
+  <text class="t-blue" font-family="system-ui" font-size="14" font-weight="500" x="635" y="576" text-anchor="middle" dominant-baseline="central">05-assessment/</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="635" y="596" text-anchor="middle" dominant-baseline="central">verdict_report.md</text>
+</g>
+<line class="cn" x1="635" y1="606" x2="635" y2="628" marker-end="url(#arr)"/>
+
+<g class="nd" data-layer="stages" data-id="stage-06"
+   data-tip="ACSIL deployment context assembly. assemble_context.sh reads archetype name from frozen_params.json, looks up structural reference path from strategy_archetypes.md -- no hardcoded .cpp paths. Assembles six-section context package for Claude Code. Human fires generation prompt, reviews .cpp, compiles in Sierra Chart, verifies on replay, creates deployment_ready.flag. Never automated.">
+  <rect class="f-blue" x="545" y="628" width="180" height="48" rx="7" stroke-width="1"/>
+  <text class="t-blue" font-family="system-ui" font-size="14" font-weight="500" x="635" y="646" text-anchor="middle" dominant-baseline="central">06-deployment/</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="635" y="666" text-anchor="middle" dominant-baseline="central">assemble_context.sh</text>
+</g>
+<line class="cn" x1="635" y1="676" x2="635" y2="698" marker-end="url(#arr)"/>
+
+<g class="nd" data-layer="stages" data-id="stage-07"
+   data-tip="Live performance monitor -- no autoresearch, no code generation, no backtest runs. paper_trades.csv: manual export from live trading system. Compares live trades to backtest expectations from verdict_report.json. review_triggers.md defines thresholds for PF degradation, drawdown, trade frequency drift. After 200+ live trades flags for IS promotion evaluation. Appends rows to results_master.tsv.">
+  <rect class="f-blue" x="545" y="698" width="180" height="48" rx="7" stroke-width="1"/>
+  <text class="t-blue" font-family="system-ui" font-size="14" font-weight="500" x="635" y="716" text-anchor="middle" dominant-baseline="central">07-live/</text>
+  <text class="t-sub" font-family="system-ui" font-size="11" x="635" y="736" text-anchor="middle" dominant-baseline="central">paper_trades.csv</text>
+</g>
+
+<!-- DASHBOARD CHILDREN cx=870 -->
+<g class="nd" data-layer="audit" data-id="results-tsv"
+   data-tip="Master results ledger. 24 columns (read by header name never by position): run_id, stage, timestamp, hypothesis_name, archetype, version, features, pf_p1, pf_p2, trades_p1, trades_p2, mwu_p, perm_p, pctile, n_prior_tests, verdict, sharpe_p1, max_dd_ticks, avg_winner_ticks, dd_multiple, win_rate, regime_breakdown, api_cost_usd, notes. n_prior_tests here drives Bonferroni gate in Stage 05 -- failed experiments compound into raising the significance bar.">
+  <rect class="f-teal" x="780" y="274" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="870" y="290" text-anchor="middle" dominant-baseline="central">results_master.tsv</text>
+</g>
+<line class="cn" x1="870" y1="306" x2="870" y2="320"/>
+
+<g class="nd" data-layer="audit" data-id="index-html"
+   data-tip="Dashboard frontend -- stub only in Pass 1. Full implementation in Milestone 2 per Futures_Pipeline_Dashboard_Spec.md. Will render strategy cards, regime breakdown charts, PF timeline. Reads results_master.tsv via fetch(). Requires python -m http.server 8000.">
+  <rect class="f-teal" x="780" y="320" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="870" y="336" text-anchor="middle" dominant-baseline="central">index.html</text>
+</g>
+<line class="cn" x1="870" y1="352" x2="870" y2="366"/>
+
+<g class="nd" data-layer="audit" data-id="data-manifest"
+   data-tip="Stage 01 output, consumed by multiple downstream stages. Contains: paths for every registered source per period, row counts, schema_version, bar_offset (verified offset_bars and method), validation_summary. Consumers: feature_evaluator.py reads P1 source paths (no hardcoded paths), hypothesis_generator.py date-slices P1 for P1a/P1b, Stage 05 supplementary validation. backtest_engine.py takes explicit paths from config (not this file -- Q1 answer). Never hand-edited -- produced by Stage 01 only.">
+  <rect class="f-teal" x="780" y="366" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="870" y="382" text-anchor="middle" dominant-baseline="central">data_manifest.json</text>
+</g>
+<line class="cn" x1="870" y1="398" x2="870" y2="412"/>
+
+<g class="nd" data-layer="audit" data-id="frozen-params"
+   data-tip="Stage 04 output consumed by Stage 06. Contains: all exit params as optimized (stop_ticks, targets, trail_steps, time_cap_bars), archetype name, scoring_model_path. assemble_context.sh reads archetype.name from this file to look up the structural reference path in strategy_archetypes.md. Also carries version field written to results_master.tsv version column. Never modified after freezing -- represents exact params behind the P1 verdict. Written by driver when human promotes a result.">
+  <rect class="f-teal" x="780" y="412" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-teal" font-family="system-ui" font-size="12" x="870" y="428" text-anchor="middle" dominant-baseline="central">frozen_params.json</text>
+</g>
+
+<!-- AUDIT CHILDREN cx=1070 -->
+<g class="nd" data-layer="audit" data-id="audit-log"
+   data-tip="Immutable audit trail -- append-only, pre-commit hook blocks line deletions. Auto-entries on: HYPOTHESIS_PROMOTED (hypothesis moved to promoted_hypotheses/), OOS_RUN (holdout_locked_P2.flag created), DEPLOYMENT_APPROVED (deployment_ready.flag created), PERIOD_CONFIG_CHANGED. EXPERIMENT_ANOMALY entries written by driver loop on non-zero harness exit. Lineage reconstruction: grep hypothesis_id to trace any deployment back to source run_id.">
+  <rect class="f-gray" x="980" y="274" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-gray" font-family="system-ui" font-size="12" x="1070" y="290" text-anchor="middle" dominant-baseline="central">audit_log.md</text>
+</g>
+<line class="cn" x1="1070" y1="306" x2="1070" y2="320"/>
+
+<g class="nd" data-layer="audit" data-id="audit-entry"
+   data-tip="Shell helper to append structured entries to audit_log.md. Commands: promote, deploy, note, fill. Called by git hooks automatically and by human manually. Entry format: timestamp | EVENT_TYPE with required structured fields per event type.">
+  <rect class="f-gray" x="980" y="320" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-gray" font-family="system-ui" font-size="12" x="1070" y="336" text-anchor="middle" dominant-baseline="central">audit_entry.sh</text>
+</g>
+<line class="cn" x1="1070" y1="352" x2="1070" y2="366"/>
+
+<g class="nd" data-layer="audit" data-id="autocommit"
+   data-tip="Polls every 30s (300s overnight), commits staged changes with 'auto:' prefix + timestamp. run_id contract: driver calls git rev-parse --short HEAD immediately after each experiment and writes to run_id column before the next commit fires. Commit prefix conventions: auto: / manual: / promote: / deploy: -- used by lineage reconstruction grep commands.">
+  <rect class="f-gray" x="980" y="366" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-gray" font-family="system-ui" font-size="12" x="1070" y="382" text-anchor="middle" dominant-baseline="central">autocommit.sh</text>
+</g>
+<line class="cn" x1="1070" y1="398" x2="1070" y2="412"/>
+
+<g class="nd" data-layer="audit" data-id="git-hooks"
+   data-tip="pre-commit: (1) blocks commits touching P2 holdout files if flag exists, (2) enforces audit_log.md append-only, (3) auto-generates HYPOTHESIS_PROMOTED on file move to promoted_hypotheses/, (4) auto-generates PERIOD_CONFIG_CHANGED entry, (5) warns on period rollover. post-commit: appends to .git/commit_log.txt, auto-generates OOS_RUN and DEPLOYMENT_APPROVED when respective flags are created. post-commit uses --amend --no-edit to fold audit entry into same commit.">
+  <rect class="f-gray" x="980" y="412" width="180" height="32" rx="5" stroke-width="0.8"/>
+  <text class="t-gray" font-family="system-ui" font-size="12" x="1070" y="428" text-anchor="middle" dominant-baseline="central">pre/post-commit hooks</text>
+</g>
+
+<!-- CROSS-LINKS (dashed) -->
+
+<!-- data_registry (cy=336) to Stage 01 (cy=302)
+     Exits right edge x=310, jogs up through gap x=320 to y=265,
+     runs right to x=535, drops to Stage 01 cy=302. -->
+<path class="das" d="M310,336 L320,336 L320,265 L535,265 L535,302 L545,302" marker-end="url(#arr)"/>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="428" y="260" text-anchor="middle">registry &#x2192; 01</text>
+
+<!-- statistical_gates (cy=428) to Stage 05 (cy=582)
+     Exits right edge x=310, drops at x=316 to y=596,
+     runs right to Stage 05 cy=582. -->
+<path class="das" d="M310,428 L316,428 L316,596 L535,596 L535,582 L545,582" marker-end="url(#arr)"/>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="428" y="602" text-anchor="middle">gates &#x2192; 05</text>
+
+<!-- scoring_models (cy=382) to Stage 04 (cy=512)
+     scoring_models shifted to y=366..398 (was 320..352).
+     Exits right edge x=510, runs to x=533 (gap), drops to Stage 04 cy=512. -->
+<path class="das" d="M510,382 L533,382 L533,512 L545,512" marker-end="url(#arr)"/>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="519" y="375" text-anchor="middle">model&#x2192;04</text>
+
+<!-- feature_engine (cy=520) to Stage 02 (cy=372)
+     feature_engine shifted to y=504..536 (was 412..444).
+     Exits right edge x=510, runs to x=522 (gap), rises to Stage 02 cy=372. -->
+<path class="das" d="M510,520 L522,520 L522,372 L545,372" marker-end="url(#arr)"/>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="514" y="531" text-anchor="middle">engine&#x2192;02</text>
+
+<!-- Stage 04 (cy=512) to results_master (cy=282)
+     Exits right x=725, runs at x=750, rises to cy=282. -->
+<path class="das" d="M725,512 L750,512 L750,282 L780,282" marker-end="url(#arr)"/>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="751" y="400" text-anchor="middle">04 &#x2192;</text>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="751" y="412" text-anchor="middle">results</text>
+
+<!-- Stage 07 (cy=722) to results_master (cy=298)
+     Exits right x=725, runs at x=758, rises to cy=298. -->
+<path class="das" d="M725,722 L758,722 L758,298 L780,298" marker-end="url(#arr)"/>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="759" y="620" text-anchor="middle">07 &#x2192;</text>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="759" y="632" text-anchor="middle">results</text>
+
+<!-- Stage 01 (cy=302) to data_manifest (cy=382)
+     Exits right x=725, corridor x=766 (clear of 07-results at x=758),
+     drops to cy=382, arrives at left edge x=780.
+     Label above horizontal departure segment. -->
+<path class="das" d="M725,302 L766,302 L766,382 L780,382" marker-end="url(#arr)"/>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="744" y="295" text-anchor="middle">01&#x2192;manifest</text>
+
+<!-- Stage 05 to Stage 03 feedback loop
+     feedback_to_hypothesis.md -&gt; prior_results.md
+     From Stage 05 right edge x=725 cy=582,
+     routes at x=736 (between stages edge and 04-to-results path at x=750),
+     rises to Stage 03 cy=442, arrow points into Stage 03. -->
+<path class="das" d="M725,582 L736,582 L736,442 L725,442" marker-end="url(#arr)"/>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="748" y="508" text-anchor="middle">05&#x2192;03</text>
+<text font-family="system-ui" font-size="10" fill="var(--dash)" x="748" y="520" text-anchor="middle">feedback</text>
+
+<!-- LEGEND y=766 -->
+<rect class="lgb" x="20" y="766" width="1220" height="52" rx="6"/>
+<text fill="var(--text3)" font-family="system-ui" font-size="12" x="36" y="784" dominant-baseline="central">legend</text>
+<rect class="f-blue"   x="94"  y="776" width="12" height="12" rx="3" stroke-width="0.5"/>
+<text fill="var(--text3)" font-family="system-ui" font-size="12" x="112" y="782" dominant-baseline="central">stages</text>
+<rect class="f-teal"   x="185" y="776" width="12" height="12" rx="3" stroke-width="0.5"/>
+<text fill="var(--text3)" font-family="system-ui" font-size="12" x="203" y="782" dominant-baseline="central">config / shared docs</text>
+<rect class="f-coral"  x="348" y="776" width="12" height="12" rx="3" stroke-width="0.5"/>
+<text fill="var(--text3)" font-family="system-ui" font-size="12" x="366" y="782" dominant-baseline="central">archetype files</text>
+<rect class="f-ambox"  x="472" y="776" width="12" height="12" rx="3" stroke-width="0.8"/>
+<text fill="var(--text3)" font-family="system-ui" font-size="12" x="490" y="782" dominant-baseline="central">ICM context files</text>
+<rect class="f-gray"   x="602" y="776" width="12" height="12" rx="3" stroke-width="0.5"/>
+<text fill="var(--text3)" font-family="system-ui" font-size="12" x="620" y="782" dominant-baseline="central">audit / infra</text>
+<text fill="var(--text3)" font-family="system-ui" font-size="12" x="36" y="806" dominant-baseline="central">&#x1F501; autoresearch loop &nbsp;&middot;&nbsp; &#x270F; agent edits this file &nbsp;&middot;&nbsp; amber border = ICM governing layer &nbsp;&middot;&nbsp; - - - key data feed / feedback &nbsp;&middot;&nbsp; &#x2192; flow direction</text>
+</svg>
+</div>
+
+<div class="notes">
+  <div class="note">
+    <h3>ICM is not a folder &#8212; it&#8217;s the governing layer</h3>
+    <p>The amber strip represents the ICM (Interpreted Context Methodology) agent navigation layer. Before every stage run the agent reads three files in order: <code>CLAUDE.md</code> (global rules, 60-line cap, <strong>five pipeline rules in first 20 lines</strong>) &#x2192; <code>stage CONTEXT.md</code> (this stage&#8217;s contract, 80-line cap) &#x2192; <code>program.md</code> (immediate task, 30-line cap). <code>program.md</code> carries three machine-readable fields the driver loop parses: <code>METRIC:</code>, <code>KEEP RULE:</code>, and <code>BUDGET:</code> &#8212; changing the optimization target for a stage requires only editing this file the evening before; no Python changes needed. Line caps enforce the lost-in-the-middle mitigation &#8212; operative instructions must appear in the first 5 lines of each file.</p>
+  </div>
+
+  <div class="note">
+    <h3>The center column is the pipeline&#8217;s spine</h3>
+    <p>Stages 01&#x2192;07 run sequentially. Stages 02, 03, and 04 have autoresearch inner loops &#x1F501; &#8212; the agent edits exactly one designated file (<code>feature_engine.py</code>, <code>hypothesis_config.json</code>, or <code>exit_params.json</code>) while a fixed harness evaluates. The harness is off-limits. Stage 05 writes <code>feedback_to_hypothesis.md</code> which is copied to <code>03-hypothesis/references/prior_results.md</code> &#8212; the Stage 05&#x2192;03 feedback loop shown by the right-side dashed arrow. Build order for Pass 3: Stage 04 driver first, then Stage 02, then Stage 03. Do not build 02 or 03 until Stage 04 overnight test passes cleanly.</p>
+  </div>
+
+  <div class="note">
+    <h3>Six-layer failure tracking</h3>
+    <p>Failed experiments are tracked simultaneously at multiple levels: (1) per-experiment <code>results.tsv</code> per stage with <code>verdict: reverted</code>; (2) <code>results_master.tsv</code> (24 cols) where <code>n_prior_tests</code> automatically tightens the Bonferroni p-value gate &#8212; failed experiments compound into raising the bar for all future experiments; (3) <code>feature_catalog.md</code> &#8212; the only layer with a human-curated &#8220;Dead ends &#8212; do not retry&#8221; section read by the Stage 02 agent; (4) <code>feedback_to_hypothesis.md &#x2192; prior_results.md</code> loop from Stage 05 back to Stage 03; (5) <code>replication_pass:false</code> hard gate in <code>hypothesis_generator.py</code> (Rule 4 &#8212; structural enforcement, not just logged); (6) <code>audit_log.md</code> lineage reconstruction for every promotion and deployment.</p>
+  </div>
+
+  <div class="note">
+    <h3>The coral cluster is the extension point</h3>
+    <p>Adding a new strategy archetype requires files in <code>shared/archetypes/{name}/</code>: <code>feature_engine.py</code> (agent edits), <code>feature_evaluator.py</code> (fixed harness, standard <code>evaluate()</code> interface), <code>simulation_rules.md</code> (transcribed from actual source &#8212; never invented), <code>exit_templates.md</code>. Plus: a simulator conforming to <code>run(bar_df, touch_row, config, bar_offset) &#x2192; SimResult</code>, and a scoring model registered via <code>scoring_adapter.py</code>. The pipeline supports NQ, ES, and GC natively; <code>instruments.md</code> is the only file that changes for a new symbol. The new archetype intake checklist must be completed before Stage 03 autoresearch can run.</p>
+  </div>
+</div>
+
+<div class="tooltip" id="tip"></div>
+<script>
+function filterLayer(layer, btn) {
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.nd').forEach(n => {
+    const nl = n.dataset.layer || 'root';
+    n.classList.toggle('dimmed', layer !== 'all' && nl !== layer && nl !== 'root');
+  });
+}
+const tip = document.getElementById('tip');
+document.querySelectorAll('.nd').forEach(node => {
+  node.addEventListener('mouseenter', () => {
+    const desc = node.dataset.tip;
+    if (!desc) return;
+    const name = node.querySelector('text')?.textContent?.trim() || node.dataset.id;
+    tip.innerHTML = '<strong>' + name + '</strong><span>' + desc + '</span>';
+    tip.classList.add('show');
+  });
+  node.addEventListener('mousemove', e => {
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    const x = e.clientX + 14, y = e.clientY + 10;
+    tip.style.left = (x + tw > window.innerWidth - 10 ? e.clientX - tw - 10 : x) + 'px';
+    tip.style.top  = (y + th > window.innerHeight - 10 ? e.clientY - th - 10 : y) + 'px';
+  });
+  node.addEventListener('mouseleave', () => tip.classList.remove('show'));
+});
+</script>
+</body>
+</html>
