@@ -6,10 +6,12 @@ which is generated from this registry.
 
 ## Registered Sources
 
-| source_id    | type       | description                              | periods | file_pattern                    | required_by                    |
-|--------------|------------|------------------------------------------|---------|---------------------------------|--------------------------------|
-| bar_data     | price      | 1-min OHLCV bar data (tick bars)         | P1, P2  | NQ_BarData_*.txt                | 02-features, 04-backtest       |
-| zone_csv_v2  | touches    | ZRA zone touch events (V4/ZRA, 32 cols)  | P1, P2  | ZRA_Hist_*.csv                  | 03-hypothesis, 04-backtest     |
+| source_id       | type    | description                                                  | periods | file_pattern              | required_by                |
+|-----------------|---------|--------------------------------------------------------------|---------|---------------------------|----------------------------|
+| bar_data_volume | price   | 250-vol OHLCV bars (250 contracts/bar; zone_touch archetype) | P1, P2  | NQ_BarData_250vol_*.txt   | 02-features, 04-backtest   |
+| bar_data_time   | price   | 1-min time OHLCV bars (future strategies)                    | none    | NQ_BarData_1min_*.txt     | TBD                        |
+| bar_data_tick   | price   | Tick OHLCV bars (future strategies)                          | none    | NQ_BarData_tick_*.txt     | TBD                        |
+| zone_csv_v2     | touches | ZRA zone touch events (V4/ZRA, 32 cols)                      | P1, P2  | ZRA_Hist_*.csv            | 03-hypothesis, 04-backtest |
 
 Note: Add one row per data source your archetype requires. source_id must be unique and
 match the schema file name in 01-data/references/{source_id}_schema.md.
@@ -25,7 +27,9 @@ match the schema file name in 01-data/references/{source_id}_schema.md.
 | alt         | Anything else                          |
 
 ## To Add a New Source
-1. Drop files into 01-data/data/<source_id>/
+1. Drop files into the correct location:
+   - For bar data: `01-data/data/bar_data/<bar_type>/` (e.g., `bar_data/volume/`)
+   - For all other sources: `01-data/data/<source_id>/`
 2. Add row to this table
 3. Re-run Stage 01 validation (regenerates data_manifest.json automatically)
 4. Human checkpoint: review validation report
