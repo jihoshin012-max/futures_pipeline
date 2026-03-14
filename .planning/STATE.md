@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-14T18:34:49.519Z"
+stopped_at: Completed 06-stage-02-autoresearch plan 02 (driver.py)
+last_updated: "2026-03-14T19:25:43.179Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 20
-  completed_plans: 20
+  total_plans: 23
+  completed_plans: 21
   percent: 17
 ---
 
@@ -71,6 +71,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 05-stage-04-autoresearch P02 | 8 | 2 tasks | 4 files |
 | Phase 05-stage-04-autoresearch P03 | 45 | 2 tasks | 2 files |
 | Phase 05-stage-04-autoresearch P04 | 25 | 2 tasks | 3 files |
+| Phase 06-stage-02-autoresearch P02 | 10 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,9 @@ Recent decisions affecting current work:
 - [Phase 05-stage-04-autoresearch]: _generate_run_id uses SHA-256 hash of archetype:timestamp:experiment_n truncated to 8 hex chars — unique per experiment, no git subprocess
 - [Phase 05-stage-04-autoresearch]: hypothesis_name falls back to archetype name (not empty string) — always non-empty in TSV; promoted_hypothesis.json overrides when present
 - [Phase 05-stage-04-autoresearch]: _git_commit failures are non-fatal (try/except pass) — git errors must not abort the experiment loop
+- [Phase 06-stage-02-autoresearch]: entry_time_violation read per-feature from features_evaluated list (not top-level key) — dispatcher drops top-level keys from evaluate() return value
+- [Phase 06-stage-02-autoresearch]: parse_program_md requires 4 fields (metric, keep_rule, budget, new_feature) — Stage 04 only required 3; NEW_FEATURE enables driver to look up matching feature in features_evaluated
+- [Phase 06-stage-02-autoresearch]: Stage 02 keep rule is threshold-based (spread > keep_rule AND mwu_p < 0.10), not improvement-based like Stage 04 — no baseline metric tracking needed
 
 ### Pending Todos
 
@@ -151,6 +155,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T18:34:49.516Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-stage-02-autoresearch/06-CONTEXT.md
+Last session: 2026-03-14T19:25:43.175Z
+Stopped at: Completed 06-stage-02-autoresearch plan 02 (driver.py)
+Resume file: None
