@@ -9,8 +9,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Prerequisites
 
-- [ ] **PREREQ-01**: RinDig ICM repo fetched and reviewed; any convention conflicts resolved in spec
-- [ ] **PREREQ-02**: karpathy/autoresearch repo fetched and reviewed; program.md format, train.py keep/revert logic, overnight run protocol understood
+- [x] **PREREQ-01**: RinDig ICM repo fetched and reviewed; any convention conflicts resolved in spec
+- [x] **PREREQ-02**: karpathy/autoresearch repo fetched and reviewed; program.md format, train.py keep/revert logic, overnight run protocol understood
 - [ ] **PREREQ-03**: NQ bar data files migrated to 01-data/data/bar_data/ for P1 and P2
 - [ ] **PREREQ-04**: Touch/signal data migrated to 01-data/data/touches/ for P1 and P2
 
@@ -126,8 +126,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PREREQ-01 | Phase 1 | Pending |
-| PREREQ-02 | Phase 1 | Pending |
+| PREREQ-01 | Phase 1 | Complete |
+| PREREQ-02 | Phase 1 | Complete |
 | PREREQ-03 | Phase 1 | Pending |
 | PREREQ-04 | Phase 1 | Pending |
 | SCAF-01 | Phase 1 | Pending |
