@@ -351,6 +351,38 @@ class TestEngineOutput:
 
 
 # ---------------------------------------------------------------------------
+# Determinism Test (ENGINE-06) — standalone for pytest::test_determinism
+# ---------------------------------------------------------------------------
+
+def test_determinism(tmp_path):
+    """Two runs with same config produce byte-identical result.json (ENGINE-06).
+
+    Runs engine twice via call_engine_main with same config. Reads both outputs
+    as raw bytes. Asserts byte-for-byte equality. Prints diff on mismatch.
+    """
+    config = make_valid_config()
+    config_path = str(tmp_path / "config.json")
+    output1 = str(tmp_path / "result1.json")
+    output2 = str(tmp_path / "result2.json")
+    with open(config_path, "w") as f:
+        json.dump(config, f)
+
+    call_engine_main(config_path, output1)
+    call_engine_main(config_path, output2)
+
+    bytes1 = Path(output1).read_bytes()
+    bytes2 = Path(output2).read_bytes()
+
+    if bytes1 != bytes2:
+        # Parse and print diff to help diagnose non-determinism
+        import difflib
+        lines1 = Path(output1).read_text().splitlines(keepends=True)
+        lines2 = Path(output2).read_text().splitlines(keepends=True)
+        diff = "".join(difflib.unified_diff(lines1, lines2, fromfile="run1", tofile="run2"))
+        pytest.fail(f"Engine is not deterministic. Diff:\n{diff}")
+
+
+# ---------------------------------------------------------------------------
 # Documentation Tests
 # ---------------------------------------------------------------------------
 
