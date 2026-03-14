@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Git Infrastructure** - Autocommit watcher, holdout guard hook, and post-commit audit entries operational (completed 2026-03-14)
 - [x] **Phase 4: Backtest Engine** - Deterministic, dynamically dispatching engine verified with a manual end-to-end pass (completed 2026-03-14)
 - [ ] **Phase 5: Stage 04 Autoresearch** - Exit parameter keep/revert loop with overnight test confirming operational
-- [ ] **Phase 6: Stage 02 Autoresearch** - Feature engineering keep/revert loop with entry-time enforcement verified
+- [x] **Phase 6: Stage 02 Autoresearch** - Feature engineering keep/revert loop with entry-time enforcement verified (completed 2026-03-14)
 - [ ] **Phase 7: Stage 03 Autoresearch** - Hypothesis generation loop with replication enforcement and feedback loop wired
 
 ## Phase Details
@@ -137,7 +137,7 @@ Plans:
   1. An overnight test of 20 experiments completes and each row in results.tsv contains a spread value computed from MWU on P1a vs P1b feature distributions
   2. A feature that reads a bar-close value (post-entry-time data) is detected by the canary test in feature_evaluator.py and logged as an entry-time violation, blocking the keep decision
   3. The driver stops at the 300-experiment budget declared in statistical_gates and does not run experiment 301 even if program.md instructs continued iteration
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 06-01-PLAN.md — MWU spread evaluator, feature_engine.py baseline, and program.md
@@ -171,5 +171,5 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | 3. Git Infrastructure | 2/2 | Complete | 2026-03-14 |
 | 4. Backtest Engine | 4/4 | Complete   | 2026-03-14 |
 | 5. Stage 04 Autoresearch | 2/3 | In Progress|  |
-| 6. Stage 02 Autoresearch | 0/3 | Not started | - |
+| 6. Stage 02 Autoresearch | 3/3 | Complete   | 2026-03-14 |
 | 7. Stage 03 Autoresearch | 0/TBD | Not started | - |

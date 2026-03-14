@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 06-stage-02-autoresearch plan 01 (MWU evaluator + feature_engine.py)
-last_updated: "2026-03-14T19:45:56.886Z"
+stopped_at: Completed 06-stage-02-autoresearch plan 03 (smoke test + freeze script)
+last_updated: "2026-03-14T20:17:44.131Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 23
-  completed_plans: 22
+  completed_plans: 23
   percent: 17
 ---
 
@@ -73,6 +73,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 05-stage-04-autoresearch P04 | 25 | 2 tasks | 3 files |
 | Phase 06-stage-02-autoresearch P02 | 10 | 1 tasks | 2 files |
 | Phase 06-stage-02-autoresearch P01 | 9 | 2 tasks | 4 files |
+| Phase 06-stage-02-autoresearch P03 | 45 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,9 @@ Recent decisions affecting current work:
 - [Phase 06-stage-02-autoresearch]: precomputed-pnl selected as outcome variable; Reaction used as fallback proxy until pnl_ticks column available in touch CSV
 - [Phase 06-stage-02-autoresearch]: entry_time_violation per-feature not top-level — dispatcher only forwards result['features'], top-level keys dropped
 - [Phase 06-stage-02-autoresearch]: P1a/P1b empirical counts are 2952/3280 (not 2882/3267 per research docs) — tests corrected to data ground truth
+- [Phase 06-stage-02-autoresearch]: freeze_features.py uses importlib introspection on current_best/feature_engine.py — no sys.path mutation, path resolution from stages/02-features/ (parents[1])
+- [Phase 06-stage-02-autoresearch]: frozen_features.json written to stages/02-features/output/ with features list, frozen_date, source path — Stage 03 must copy to stages/03-hypothesis/references/
+- [Phase 06-stage-02-autoresearch]: Budget smoke test (budget=3, n-experiments=5) run before overnight — driver stopped at 3 as expected; 20-experiment smoke test all verdict=kept, spread=44.09, mwu_p=1.48e-07
 
 ### Pending Todos
 
@@ -159,6 +163,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T19:45:56.883Z
-Stopped at: Completed 06-stage-02-autoresearch plan 01 (MWU evaluator + feature_engine.py)
+Last session: 2026-03-14T20:17:44.126Z
+Stopped at: Completed 06-stage-02-autoresearch plan 03 (smoke test + freeze script)
 Resume file: None
