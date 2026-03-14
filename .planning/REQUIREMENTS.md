@@ -44,6 +44,13 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SCAF-26**: 03-hypothesis/references/strategy_archetypes.md (template + simulator interface contract)
 - [x] **SCAF-27**: shared/scoring_models/scaffold_adapter.py (reads strategy_archetypes.md for unregistered adapters, appends stub classes to scoring_adapter.py, creates adapter_test.py per archetype, writes audit entry)
 
+### Bar Type Registry
+
+- [x] **BAR-01**: Bar data files organized into typed subfolders (volume/, time/, tick/) under bar_data/
+- [x] **BAR-02**: data_registry.md uses typed source_ids (bar_data_volume, bar_data_time, bar_data_tick)
+- [x] **BAR-03**: Schema file renamed to bar_data_volume_schema.md matching source_id convention
+- [x] **BAR-04**: Placeholder subfolders (time/, tick/) with .gitkeep for future bar types
+
 ### HMM Regime
 
 - [x] **HMM-01**: hmm_regime_fitter.py written (fit on P1 only, apply frozen model to P2)
@@ -159,6 +166,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCAF-25 | Phase 1 | Complete |
 | SCAF-26 | Phase 1 | Complete |
 | SCAF-27 | Phase 1.1 | Complete |
+| BAR-01 | Phase 1.2 | Complete |
+| BAR-02 | Phase 1.2 | Complete |
+| BAR-03 | Phase 1.2 | Complete |
+| BAR-04 | Phase 1.2 | Complete |
 | HMM-01 | Phase 2 | Complete |
 | HMM-02 | Phase 2 | Complete |
 | HMM-03 | Phase 2 | Complete |
@@ -190,8 +201,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-13 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 60 total
-- Mapped to phases: 60
+- v1 requirements: 64 total
+- Mapped to phases: 64
 - Unmapped: 0 ✓
 
 ---
