@@ -81,8 +81,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTO-01**: Stage 04 driver.py written (keep/revert loop, budget enforcement, EXPERIMENT_ANOMALY handling)
 - [x] **AUTO-02**: Stage 04 program.md written (≤30 lines, machine-readable METRIC/KEEP RULE/BUDGET)
 - [ ] **AUTO-03**: Stage 04 overnight test (50 experiments, results.tsv populated, keep/revert verified)
-- [ ] **AUTO-04**: evaluate_features.py dispatcher written (~30 lines, loads archetype evaluator)
-- [ ] **AUTO-05**: shared/archetypes/{archetype}/feature_evaluator.py written (standard interface)
+- [x] **AUTO-04**: evaluate_features.py dispatcher written (~30 lines, loads archetype evaluator)
+- [x] **AUTO-05**: shared/archetypes/{archetype}/feature_evaluator.py written (standard interface)
 - [ ] **AUTO-06**: Stage 02 driver.py written (feature keep/revert, entry-time enforcement, 300 budget)
 - [ ] **AUTO-07**: Stage 02 program.md written (≤30 lines)
 - [ ] **AUTO-08**: Stage 02 overnight test (20 experiments, feature spread values, entry-time block verified)
@@ -189,8 +189,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-01 | Phase 5 | Complete |
 | AUTO-02 | Phase 5 | Complete |
 | AUTO-03 | Phase 5 | Pending |
-| AUTO-04 | Phase 5 | Pending |
-| AUTO-05 | Phase 5 | Pending |
+| AUTO-04 | Phase 5 | Complete |
+| AUTO-05 | Phase 5 | Complete |
 | AUTO-06 | Phase 6 | Pending |
 | AUTO-07 | Phase 6 | Pending |
 | AUTO-08 | Phase 6 | Pending |

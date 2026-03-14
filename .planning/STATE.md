@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-01-PLAN.md (autoresearch driver and baseline seed)
-last_updated: "2026-03-14T14:42:47.680Z"
+stopped_at: Completed 05-02-PLAN.md (evaluate_features dispatcher and zone_touch feature_evaluator)
+last_updated: "2026-03-14T14:45:43.849Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 19
-  completed_plans: 17
+  completed_plans: 18
   percent: 17
 ---
 
@@ -68,6 +68,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 04-backtest-engine P03 | 16 | 2 tasks | 4 files |
 | Phase 04-backtest-engine P04 | 30 | 2 tasks | 4 files |
 | Phase 05-stage-04-autoresearch P01 | 10 | 2 tasks | 5 files |
+| Phase 05-stage-04-autoresearch P02 | 8 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,9 @@ Recent decisions affecting current work:
 - [Phase 05-stage-04-autoresearch]: validate_trail_steps() returns bool not raises — driver retries proposal with valid steps rather than propagating exceptions
 - [Phase 05-stage-04-autoresearch]: score_threshold=0 in seeded baseline — BinnedScoringAdapter returns zeros; threshold=48 produces n_trades=0 for every experiment
 - [Phase 05-stage-04-autoresearch]: Budget counts seeded row — n_prior_tests=1 at start of first experiment; budget=3 means 2 new experiments run
+- [Phase 05-stage-04-autoresearch]: importlib.util.spec_from_file_location used for path-based evaluator loading — no sys.path mutation, loads fresh module each call
+- [Phase 05-stage-04-autoresearch]: --archetype-base-dir CLI flag on dispatcher enables test isolation without touching real evaluators
+- [Phase 05-stage-04-autoresearch]: feature_evaluator.py Phase 5 placeholder returns empty features list; Phase 6 adds MWU spread via feature_engine.py
 
 ### Pending Todos
 
@@ -141,6 +145,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T14:42:47.677Z
-Stopped at: Completed 05-01-PLAN.md (autoresearch driver and baseline seed)
+Last session: 2026-03-14T14:45:43.846Z
+Stopped at: Completed 05-02-PLAN.md (evaluate_features dispatcher and zone_touch feature_evaluator)
 Resume file: None
