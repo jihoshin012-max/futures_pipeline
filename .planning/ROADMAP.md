@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Scaffold** - Create all static config files, stage CONTEXT.md files, shared resources, and migrate data (completed 2026-03-14)
 - [ ] **Phase 2: HMM Regime Fitter** - Fit, serialize, and validate the regime labeling model before any research begins
-- [ ] **Phase 3: Git Infrastructure** - Autocommit watcher, holdout guard hook, and post-commit audit entries operational
+- [x] **Phase 3: Git Infrastructure** - Autocommit watcher, holdout guard hook, and post-commit audit entries operational (completed 2026-03-14)
 - [ ] **Phase 4: Backtest Engine** - Deterministic, dynamically dispatching engine verified with a manual end-to-end pass
 - [ ] **Phase 5: Stage 04 Autoresearch** - Exit parameter keep/revert loop with overnight test confirming operational
 - [ ] **Phase 6: Stage 02 Autoresearch** - Feature engineering keep/revert loop with entry-time enforcement verified
@@ -90,11 +90,11 @@ Plans:
   2. A commit that touches any file under 04-backtest/p2_holdout/ is rejected by the pre-commit hook with a holdout guard message
   3. A commit that modifies (not appends to) audit/audit_log.md is rejected by the pre-commit hook
   4. A commit tagged OOS_RUN or DEPLOYMENT_APPROVED causes the post-commit hook to write the corresponding entry into audit_log.md automatically
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 03-01-PLAN.md — TDD: Create test scaffold and implement autocommit.sh, pre-commit hook, post-commit hook
-- [ ] 03-02-PLAN.md — Run automated verification suite and manual end-to-end verification
+- [x] 03-01-PLAN.md — TDD: Create test scaffold and implement autocommit.sh, pre-commit hook, post-commit hook
+- [x] 03-02-PLAN.md — Run automated verification suite and manual end-to-end verification
 
 ### Phase 4: Backtest Engine
 **Goal**: The backtest engine is a fixed, deterministic evaluation harness that any autoresearch loop can run safely — verified by two identical-config runs producing byte-identical output and a manual 01-to-05 pass succeeding
@@ -152,7 +152,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | 01.1. Scoring Adapter Scaffold Generator | 1/1 | Complete    | 2026-03-14 |
 | 01.2. Bar Type Registry | 1/1 | Complete    | 2026-03-14 |
 | 2. HMM Regime Fitter | 0/2 | Planning complete | - |
-| 3. Git Infrastructure | 0/2 | Planning complete | - |
+| 3. Git Infrastructure | 2/2 | Complete | 2026-03-14 |
 | 4. Backtest Engine | 0/TBD | Not started | - |
 | 5. Stage 04 Autoresearch | 0/TBD | Not started | - |
 | 6. Stage 02 Autoresearch | 0/TBD | Not started | - |
