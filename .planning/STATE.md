@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: "Completed 01-03-PLAN.md (all tasks done — 5 files created: feature_definitions, feature_rules, feature_catalog, scoring model template + adapter)"
-last_updated: "2026-03-14T00:59:45.267Z"
+stopped_at: Completed 01-05-PLAN.md (all tasks done — 8 files created for stages 05-07)
+last_updated: "2026-03-14T01:01:14.872Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 5
   percent: 17
 ---
 
@@ -54,6 +54,8 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-scaffold P01 | 30 | 2 tasks | 47 files |
 | Phase 01-scaffold P02 | 3 | 2 tasks | 9 files |
 | Phase 01-scaffold P03 | 8 | 2 tasks | 5 files |
+| Phase 01-scaffold P05 | 2 | 2 tasks | 8 files |
+| Phase 01-scaffold P04 | 10 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -73,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 01-scaffold]: data_registry.md zone_csv_v2 source_id must match zone_csv_v2_schema.md in Plan 04 Stage 01 references
 - [Phase 01-scaffold]: Scoring adapter stubs raise NotImplementedError instead of pass/None — prevents silent failure in Phase 4
 - [Phase 01-scaffold]: feature_rules.md held to 15 lines — operative rules in first 5 lines per lost-in-middle constraint
+- [Phase 01-scaffold]: verdict_criteria.md is a local copy for agent access; source of truth remains _config/statistical_gates.md
+- [Phase 01-scaffold]: assemble_context.sh reads archetype from frozen_params.json at runtime — never hardcoded (Pitfall 6 prevention)
+- [Phase 01-scaffold]: Stage 07 review triggers kept in separate file to allow threshold expansion without exceeding CONTEXT.md 80-line limit
 
 ### Pending Todos
 
@@ -86,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T00:59:45.264Z
-Stopped at: Completed 01-03-PLAN.md (all tasks done — 5 files created: feature_definitions, feature_rules, feature_catalog, scoring model template + adapter)
+Last session: 2026-03-14T01:01:08.252Z
+Stopped at: Completed 01-05-PLAN.md (all tasks done — 8 files created for stages 05-07)
 Resume file: None

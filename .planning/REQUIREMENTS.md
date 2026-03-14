@@ -26,17 +26,17 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SCAF-08**: _config/statistical_gates.md (verdict thresholds, iteration budgets, Bonferroni gates, drawdown gate)
 - [x] **SCAF-09**: _config/regime_definitions.md (3 dimensions, Stage 05 usage rules)
 - [x] **SCAF-10**: _config/context_review_protocol.md (file length limits, front-loading rule, staleness flag)
-- [ ] **SCAF-11**: shared/feature_definitions.md (entry-time rule, template, empty registered features)
-- [ ] **SCAF-12**: 02-features/references/feature_rules.md (5 rules, ≤30 lines)
-- [ ] **SCAF-13**: 02-features/references/feature_catalog.md (active/dropped/dead-end tables)
-- [ ] **SCAF-14**: shared/scoring_models/ directory + _template.json + scoring_adapter.py (3 adapter stubs)
+- [x] **SCAF-11**: shared/feature_definitions.md (entry-time rule, template, empty registered features)
+- [x] **SCAF-12**: 02-features/references/feature_rules.md (5 rules, ≤30 lines)
+- [x] **SCAF-13**: 02-features/references/feature_catalog.md (active/dropped/dead-end tables)
+- [x] **SCAF-14**: shared/scoring_models/ directory + _template.json + scoring_adapter.py (3 adapter stubs)
 - [ ] **SCAF-15**: Stage 01 CONTEXT.md + reference schema files + data_manifest.json schema spec
 - [ ] **SCAF-16**: Stage 02 CONTEXT.md
 - [ ] **SCAF-17**: Stage 03 CONTEXT.md
 - [ ] **SCAF-18**: Stage 04 CONTEXT.md + shared/archetypes/{archetype}/exit_templates.md
-- [ ] **SCAF-19**: Stage 05 CONTEXT.md + verdict_criteria.md + statistical_tests.md
-- [ ] **SCAF-20**: Stage 06 CONTEXT.md + context_package_spec.md + assemble_context.sh
-- [ ] **SCAF-21**: Stage 07 CONTEXT.md + triggers/review_triggers.md
+- [x] **SCAF-19**: Stage 05 CONTEXT.md + verdict_criteria.md + statistical_tests.md
+- [x] **SCAF-20**: Stage 06 CONTEXT.md + context_package_spec.md + assemble_context.sh
+- [x] **SCAF-21**: Stage 07 CONTEXT.md + triggers/review_triggers.md
 - [ ] **SCAF-22**: dashboard/results_master.tsv (header row, 24 columns)
 - [ ] **SCAF-23**: dashboard/index.html stub
 - [ ] **SCAF-24**: audit/audit_log.md stub (append-only header + first manual entry)
@@ -140,17 +140,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCAF-08 | Phase 1 | Complete |
 | SCAF-09 | Phase 1 | Complete |
 | SCAF-10 | Phase 1 | Complete |
-| SCAF-11 | Phase 1 | Pending |
-| SCAF-12 | Phase 1 | Pending |
-| SCAF-13 | Phase 1 | Pending |
-| SCAF-14 | Phase 1 | Pending |
+| SCAF-11 | Phase 1 | Complete |
+| SCAF-12 | Phase 1 | Complete |
+| SCAF-13 | Phase 1 | Complete |
+| SCAF-14 | Phase 1 | Complete |
 | SCAF-15 | Phase 1 | Pending |
 | SCAF-16 | Phase 1 | Pending |
 | SCAF-17 | Phase 1 | Pending |
 | SCAF-18 | Phase 1 | Pending |
-| SCAF-19 | Phase 1 | Pending |
-| SCAF-20 | Phase 1 | Pending |
-| SCAF-21 | Phase 1 | Pending |
+| SCAF-19 | Phase 1 | Complete |
+| SCAF-20 | Phase 1 | Complete |
+| SCAF-21 | Phase 1 | Complete |
 | SCAF-22 | Phase 1 | Pending |
 | SCAF-23 | Phase 1 | Pending |
 | SCAF-24 | Phase 1 | Pending |
