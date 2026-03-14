@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-03-PLAN.md (overnight autoresearch loop validation — 50 experiments, budget enforcement verified)
-last_updated: "2026-03-14T17:14:20.327Z"
+stopped_at: Completed 05-04-PLAN.md (event-driven git commits, unique run_id, hypothesis_name, lockfile coordination)
+last_updated: "2026-03-14T17:47:35.133Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 19
-  completed_plans: 19
+  total_plans: 20
+  completed_plans: 20
   percent: 17
 ---
 
@@ -70,6 +70,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 05-stage-04-autoresearch P01 | 10 | 2 tasks | 5 files |
 | Phase 05-stage-04-autoresearch P02 | 8 | 2 tasks | 4 files |
 | Phase 05-stage-04-autoresearch P03 | 45 | 2 tasks | 2 files |
+| Phase 05-stage-04-autoresearch P04 | 25 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,9 @@ Recent decisions affecting current work:
 - [Phase 05-stage-04-autoresearch]: --archetype-base-dir CLI flag on dispatcher enables test isolation without touching real evaluators
 - [Phase 05-stage-04-autoresearch]: feature_evaluator.py Phase 5 placeholder returns empty features list; Phase 6 adds MWU spread via feature_engine.py
 - [Phase 05-stage-04-autoresearch]: Budget counts seeded row — budget=3 means 2 new experiments run; smoke-test before overnight run prevents wasted compute
+- [Phase 05-stage-04-autoresearch]: _generate_run_id uses SHA-256 hash of archetype:timestamp:experiment_n truncated to 8 hex chars — unique per experiment, no git subprocess
+- [Phase 05-stage-04-autoresearch]: hypothesis_name falls back to archetype name (not empty string) — always non-empty in TSV; promoted_hypothesis.json overrides when present
+- [Phase 05-stage-04-autoresearch]: _git_commit failures are non-fatal (try/except pass) — git errors must not abort the experiment loop
 
 ### Pending Todos
 
@@ -147,6 +151,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T16:31:19.654Z
-Stopped at: Completed 05-03-PLAN.md (overnight autoresearch loop validation — 50 experiments, budget enforcement verified)
+Last session: 2026-03-14T17:47:35.130Z
+Stopped at: Completed 05-04-PLAN.md (event-driven git commits, unique run_id, hypothesis_name, lockfile coordination)
 Resume file: None
