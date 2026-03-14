@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 07-stage-03-autoresearch plan 03 (assess.py feedback loop wiring)
-last_updated: "2026-03-14T21:22:58.221Z"
+stopped_at: Completed 07-stage-03-autoresearch plan 02 (Stage 03 smoke test)
+last_updated: "2026-03-14T22:07:04.679Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 26
-  completed_plans: 25
+  completed_plans: 26
   percent: 17
 ---
 
@@ -76,6 +76,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 06-stage-02-autoresearch P03 | 45 | 2 tasks | 4 files |
 | Phase 07-stage-03-autoresearch P01 | 10 | 2 tasks | 7 files |
 | Phase 07-stage-03-autoresearch P03 | 11 | 1 tasks | 2 files |
+| Phase 07-stage-03-autoresearch P02 | 45 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -152,6 +153,8 @@ Recent decisions affecting current work:
 - [Phase 07-stage-03-autoresearch]: Stage 03 TSV uses 25 columns (replication_pass added after notes) — does not affect Stage 02 or 04 TSV headers
 - [Phase 07-stage-03-autoresearch]: stage03_ref_path defaults to repo-root-relative path internally — not a CLI flag, keeping interface minimal
 - [Phase 07-stage-03-autoresearch]: What Worked threshold PF>1.5, What to Avoid threshold PF<1.0 — matches verdict_label() thresholds in assess.py
+- [Phase 07-stage-03-autoresearch]: 17 pre-fix EXPERIMENT_ANOMALY entries accepted as historical artifacts; user reviewed and approved
+- [Phase 07-stage-03-autoresearch]: kept_weak_replication verdict for exp 0 (stop_ticks=204, PF=0.814): current_best updated; 11 others reverted
 
 ### Pending Todos
 
@@ -170,6 +173,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T21:22:58.217Z
-Stopped at: Completed 07-stage-03-autoresearch plan 03 (assess.py feedback loop wiring)
+Last session: 2026-03-14T22:07:04.675Z
+Stopped at: Completed 07-stage-03-autoresearch plan 02 (Stage 03 smoke test)
 Resume file: None
