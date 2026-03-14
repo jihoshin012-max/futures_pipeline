@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: "Completed 01-01-PLAN.md (Task 1); Task 2 checkpoint:human-action — awaiting data migration"
-last_updated: "2026-03-14T00:34:26.798Z"
+stopped_at: Completed 01-01-PLAN.md (all tasks done — data migrated)
+last_updated: "2026-03-14T00:50:35.754Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 7
@@ -51,6 +51,7 @@ Progress: [██░░░░░░░░] 17%
 
 *Updated after each plan completion*
 | Phase 01-scaffold P01 | 15 | 1 tasks | 43 files |
+| Phase 01-scaffold P01 | 30 | 2 tasks | 47 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,7 @@ Recent decisions affecting current work:
 - [Phase 01-scaffold]: ICM CONTEXT.md files stay under 80 lines, routing-only; matches functional spec intent for stage contracts
 - [Phase 01-scaffold]: autoresearch keep/revert uses git reset for discards; phases 2-4 driver scripts must mirror this pattern
 - [Phase 01-scaffold]: zone_touch used as archetype folder name per architecture doc convention
+- [Phase 01-scaffold]: Bar data format confirmed: Date/Time/OHLCV/Trades/BidVol/AskVol tick bars; Touch data: ZRA_Hist CSV with 32 cols including Reaction, Penetration, RxnBar_* — both sets validated for P1 and P2
 
 ### Pending Todos
 
@@ -77,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T00:34:26.795Z
-Stopped at: Completed 01-01-PLAN.md (Task 1); Task 2 checkpoint:human-action — awaiting data migration
+Last session: 2026-03-14T00:50:35.751Z
+Stopped at: Completed 01-01-PLAN.md (all tasks done — data migrated)
 Resume file: None
