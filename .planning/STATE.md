@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: "Completed 04-01-PLAN.md (4 reference docs: backtest_engine_qa.md, simulation_rules.md, config_schema.json, config_schema.md)"
-last_updated: "2026-03-14T04:57:59.085Z"
+stopped_at: Completed 04-02-PLAN.md (data_loader.py and scoring adapter factory with BinnedScoringAdapter placeholder)
+last_updated: "2026-03-14T04:59:28.067Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 16
-  completed_plans: 13
+  completed_plans: 14
   percent: 17
 ---
 
@@ -64,6 +64,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 03-git-infrastructure P01 | 13 | 2 tasks | 4 files |
 | Phase 03-git-infrastructure P02 | 5 | 2 tasks | 0 files |
 | Phase 04-backtest-engine P01 | 8 | 2 tasks | 4 files |
+| Phase 04-backtest-engine P02 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,9 @@ Recent decisions affecting current work:
 - [Phase 04-backtest-engine]: cost_ticks not in config JSON — engine reads from _config/instruments.md at startup via config.instrument lookup
 - [Phase 04-backtest-engine]: trail_steps[0] with new_stop_ticks=0 IS the BE trigger — no separate be_trigger_ticks field; empty trail_steps[] valid for no-trail modes
 - [Phase 04-backtest-engine]: Individual trade pnl_ticks in SimResult is raw; cost_ticks applied only during metrics aggregation for PF calculation
+- [Phase 04-backtest-engine]: Touch file ZRA_Hist_P1.csv has 33 columns not 32 — test corrected to file ground truth
+- [Phase 04-backtest-engine]: parse_instruments_md regex uses ticks? to handle both singular and plural tick count format in instruments.md
+- [Phase 04-backtest-engine]: BinnedScoringAdapter.score() returns pd.Series(0.0, index=touch_df.index) for placeholder model with empty weights
 
 ### Pending Todos
 
@@ -126,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T04:57:59.083Z
-Stopped at: Completed 04-01-PLAN.md (4 reference docs: backtest_engine_qa.md, simulation_rules.md, config_schema.json, config_schema.md)
+Last session: 2026-03-14T04:59:28.064Z
+Stopped at: Completed 04-02-PLAN.md (data_loader.py and scoring adapter factory with BinnedScoringAdapter placeholder)
 Resume file: None
