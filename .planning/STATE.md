@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 06-stage-02-autoresearch plan 03 (smoke test + freeze script)
-last_updated: "2026-03-14T20:21:56.292Z"
+stopped_at: Completed 07-stage-03-autoresearch plan 01 (hypothesis generator + driver)
+last_updated: "2026-03-14T21:09:41.286Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
   completed_phases: 8
-  total_plans: 23
-  completed_plans: 23
+  total_plans: 26
+  completed_plans: 24
   percent: 17
 ---
 
@@ -74,6 +74,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 06-stage-02-autoresearch P02 | 10 | 1 tasks | 2 files |
 | Phase 06-stage-02-autoresearch P01 | 9 | 2 tasks | 4 files |
 | Phase 06-stage-02-autoresearch P03 | 45 | 2 tasks | 4 files |
+| Phase 07-stage-03-autoresearch P01 | 10 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -145,6 +146,9 @@ Recent decisions affecting current work:
 - [Phase 06-stage-02-autoresearch]: freeze_features.py uses importlib introspection on current_best/feature_engine.py — no sys.path mutation, path resolution from stages/02-features/ (parents[1])
 - [Phase 06-stage-02-autoresearch]: frozen_features.json written to stages/02-features/output/ with features list, frozen_date, source path — Stage 03 must copy to stages/03-hypothesis/references/
 - [Phase 06-stage-02-autoresearch]: Budget smoke test (budget=3, n-experiments=5) run before overnight — driver stopped at 3 as expected; 20-experiment smoke test all verdict=kept, spread=44.09, mwu_p=1.48e-07
+- [Phase 07-stage-03-autoresearch]: hypothesis_generator.py uses subprocess check=True for engine calls — driver handles CalledProcessError as EXPERIMENT_ANOMALY
+- [Phase 07-stage-03-autoresearch]: replication_gate read at loop start from _config/period_config.md — stable per-session, hard_block reverts, flag_and_review flags as kept_weak_replication
+- [Phase 07-stage-03-autoresearch]: Stage 03 TSV uses 25 columns (replication_pass added after notes) — does not affect Stage 02 or 04 TSV headers
 
 ### Pending Todos
 
@@ -163,6 +167,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T20:17:44.126Z
-Stopped at: Completed 06-stage-02-autoresearch plan 03 (smoke test + freeze script)
+Last session: 2026-03-14T21:09:41.282Z
+Stopped at: Completed 07-stage-03-autoresearch plan 01 (hypothesis generator + driver)
 Resume file: None

@@ -86,9 +86,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTO-06**: Stage 02 driver.py written (feature keep/revert, entry-time enforcement, 300 budget)
 - [x] **AUTO-07**: Stage 02 program.md written (≤30 lines)
 - [x] **AUTO-08**: Stage 02 overnight test (20 experiments, feature spread values, entry-time block verified)
-- [ ] **AUTO-09**: hypothesis_generator.py written (Rule 4 P1a/P1b replication, Bonferroni gates)
-- [ ] **AUTO-10**: Stage 03 driver.py written (hypothesis keep/revert, replication enforcement, 200 budget)
-- [ ] **AUTO-11**: Stage 03 program.md written (≤30 lines)
+- [x] **AUTO-09**: hypothesis_generator.py written (Rule 4 P1a/P1b replication, Bonferroni gates)
+- [x] **AUTO-10**: Stage 03 driver.py written (hypothesis keep/revert, replication enforcement, 200 budget)
+- [x] **AUTO-11**: Stage 03 program.md written (≤30 lines)
 - [ ] **AUTO-12**: Stage 03 overnight test (12 experiments, replication_pass column, Rule 4 enforced)
 - [ ] **AUTO-13**: Feedback loop wired (Stage 05 feedback_to_hypothesis.md → Stage 03 prior_results.md)
 
@@ -194,9 +194,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-06 | Phase 6 | Complete |
 | AUTO-07 | Phase 6 | Complete |
 | AUTO-08 | Phase 6 | Complete |
-| AUTO-09 | Phase 7 | Pending |
-| AUTO-10 | Phase 7 | Pending |
-| AUTO-11 | Phase 7 | Pending |
+| AUTO-09 | Phase 7 | Complete |
+| AUTO-10 | Phase 7 | Complete |
+| AUTO-11 | Phase 7 | Complete |
 | AUTO-12 | Phase 7 | Pending |
 | AUTO-13 | Phase 7 | Pending |
 
