@@ -647,9 +647,9 @@ def test_unique_run_id(tmp_path):
     data_rows = lines[2:]
     run_ids = [row.split("\t")[0] for row in data_rows]
     assert len(run_ids) == len(set(run_ids)), f"Duplicate run_ids found: {run_ids}"
-    # run_ids should be 8-char hex strings (SHA-256 prefix)
+    # run_ids should be 7-char hex strings (SHA-1 prefix, matches git short hash format)
     for rid in run_ids:
-        assert len(rid) == 8, f"Expected 8-char run_id, got: {rid!r}"
+        assert len(rid) == 7, f"Expected 7-char run_id, got: {rid!r}"
         assert all(c in "0123456789abcdef" for c in rid), f"run_id not hex: {rid!r}"
 
 

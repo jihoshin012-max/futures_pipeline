@@ -40,7 +40,7 @@ _CANDIDATE_MODES = ["M1"]  # Only M1 mode params are varied
 def _generate_run_id(archetype: str, timestamp: str, experiment_n: int) -> str:
     """Generate unique run_id per experiment using hash of archetype+timestamp+n."""
     raw = f"{archetype}:{timestamp}:{experiment_n}"
-    return hashlib.sha256(raw.encode()).hexdigest()[:8]
+    return hashlib.sha1(raw.encode()).hexdigest()[:7]
 
 
 def _read_hypothesis_name(autoresearch_dir: Path) -> str:
@@ -52,15 +52,22 @@ def _read_hypothesis_name(autoresearch_dir: Path) -> str:
     return ""
 
 
-def _git_commit(repo_root: Path, files: list, message: str) -> None:
-    """Stage files and commit with message. Failures are non-fatal."""
+def _git_commit(repo_root: Path, files: list, message: str) -> str:
+    """Stage files and commit with message. Returns short hash or empty string. Non-fatal."""
     try:
         subprocess.run(["git", "add"] + files, cwd=str(repo_root), capture_output=True)
         subprocess.run(
             ["git", "commit", "-m", message], cwd=str(repo_root), capture_output=True
         )
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=str(repo_root), capture_output=True, text=True,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
     except Exception:
         pass  # Git failures must not abort the experiment loop
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -418,6 +425,21 @@ def run_loop(
             # Populate hypothesis_name: file value if present, else archetype fallback
             hypothesis_name = hypothesis_name_base if hypothesis_name_base else archetype
 
+            # Event-driven git commit on kept experiments — capture hash for notes
+            notes = ""
+            if improved:
+                git_hash = _git_commit(
+                    repo_root,
+                    [
+                        str(current_best_path.relative_to(repo_root)),
+                        str(results_tsv_path.relative_to(repo_root)),
+                    ],
+                    f"auto: kept experiment {n_prior_tests + 1} | pf={metric_value:.3f}"
+                    f" | {archetype} | stage=04",
+                )
+                if git_hash:
+                    notes = f"git:{git_hash}"
+
             # Append TSV row (all 24 columns)
             version = current_best_config.get("version", "")
             row = [
@@ -444,21 +466,9 @@ def run_loop(
                 win_rate,        # win_rate
                 "",              # regime_breakdown
                 "",              # api_cost_usd
-                "",              # notes
+                notes,           # notes
             ]
             _append_tsv_row(results_tsv_path, row)
-
-            # Event-driven git commit on kept experiments only
-            if improved:
-                _git_commit(
-                    repo_root,
-                    [
-                        str(current_best_path.relative_to(repo_root)),
-                        str(results_tsv_path.relative_to(repo_root)),
-                    ],
-                    f"auto: kept experiment {n_prior_tests + 1} | pf={metric_value:.3f}"
-                    f" | {archetype} | stage=04",
-                )
 
             iteration += 1
     finally:
