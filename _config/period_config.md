@@ -36,7 +36,22 @@ After (P2 tested, P3 arrives):
 No code changes. Stage 01 re-reads this file and updates data_manifest.json automatically.
 
 ## Internal Replication Sub-periods (Rule 4)
-For new hypotheses: P1a = 2025-09-16 to 2025-10-31 (calibrate)
-                   P1b = 2025-11-01 to 2025-12-14 (replicate)
-Any strategy calibrated on full P1 before Rule 4 was introduced is grandfathered — its
-existing P2 result stands. Rule 4 applies to all new hypotheses.
+p1_split_rule: midpoint
+# Stage 01 computes P1a/P1b dynamically from P1 start/end using this rule.
+# Options: midpoint | 60_40 | fixed_days:<N>
+#   midpoint       — P1a = first half of P1, P1b = second half (default)
+#   60_40          — P1a = first 60% of P1, P1b = last 40%
+#   fixed_days:<N> — P1a = first N days, P1b = remainder
+# When P1 rolls forward the split auto-updates — no manual date editing.
+# Current computed split (informational — Stage 01 writes resolved dates
+# into data_manifest.json):
+#   P1a = 2025-09-16 to 2025-10-31 | P1b = 2025-11-01 to 2025-12-14
+replication_gate: flag_and_review
+# Options: hard_block | flag_and_review
+#   hard_block      — P1b fail = NO verdict, do not advance to P2
+#   flag_and_review — P1b fail = WEAK_REPLICATION flag, human decides
+# flag_and_review is recommended when n_trades_p1b < 50.
+# hypothesis_generator.py reads this value at runtime.
+Any strategy calibrated on full P1 before Rule 4 was introduced is
+grandfathered — its existing P2 result stands. Rule 4 applies to all
+new hypotheses.
