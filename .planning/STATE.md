@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-02-PLAN.md (all tasks done — 9 config files created)
-last_updated: "2026-03-14T00:56:30.046Z"
+stopped_at: "Completed 01-03-PLAN.md (all tasks done — 5 files created: feature_definitions, feature_rules, feature_catalog, scoring model template + adapter)"
+last_updated: "2026-03-14T00:59:45.267Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
+  completed_plans: 3
   percent: 17
 ---
 
@@ -53,6 +53,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-scaffold P01 | 15 | 1 tasks | 43 files |
 | Phase 01-scaffold P01 | 30 | 2 tasks | 47 files |
 | Phase 01-scaffold P02 | 3 | 2 tasks | 9 files |
+| Phase 01-scaffold P03 | 8 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - [Phase 01-scaffold]: zone_csv_v2 used as source_id for ZRA touch data; matches architecture doc; files use ZRA_Hist_*.csv pattern on disk
 - [Phase 01-scaffold]: period_config.md committed before any evaluation file — STATE.md P1a/P1b blocker cleared
 - [Phase 01-scaffold]: data_registry.md zone_csv_v2 source_id must match zone_csv_v2_schema.md in Plan 04 Stage 01 references
+- [Phase 01-scaffold]: Scoring adapter stubs raise NotImplementedError instead of pass/None — prevents silent failure in Phase 4
+- [Phase 01-scaffold]: feature_rules.md held to 15 lines — operative rules in first 5 lines per lost-in-middle constraint
 
 ### Pending Todos
 
@@ -83,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T00:56:30.043Z
-Stopped at: Completed 01-02-PLAN.md (all tasks done — 9 config files created)
+Last session: 2026-03-14T00:59:45.264Z
+Stopped at: Completed 01-03-PLAN.md (all tasks done — 5 files created: feature_definitions, feature_rules, feature_catalog, scoring model template + adapter)
 Resume file: None
