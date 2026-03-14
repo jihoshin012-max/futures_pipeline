@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Scaffold** - Create all static config files, stage CONTEXT.md files, shared resources, and migrate data (completed 2026-03-14)
 - [x] **Phase 2: HMM Regime Fitter** - Fit, serialize, and validate the regime labeling model before any research begins (completed 2026-03-14)
 - [x] **Phase 3: Git Infrastructure** - Autocommit watcher, holdout guard hook, and post-commit audit entries operational (completed 2026-03-14)
-- [ ] **Phase 4: Backtest Engine** - Deterministic, dynamically dispatching engine verified with a manual end-to-end pass
+- [x] **Phase 4: Backtest Engine** - Deterministic, dynamically dispatching engine verified with a manual end-to-end pass (completed 2026-03-14)
 - [ ] **Phase 5: Stage 04 Autoresearch** - Exit parameter keep/revert loop with overnight test confirming operational
 - [ ] **Phase 6: Stage 02 Autoresearch** - Feature engineering keep/revert loop with entry-time enforcement verified
 - [ ] **Phase 7: Stage 03 Autoresearch** - Hypothesis generation loop with replication enforcement and feedback loop wired
@@ -106,7 +106,7 @@ Plans:
   3. A manual run from Stage 01 through Stage 04 through Stage 05 produces a well-formed verdict_report.md with a net-of-cost Sharpe that is less than 80% of the gross Sharpe, confirming realistic cost modeling
   4. config_schema.json and config_schema.md document every field, distinguish FIXED from CANDIDATE parameters, and trail step validation rules are enforced by the engine on load
   5. Loading the engine with a config pointing to an unimplemented adapter stub aborts at load time with a clear error naming the adapter — not silently failing mid-experiment
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] 04-01-PLAN.md — Reference docs: QA answers, simulation rules, config schema and documentation
@@ -159,7 +159,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | 01.2. Bar Type Registry | 1/1 | Complete    | 2026-03-14 |
 | 2. HMM Regime Fitter | 2/2 | Complete | 2026-03-14 |
 | 3. Git Infrastructure | 2/2 | Complete | 2026-03-14 |
-| 4. Backtest Engine | 3/4 | In Progress|  |
+| 4. Backtest Engine | 4/4 | Complete   | 2026-03-14 |
 | 5. Stage 04 Autoresearch | 0/TBD | Not started | - |
 | 6. Stage 02 Autoresearch | 0/TBD | Not started | - |
 | 7. Stage 03 Autoresearch | 0/TBD | Not started | - |

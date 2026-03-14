@@ -71,8 +71,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ENGINE-03**: backtest_engine.py written (~175-225 lines, dynamic dispatch, holdout guard, per-mode breakdown)
 - [x] **ENGINE-04**: config_schema.json written (all fields, trail step validation rules)
 - [x] **ENGINE-05**: config_schema.md written (every field documented, FIXED vs CANDIDATE)
-- [ ] **ENGINE-06**: Determinism verified (identical config → identical output, diffed)
-- [ ] **ENGINE-07**: Manual end-to-end pass (01 → 04 → 05, verdict_report.md well-formed)
+- [x] **ENGINE-06**: Determinism verified (identical config → identical output, diffed)
+- [x] **ENGINE-07**: Manual end-to-end pass (01 → 04 → 05, verdict_report.md well-formed)
 - [x] **ENGINE-08**: shared/archetypes/{archetype}/simulation_rules.md written from actual source
 - [x] **ENGINE-09**: Scoring adapter interface validated at engine load time (instantiate + call score() on empty df), not at first experiment run. Unimplemented adapter aborts with clear error identifying which adapter stub needs implementation.
 
@@ -182,8 +182,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENGINE-03 | Phase 4 | Complete |
 | ENGINE-04 | Phase 4 | Complete |
 | ENGINE-05 | Phase 4 | Complete |
-| ENGINE-06 | Phase 4 | Pending |
-| ENGINE-07 | Phase 4 | Pending |
+| ENGINE-06 | Phase 4 | Complete |
+| ENGINE-07 | Phase 4 | Complete |
 | ENGINE-08 | Phase 4 | Complete |
 | ENGINE-09 | Phase 4 | Complete |
 | AUTO-01 | Phase 5 | Pending |

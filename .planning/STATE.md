@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-03-PLAN.md (zone_touch_simulator.py and backtest_engine.py)
-last_updated: "2026-03-14T05:22:00.653Z"
+stopped_at: Completed 04-04-PLAN.md (determinism test ENGINE-06 and assess.py ENGINE-07)
+last_updated: "2026-03-14T05:40:04.516Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
   percent: 17
 ---
 
@@ -66,6 +66,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 04-backtest-engine P01 | 8 | 2 tasks | 4 files |
 | Phase 04-backtest-engine P02 | 3 | 2 tasks | 5 files |
 | Phase 04-backtest-engine P03 | 16 | 2 tasks | 4 files |
+| Phase 04-backtest-engine P04 | 30 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,9 @@ Recent decisions affecting current work:
 - [Phase 04-backtest-engine]: BinnedScoringAdapter.score() returns pd.Series(0.0, index=touch_df.index) for placeholder model with empty weights
 - [Phase 04-backtest-engine]: Stop price tracked as absolute price not ticks — required for trail ratchet above entry (BE trigger and profitable stop exits)
 - [Phase 04-backtest-engine]: Engine _REPO_ROOT uses parents[3]: file is 3 levels deep under repo root (stages/04-backtest/autoresearch/)
+- [Phase 04-backtest-engine]: test_determinism added as standalone function (not class method) so pytest::test_determinism address works per plan verify step
+- [Phase 04-backtest-engine]: assess.py uses parse_instruments_md() from shared.data_loader for cost_ticks — consistent with engine, no regex duplication
+- [Phase 04-backtest-engine]: INSUFFICIENT_DATA verdict in verdict_report.md is correct for uncalibrated model — plan explicitly anticipated this outcome
 
 ### Pending Todos
 
@@ -133,6 +137,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T05:22:00.650Z
-Stopped at: Completed 04-03-PLAN.md (zone_touch_simulator.py and backtest_engine.py)
+Last session: 2026-03-14T05:40:04.513Z
+Stopped at: Completed 04-04-PLAN.md (determinism test ENGINE-06 and assess.py ENGINE-07)
 Resume file: None
