@@ -68,7 +68,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **ENGINE-01**: Q1-Q6 answers documented in backtest_engine_qa.md
 - [x] **ENGINE-02**: data_loader.py patched (5 hardcoded paths parameterized, existing callers updated)
-- [ ] **ENGINE-03**: backtest_engine.py written (~175-225 lines, dynamic dispatch, holdout guard, per-mode breakdown)
+- [x] **ENGINE-03**: backtest_engine.py written (~175-225 lines, dynamic dispatch, holdout guard, per-mode breakdown)
 - [x] **ENGINE-04**: config_schema.json written (all fields, trail step validation rules)
 - [x] **ENGINE-05**: config_schema.md written (every field documented, FIXED vs CANDIDATE)
 - [ ] **ENGINE-06**: Determinism verified (identical config → identical output, diffed)
@@ -179,7 +179,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GIT-04 | Phase 3 | Complete |
 | ENGINE-01 | Phase 4 | Complete |
 | ENGINE-02 | Phase 4 | Complete |
-| ENGINE-03 | Phase 4 | Pending |
+| ENGINE-03 | Phase 4 | Complete |
 | ENGINE-04 | Phase 4 | Complete |
 | ENGINE-05 | Phase 4 | Complete |
 | ENGINE-06 | Phase 4 | Pending |

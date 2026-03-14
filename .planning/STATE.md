@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-02-PLAN.md (data_loader.py and scoring adapter factory with BinnedScoringAdapter placeholder)
-last_updated: "2026-03-14T04:59:28.067Z"
+stopped_at: Completed 04-03-PLAN.md (zone_touch_simulator.py and backtest_engine.py)
+last_updated: "2026-03-14T05:22:00.653Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 17
 ---
 
@@ -65,6 +65,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 03-git-infrastructure P02 | 5 | 2 tasks | 0 files |
 | Phase 04-backtest-engine P01 | 8 | 2 tasks | 4 files |
 | Phase 04-backtest-engine P02 | 3 | 2 tasks | 5 files |
+| Phase 04-backtest-engine P03 | 16 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,8 @@ Recent decisions affecting current work:
 - [Phase 04-backtest-engine]: Touch file ZRA_Hist_P1.csv has 33 columns not 32 — test corrected to file ground truth
 - [Phase 04-backtest-engine]: parse_instruments_md regex uses ticks? to handle both singular and plural tick count format in instruments.md
 - [Phase 04-backtest-engine]: BinnedScoringAdapter.score() returns pd.Series(0.0, index=touch_df.index) for placeholder model with empty weights
+- [Phase 04-backtest-engine]: Stop price tracked as absolute price not ticks — required for trail ratchet above entry (BE trigger and profitable stop exits)
+- [Phase 04-backtest-engine]: Engine _REPO_ROOT uses parents[3]: file is 3 levels deep under repo root (stages/04-backtest/autoresearch/)
 
 ### Pending Todos
 
@@ -130,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T04:59:28.064Z
-Stopped at: Completed 04-02-PLAN.md (data_loader.py and scoring adapter factory with BinnedScoringAdapter placeholder)
+Last session: 2026-03-14T05:22:00.650Z
+Stopped at: Completed 04-03-PLAN.md (zone_touch_simulator.py and backtest_engine.py)
 Resume file: None
