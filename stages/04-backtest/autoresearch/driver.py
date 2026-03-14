@@ -11,6 +11,7 @@ evaluates the keep/revert decision, logs results.tsv, and handles anomalies.
 
 import argparse
 import copy
+import hashlib
 import json
 import random
 import shutil
@@ -36,19 +37,30 @@ _CANDIDATE_MODES = ["M1"]  # Only M1 mode params are varied
 # (nothing extra needed; subprocess is already imported)
 
 
-def _get_run_id() -> str:
-    """Get short git hash of HEAD. Returns 'unknown' if git fails."""
+def _generate_run_id(archetype: str, timestamp: str, experiment_n: int) -> str:
+    """Generate unique run_id per experiment using hash of archetype+timestamp+n."""
+    raw = f"{archetype}:{timestamp}:{experiment_n}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:8]
+
+
+def _read_hypothesis_name(autoresearch_dir: Path) -> str:
+    """Read hypothesis name from promoted_hypothesis.json, fallback to empty string."""
+    hyp_path = autoresearch_dir / "promoted_hypothesis.json"
+    if hyp_path.exists():
+        data = json.loads(hyp_path.read_text(encoding="utf-8"))
+        return data.get("name", "")
+    return ""
+
+
+def _git_commit(repo_root: Path, files: list, message: str) -> None:
+    """Stage files and commit with message. Failures are non-fatal."""
     try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True,
-            text=True,
+        subprocess.run(["git", "add"] + files, cwd=str(repo_root), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", message], cwd=str(repo_root), capture_output=True
         )
-        if result.returncode == 0:
-            return result.stdout.strip()
     except Exception:
-        pass
-    return "unknown"
+        pass  # Git failures must not abort the experiment loop
 
 
 # ---------------------------------------------------------------------------
@@ -270,15 +282,6 @@ def _log_experiment_anomaly(
     )
     with audit_log_path.open("a", encoding="utf-8") as f:
         f.write(entry)
-    # git add (do not commit — autocommit.sh handles it)
-    try:
-        subprocess.run(
-            ["git", "add", str(audit_log_path)],
-            capture_output=True,
-            text=True,
-        )
-    except Exception:
-        pass
 
 
 # ---------------------------------------------------------------------------
@@ -314,111 +317,152 @@ def run_loop(
     # Determine baseline metric from last "seeded" or "kept" row in results.tsv
     current_best_metric = _read_baseline_metric(results_tsv_path)
 
+    # Read hypothesis_name once at loop start (stable for the session)
+    hypothesis_name_base = _read_hypothesis_name(autoresearch_dir)
+
     iteration = 0
 
-    while True:
-        if max_iterations is not None and iteration >= max_iterations:
-            break
+    # Lockfile: coordinate with autocommit.sh to suppress polling during autoresearch
+    lockfile = repo_root / ".autoresearch_running"
+    lockfile.touch()
+    try:
+        while True:
+            if max_iterations is not None and iteration >= max_iterations:
+                break
 
-        # Re-read program.md every iteration (Pitfall 2: budget/metric may change)
-        program = parse_program_md(program_md_path)
-        metric_field = program["metric"]
-        keep_rule = program["keep_rule"]
-        budget = program["budget"]
+            # Re-read program.md every iteration (Pitfall 2: budget/metric may change)
+            program = parse_program_md(program_md_path)
+            metric_field = program["metric"]
+            keep_rule = program["keep_rule"]
+            budget = program["budget"]
 
-        # Count prior tests BEFORE this experiment (Pitfall 4: count before, not after)
-        n_prior_tests = _count_tsv_rows(results_tsv_path)
+            # Count prior tests BEFORE this experiment (Pitfall 4: count before, not after)
+            n_prior_tests = _count_tsv_rows(results_tsv_path)
 
-        if n_prior_tests >= budget:
-            print(f"Budget exhausted ({n_prior_tests} >= {budget}). Stopping.")
-            break
+            if n_prior_tests >= budget:
+                print(f"Budget exhausted ({n_prior_tests} >= {budget}). Stopping.")
+                # Commit budget-exhausted event
+                archetype_name = current_best_config.get("archetype", {}).get("name", "")
+                _git_commit(
+                    repo_root,
+                    [str(results_tsv_path.relative_to(repo_root))],
+                    f"auto: stage-04 budget exhausted | {n_prior_tests} experiments"
+                    f" | best pf={current_best_metric:.3f} | {archetype_name}",
+                )
+                break
 
-        # Propose next params
-        proposed_config = propose_next_params(current_best_config, results_tsv_path)
+            # Propose next params
+            proposed_config = propose_next_params(current_best_config, results_tsv_path)
 
-        # Write exit_params.json
-        exit_params_path.write_text(
-            json.dumps(proposed_config, indent=2), encoding="utf-8"
-        )
+            # Write exit_params.json
+            exit_params_path.write_text(
+                json.dumps(proposed_config, indent=2), encoding="utf-8"
+            )
 
-        # Run backtest engine
-        proc = subprocess.run(
-            [
-                sys.executable,
-                str(engine_path),
-                "--config",
-                str(exit_params_path),
-                "--output",
-                str(result_json_path),
-            ],
-            capture_output=True,
-            text=True,
-            cwd=str(repo_root),
-        )
+            # Run backtest engine
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    str(engine_path),
+                    "--config",
+                    str(exit_params_path),
+                    "--output",
+                    str(result_json_path),
+                ],
+                capture_output=True,
+                text=True,
+                cwd=str(repo_root),
+            )
 
-        # Get run_id immediately after engine completes (Pitfall 1)
-        run_id = _get_run_id()
+            # Generate unique run_id per experiment (hash of archetype+timestamp+n)
+            timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            archetype = current_best_config.get("archetype", {}).get("name", "")
+            run_id = _generate_run_id(archetype, timestamp, n_prior_tests)
 
-        timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            if proc.returncode != 0:
+                # Log anomaly and commit (do NOT abort loop)
+                _log_experiment_anomaly(audit_log_path, run_id, proc.stderr)
+                _git_commit(
+                    repo_root,
+                    [
+                        str(audit_log_path.relative_to(repo_root)),
+                        str(results_tsv_path.relative_to(repo_root)),
+                    ],
+                    f"auto: ANOMALY stage-04 experiment {n_prior_tests + 1}"
+                    f" | {archetype} | see audit_log.md",
+                )
+                # Revert to prior best
+                shutil.copy2(current_best_path, exit_params_path)
+                iteration += 1
+                continue
 
-        if proc.returncode != 0:
-            # Log anomaly and continue (do NOT abort)
-            _log_experiment_anomaly(audit_log_path, run_id, proc.stderr)
-            # Revert to prior best
-            shutil.copy2(current_best_path, exit_params_path)
+            # Read result
+            result_data = json.loads(result_json_path.read_text(encoding="utf-8"))
+            metric_value = float(result_data.get(metric_field, 0.0))
+            n_trades = int(result_data.get("n_trades", 0))
+            win_rate = float(result_data.get("win_rate", 0.0))
+            max_dd = float(result_data.get("max_drawdown_ticks", 0.0))
+
+            # Keep/revert decision
+            improved = (metric_value > current_best_metric + keep_rule) and (n_trades >= MIN_TRADES)
+            verdict = "kept" if improved else "reverted"
+
+            if improved:
+                shutil.copy2(exit_params_path, current_best_path)
+                current_best_metric = metric_value
+                current_best_config = proposed_config
+
+            else:
+                shutil.copy2(current_best_path, exit_params_path)
+
+            # Populate hypothesis_name: file value if present, else archetype fallback
+            hypothesis_name = hypothesis_name_base if hypothesis_name_base else archetype
+
+            # Append TSV row (all 24 columns)
+            version = current_best_config.get("version", "")
+            row = [
+                run_id,          # run_id
+                "04-backtest",   # stage
+                timestamp,       # timestamp
+                hypothesis_name, # hypothesis_name
+                archetype,       # archetype
+                version,         # version
+                "",              # features
+                metric_value,    # pf_p1
+                "",              # pf_p2
+                n_trades,        # trades_p1
+                "",              # trades_p2
+                "",              # mwu_p
+                "",              # perm_p
+                "",              # pctile
+                n_prior_tests,   # n_prior_tests
+                verdict,         # verdict
+                "",              # sharpe_p1
+                max_dd,          # max_dd_ticks
+                "",              # avg_winner_ticks
+                "",              # dd_multiple
+                win_rate,        # win_rate
+                "",              # regime_breakdown
+                "",              # api_cost_usd
+                "",              # notes
+            ]
+            _append_tsv_row(results_tsv_path, row)
+
+            # Event-driven git commit on kept experiments only
+            if improved:
+                _git_commit(
+                    repo_root,
+                    [
+                        str(current_best_path.relative_to(repo_root)),
+                        str(results_tsv_path.relative_to(repo_root)),
+                    ],
+                    f"auto: kept experiment {n_prior_tests + 1} | pf={metric_value:.3f}"
+                    f" | {archetype} | stage=04",
+                )
+
             iteration += 1
-            continue
-
-        # Read result
-        result_data = json.loads(result_json_path.read_text(encoding="utf-8"))
-        metric_value = float(result_data.get(metric_field, 0.0))
-        n_trades = int(result_data.get("n_trades", 0))
-        win_rate = float(result_data.get("win_rate", 0.0))
-        max_dd = float(result_data.get("max_drawdown_ticks", 0.0))
-
-        # Keep/revert decision
-        improved = (metric_value > current_best_metric + keep_rule) and (n_trades >= MIN_TRADES)
-        verdict = "kept" if improved else "reverted"
-
-        if improved:
-            shutil.copy2(exit_params_path, current_best_path)
-            current_best_metric = metric_value
-            current_best_config = proposed_config
-        else:
-            shutil.copy2(current_best_path, exit_params_path)
-
-        # Append TSV row (all 24 columns)
-        archetype = current_best_config.get("archetype", {}).get("name", "")
-        version = current_best_config.get("version", "")
-        row = [
-            run_id,          # run_id
-            "04-backtest",   # stage
-            timestamp,       # timestamp
-            "",              # hypothesis_name
-            archetype,       # archetype
-            version,         # version
-            "",              # features
-            metric_value,    # pf_p1
-            "",              # pf_p2
-            n_trades,        # trades_p1
-            "",              # trades_p2
-            "",              # mwu_p
-            "",              # perm_p
-            "",              # pctile
-            n_prior_tests,   # n_prior_tests
-            verdict,         # verdict
-            "",              # sharpe_p1
-            max_dd,          # max_dd_ticks
-            "",              # avg_winner_ticks
-            "",              # dd_multiple
-            win_rate,        # win_rate
-            "",              # regime_breakdown
-            "",              # api_cost_usd
-            "",              # notes
-        ]
-        _append_tsv_row(results_tsv_path, row)
-
-        iteration += 1
+    finally:
+        lockfile.unlink(missing_ok=True)
 
 
 def _read_baseline_metric(results_tsv_path: Path) -> float:

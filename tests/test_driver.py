@@ -352,15 +352,21 @@ def test_program_md_reread(tmp_path):
     # Initial budget = 5
     _write_program_md(auto_dir, budget=5)
 
-    call_count = [0]
+    engine_call_count = [0]
 
-    def _mock_run_and_update(*args, **kwargs):
-        call_count[0] += 1
-        if call_count[0] == 2:
+    def _mock_run_and_update(args, **kwargs):
+        m = MagicMock()
+        if args[0] == "git":
+            m.returncode = 0
+            m.stdout = ""
+            m.stderr = ""
+            return m
+        # Engine call
+        engine_call_count[0] += 1
+        if engine_call_count[0] == 2:
             # After 2nd experiment, lower budget to 2 — driver should stop after this
             _write_program_md(auto_dir, budget=2)
         _good_result_json(result_path.parent, pf=1.5, n_trades=60)
-        m = MagicMock()
         m.returncode = 0
         m.stderr = ""
         return m
@@ -373,7 +379,7 @@ def test_program_md_reread(tmp_path):
     # seeded row counts as 1 prior test, so n_prior_tests=1 at start of exp 1
     # After exp 1: 2 rows => n_prior_tests=2 at start of exp 2
     # During exp 2: budget reduced to 2, so after exp 2: n_prior_tests=3 >= 2 => stop
-    assert call_count[0] == 2, f"Expected 2 engine calls, got {call_count[0]}"
+    assert engine_call_count[0] == 2, f"Expected 2 engine calls, got {engine_call_count[0]}"
 
 
 def test_trail_step_validation(tmp_path):

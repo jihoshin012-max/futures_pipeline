@@ -9,6 +9,10 @@ POLL_INTERVAL=30  # seconds
 while true; do
     sleep $POLL_INTERVAL
     cd "$WATCH_DIR"
+    # Skip polling when autoresearch driver is running — it manages its own commits
+    if [ -f ".autoresearch_running" ]; then
+        continue
+    fi
     if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
         CHANGED=$(git diff --name-only; git ls-files --others --exclude-standard)
         TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
