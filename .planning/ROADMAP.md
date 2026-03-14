@@ -42,6 +42,21 @@ Plans:
 - [ ] 01-05-PLAN.md — Stage 05-07 CONTEXT.md files and supporting files
 - [ ] 01-06-PLAN.md — Dashboard stubs, audit infrastructure, strategy archetypes
 
+### Phase 01.2: Bar type registry and subfolder structure (INSERTED)
+
+**Goal:** Bar data files are organized in typed subfolders (volume/time/tick) with per-type source_ids in data_registry.md and matching schema files — enabling Phase 4 backtest engine config paths to resolve correctly
+**Requirements**: BAR-01, BAR-02, BAR-03, BAR-04
+**Depends on:** Phase 1
+**Success Criteria** (what must be TRUE):
+  1. Bar data files live in `bar_data/volume/` subfolder, not flat `bar_data/`
+  2. `data_registry.md` uses typed source_ids (`bar_data_volume`, `bar_data_time`, `bar_data_tick`), not bare `bar_data`
+  3. Schema file `bar_data_volume_schema.md` exists with correct source_id naming convention
+  4. Placeholder subfolders (`time/`, `tick/`) exist for future bar types
+**Plans:** 1 plan
+
+Plans:
+- [ ] 01.2-01-PLAN.md — Migrate bar files to volume/ subfolder, update registry with typed source_ids, rename schema
+
 ### Phase 01.1: Scoring Adapter Scaffold Generator (INSERTED)
 
 **Goal**: A scaffold generator exists that auto-creates scoring adapter stubs, adapter tests, and audit entries when a new archetype is registered with an unrecognized scoring_adapter value — reducing manual friction and enforcing the adapter interface contract
@@ -131,6 +146,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 |-------|----------------|--------|-----------|
 | 1. Scaffold | 6/6 | Complete   | 2026-03-14 |
 | 01.1. Scoring Adapter Scaffold Generator | 1/1 | Complete    | 2026-03-14 |
+| 01.2. Bar Type Registry | 0/1 | Planning complete | - |
 | 2. HMM Regime Fitter | 0/2 | Planning complete | - |
 | 3. Git Infrastructure | 0/TBD | Not started | - |
 | 4. Backtest Engine | 0/TBD | Not started | - |
