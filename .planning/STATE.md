@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 07-stage-03-autoresearch plan 01 (hypothesis generator + driver)
-last_updated: "2026-03-14T21:09:41.286Z"
+stopped_at: Completed 07-stage-03-autoresearch plan 03 (assess.py feedback loop wiring)
+last_updated: "2026-03-14T21:22:58.221Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
   percent: 17
 ---
 
@@ -75,6 +75,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 06-stage-02-autoresearch P01 | 9 | 2 tasks | 4 files |
 | Phase 06-stage-02-autoresearch P03 | 45 | 2 tasks | 4 files |
 | Phase 07-stage-03-autoresearch P01 | 10 | 2 tasks | 7 files |
+| Phase 07-stage-03-autoresearch P03 | 11 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,8 @@ Recent decisions affecting current work:
 - [Phase 07-stage-03-autoresearch]: hypothesis_generator.py uses subprocess check=True for engine calls — driver handles CalledProcessError as EXPERIMENT_ANOMALY
 - [Phase 07-stage-03-autoresearch]: replication_gate read at loop start from _config/period_config.md — stable per-session, hard_block reverts, flag_and_review flags as kept_weak_replication
 - [Phase 07-stage-03-autoresearch]: Stage 03 TSV uses 25 columns (replication_pass added after notes) — does not affect Stage 02 or 04 TSV headers
+- [Phase 07-stage-03-autoresearch]: stage03_ref_path defaults to repo-root-relative path internally — not a CLI flag, keeping interface minimal
+- [Phase 07-stage-03-autoresearch]: What Worked threshold PF>1.5, What to Avoid threshold PF<1.0 — matches verdict_label() thresholds in assess.py
 
 ### Pending Todos
 
@@ -167,6 +170,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T21:09:41.282Z
-Stopped at: Completed 07-stage-03-autoresearch plan 01 (hypothesis generator + driver)
+Last session: 2026-03-14T21:22:58.217Z
+Stopped at: Completed 07-stage-03-autoresearch plan 03 (assess.py feedback loop wiring)
 Resume file: None

@@ -90,7 +90,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTO-10**: Stage 03 driver.py written (hypothesis keep/revert, replication enforcement, 200 budget)
 - [x] **AUTO-11**: Stage 03 program.md written (≤30 lines)
 - [ ] **AUTO-12**: Stage 03 overnight test (12 experiments, replication_pass column, Rule 4 enforced)
-- [ ] **AUTO-13**: Feedback loop wired (Stage 05 feedback_to_hypothesis.md → Stage 03 prior_results.md)
+- [x] **AUTO-13**: Feedback loop wired (Stage 05 feedback_to_hypothesis.md → Stage 03 prior_results.md)
 
 ## v2 Requirements
 
@@ -198,7 +198,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-10 | Phase 7 | Complete |
 | AUTO-11 | Phase 7 | Complete |
 | AUTO-12 | Phase 7 | Pending |
-| AUTO-13 | Phase 7 | Pending |
+| AUTO-13 | Phase 7 | Complete |
 
 **Coverage:**
 - v1 requirements: 64 total
