@@ -90,7 +90,11 @@ Plans:
   2. A commit that touches any file under 04-backtest/p2_holdout/ is rejected by the pre-commit hook with a holdout guard message
   3. A commit that modifies (not appends to) audit/audit_log.md is rejected by the pre-commit hook
   4. A commit tagged OOS_RUN or DEPLOYMENT_APPROVED causes the post-commit hook to write the corresponding entry into audit_log.md automatically
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — TDD: Create test scaffold and implement autocommit.sh, pre-commit hook, post-commit hook
+- [ ] 03-02-PLAN.md — Run automated verification suite and manual end-to-end verification
 
 ### Phase 4: Backtest Engine
 **Goal**: The backtest engine is a fixed, deterministic evaluation harness that any autoresearch loop can run safely — verified by two identical-config runs producing byte-identical output and a manual 01-to-05 pass succeeding
@@ -148,7 +152,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | 01.1. Scoring Adapter Scaffold Generator | 1/1 | Complete    | 2026-03-14 |
 | 01.2. Bar Type Registry | 1/1 | Complete    | 2026-03-14 |
 | 2. HMM Regime Fitter | 0/2 | Planning complete | - |
-| 3. Git Infrastructure | 0/TBD | Not started | - |
+| 3. Git Infrastructure | 0/2 | Planning complete | - |
 | 4. Backtest Engine | 0/TBD | Not started | - |
 | 5. Stage 04 Autoresearch | 0/TBD | Not started | - |
 | 6. Stage 02 Autoresearch | 0/TBD | Not started | - |
