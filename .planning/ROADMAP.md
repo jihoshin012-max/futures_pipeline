@@ -47,10 +47,10 @@ Plans:
 **Goal**: A scaffold generator exists that auto-creates scoring adapter stubs, adapter tests, and audit entries when a new archetype is registered with an unrecognized scoring_adapter value — reducing manual friction and enforcing the adapter interface contract
 **Requirements**: SCAF-27
 **Depends on:** Phase 1
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 01.1 to break down)
+- [ ] 01.1-01-PLAN.md — Commit scaffold_adapter.py and create integration test for SCAF-27
 
 ### Phase 2: HMM Regime Fitter
 **Goal**: The regime fitter is written, validated for P1-only fitting with no look-ahead, and has produced a serialized model and regime_labels.csv that later stages can consume read-only
@@ -125,6 +125,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scaffold | 6/6 | Complete   | 2026-03-14 |
+| 01.1. Scoring Adapter Scaffold Generator | 0/1 | Planning | - |
 | 2. HMM Regime Fitter | 0/TBD | Not started | - |
 | 3. Git Infrastructure | 0/TBD | Not started | - |
 | 4. Backtest Engine | 0/TBD | Not started | - |
