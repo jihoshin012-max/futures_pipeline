@@ -137,7 +137,12 @@ Plans:
   1. An overnight test of 20 experiments completes and each row in results.tsv contains a spread value computed from MWU on P1a vs P1b feature distributions
   2. A feature that reads a bar-close value (post-entry-time data) is detected by the canary test in feature_evaluator.py and logged as an entry-time violation, blocking the keep decision
   3. The driver stops at the 300-experiment budget declared in statistical_gates and does not run experiment 301 even if program.md instructs continued iteration
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — MWU spread evaluator, feature_engine.py baseline, and program.md
+- [ ] 06-02-PLAN.md — Stage 02 driver.py keep/revert loop with budget enforcement
+- [ ] 06-03-PLAN.md — End-to-end smoke test, freeze script, and human verification
 
 ### Phase 7: Stage 03 Autoresearch
 **Goal**: The Stage 03 overnight loop generates and tests hypotheses with P1a/P1b replication enforcement, and the feedback loop from Stage 05 assessment automatically informs the next hypothesis generation pass
@@ -166,5 +171,5 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | 3. Git Infrastructure | 2/2 | Complete | 2026-03-14 |
 | 4. Backtest Engine | 4/4 | Complete   | 2026-03-14 |
 | 5. Stage 04 Autoresearch | 2/3 | In Progress|  |
-| 6. Stage 02 Autoresearch | 0/TBD | Not started | - |
+| 6. Stage 02 Autoresearch | 0/3 | Not started | - |
 | 7. Stage 03 Autoresearch | 0/TBD | Not started | - |
