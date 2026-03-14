@@ -1,3 +1,4 @@
 run_id	stage	timestamp	hypothesis_name	archetype	version	features	pf_p1	pf_p2	trades_p1	trades_p2	mwu_p	perm_p	pctile	n_prior_tests	verdict	sharpe_p1	max_dd_ticks	avg_winner_ticks	dd_multiple	win_rate	regime_breakdown	api_cost_usd	notes
 8215d86	02-features	2026-03-14T15:48:11		zone_touch		zone_width	44.09449828231561		0	0	1.484272324999293e-07			0	kept								git:83b8424
 3da348e	02-features	2026-03-14T15:48:17		zone_touch		zone_width	44.09449828231561		0	0	1.484272324999293e-07			1	kept								git:6404b3f
+f26267d	02-features	2026-03-14T15:48:24		zone_touch		zone_width	44.09449828231561		0	0	1.484272324999293e-07			2	kept								git:8ce84e5
