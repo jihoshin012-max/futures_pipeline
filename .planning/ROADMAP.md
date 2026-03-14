@@ -153,7 +153,12 @@ Plans:
   2. A hypothesis that passes P1a but fails P1b replication is marked failed and the driver reverts, enforcing Rule 4 structurally
   3. The driver enforces the 200-experiment budget from statistical_gates and rejects launch of experiment 201
   4. After a Stage 05 assessment run, feedback_to_hypothesis.md is automatically present in Stage 03's prior_results.md location so the next Stage 03 run can condition on it without human intervention
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — hypothesis_generator.py, driver.py, program.md, seeded baseline, and tests
+- [ ] 07-02-PLAN.md — 12-experiment smoke test and human verification
+- [ ] 07-03-PLAN.md — Stage 05 feedback wiring to Stage 03 prior_results.md
 
 ## Progress
 
@@ -172,4 +177,4 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | 4. Backtest Engine | 4/4 | Complete   | 2026-03-14 |
 | 5. Stage 04 Autoresearch | 2/3 | In Progress|  |
 | 6. Stage 02 Autoresearch | 3/3 | Complete   | 2026-03-14 |
-| 7. Stage 03 Autoresearch | 0/TBD | Not started | - |
+| 7. Stage 03 Autoresearch | 0/3 | Not started | - |
