@@ -13,7 +13,7 @@ Build a structured futures trading strategy research pipeline from scratch: star
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Scaffold** - Create all static config files, stage CONTEXT.md files, shared resources, and migrate data (completed 2026-03-14)
-- [ ] **Phase 2: HMM Regime Fitter** - Fit, serialize, and validate the regime labeling model before any research begins
+- [x] **Phase 2: HMM Regime Fitter** - Fit, serialize, and validate the regime labeling model before any research begins (completed 2026-03-14)
 - [x] **Phase 3: Git Infrastructure** - Autocommit watcher, holdout guard hook, and post-commit audit entries operational (completed 2026-03-14)
 - [ ] **Phase 4: Backtest Engine** - Deterministic, dynamically dispatching engine verified with a manual end-to-end pass
 - [ ] **Phase 5: Stage 04 Autoresearch** - Exit parameter keep/revert loop with overnight test confirming operational
@@ -35,12 +35,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 6/6 plans complete
 
 Plans:
-- [ ] 01-01-PLAN.md — Prerequisites: clone reference repos and migrate data
-- [ ] 01-02-PLAN.md — Root structure, CLAUDE.md, CONTEXT.md, and all _config/ files
-- [ ] 01-03-PLAN.md — Shared resources: feature definitions, rules, catalog, scoring models
-- [ ] 01-04-PLAN.md — Stage 01-04 CONTEXT.md files and reference docs
-- [ ] 01-05-PLAN.md — Stage 05-07 CONTEXT.md files and supporting files
-- [ ] 01-06-PLAN.md — Dashboard stubs, audit infrastructure, strategy archetypes
+- [x] 01-01-PLAN.md — Prerequisites: clone reference repos and migrate data
+- [x] 01-02-PLAN.md — Root structure, CLAUDE.md, CONTEXT.md, and all _config/ files
+- [x] 01-03-PLAN.md — Shared resources: feature definitions, rules, catalog, scoring models
+- [x] 01-04-PLAN.md — Stage 01-04 CONTEXT.md files and reference docs
+- [x] 01-05-PLAN.md — Stage 05-07 CONTEXT.md files and supporting files
+- [x] 01-06-PLAN.md — Dashboard stubs, audit infrastructure, strategy archetypes
 
 ### Phase 01.2: Bar type registry and subfolder structure (INSERTED)
 
@@ -55,7 +55,7 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 01.2-01-PLAN.md — Migrate bar files to volume/ subfolder, update registry with typed source_ids, rename schema
+- [x] 01.2-01-PLAN.md — Migrate bar files to volume/ subfolder, update registry with typed source_ids, rename schema
 
 ### Phase 01.1: Scoring Adapter Scaffold Generator (INSERTED)
 
@@ -65,7 +65,7 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 01.1-01-PLAN.md — Commit scaffold_adapter.py and create integration test for SCAF-27
+- [x] 01.1-01-PLAN.md — Commit scaffold_adapter.py and create integration test for SCAF-27
 
 ### Phase 2: HMM Regime Fitter
 **Goal**: The regime fitter is written, validated for P1-only fitting with no look-ahead, and has produced a serialized model and regime_labels.csv that later stages can consume read-only
@@ -75,11 +75,11 @@ Plans:
   1. hmm_regime_fitter.py runs without error and fits the GaussianHMM exclusively on P1 bar data (P2 rows are never passed to fit())
   2. regime_labels.csv exists covering the full P1+P2 date range, with labels generated from the frozen P1-fitted model applied forward (filtered probabilities, not Viterbi)
   3. hmm_regime_v1.pkl is serialized to shared/scoring_models/hmm_regime_v1.pkl
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 02-01-PLAN.md — TDD: Write tests and implement hmm_regime_fitter.py (fit, label, serialize)
-- [ ] 02-02-PLAN.md — Run fitter on real data, validate outputs, register model
+- [x] 02-01-PLAN.md — TDD: Write tests and implement hmm_regime_fitter.py (fit, label, serialize)
+- [x] 02-02-PLAN.md — Run fitter on real data, validate outputs, register model
 
 ### Phase 3: Git Infrastructure
 **Goal**: Every file change during autoresearch is automatically committed, the holdout flag structurally blocks P2 data commits, and audit entries are appended automatically on OOS runs and deployments
@@ -151,7 +151,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | 1. Scaffold | 6/6 | Complete   | 2026-03-14 |
 | 01.1. Scoring Adapter Scaffold Generator | 1/1 | Complete    | 2026-03-14 |
 | 01.2. Bar Type Registry | 1/1 | Complete    | 2026-03-14 |
-| 2. HMM Regime Fitter | 0/2 | Planning complete | - |
+| 2. HMM Regime Fitter | 2/2 | Complete | 2026-03-14 |
 | 3. Git Infrastructure | 2/2 | Complete | 2026-03-14 |
 | 4. Backtest Engine | 0/TBD | Not started | - |
 | 5. Stage 04 Autoresearch | 0/TBD | Not started | - |
