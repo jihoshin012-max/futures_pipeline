@@ -42,6 +42,16 @@ Plans:
 - [ ] 01-05-PLAN.md — Stage 05-07 CONTEXT.md files and supporting files
 - [ ] 01-06-PLAN.md — Dashboard stubs, audit infrastructure, strategy archetypes
 
+### Phase 01.1: Scoring Adapter Scaffold Generator (INSERTED)
+
+**Goal**: A scaffold generator exists that auto-creates scoring adapter stubs, adapter tests, and audit entries when a new archetype is registered with an unrecognized scoring_adapter value — reducing manual friction and enforcing the adapter interface contract
+**Requirements**: SCAF-27
+**Depends on:** Phase 1
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 01.1 to break down)
+
 ### Phase 2: HMM Regime Fitter
 **Goal**: The regime fitter is written, validated for P1-only fitting with no look-ahead, and has produced a serialized model and regime_labels.csv that later stages can consume read-only
 **Depends on**: Phase 1

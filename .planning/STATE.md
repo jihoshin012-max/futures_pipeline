@@ -89,6 +89,10 @@ Recent decisions affecting current work:
 
 None yet.
 
+### Roadmap Evolution
+
+- Phase 01.1 inserted after Phase 1: Scoring Adapter Scaffold Generator (URGENT) — adds scaffold_adapter.py to auto-generate adapter stubs when new archetypes are registered
+
 ### Blockers/Concerns
 
 - [Pre-start]: hmmlearn 0.3.3 is in limited-maintenance mode — pin full dependency tree in Phase 2 and add import smoke test to verify NumPy ABI compatibility

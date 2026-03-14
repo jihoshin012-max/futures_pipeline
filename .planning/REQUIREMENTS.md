@@ -42,6 +42,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SCAF-24**: audit/audit_log.md stub (append-only header + first manual entry)
 - [x] **SCAF-25**: audit/audit_entry.sh (promote, deploy, note, fill commands)
 - [x] **SCAF-26**: 03-hypothesis/references/strategy_archetypes.md (template + simulator interface contract)
+- [ ] **SCAF-27**: shared/scoring_models/scaffold_adapter.py (reads strategy_archetypes.md for unregistered adapters, appends stub classes to scoring_adapter.py, creates adapter_test.py per archetype, writes audit entry)
 
 ### HMM Regime
 
@@ -156,6 +157,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCAF-24 | Phase 1 | Complete |
 | SCAF-25 | Phase 1 | Complete |
 | SCAF-26 | Phase 1 | Complete |
+| SCAF-27 | Phase 1.1 | Pending |
 | HMM-01 | Phase 2 | Pending |
 | HMM-02 | Phase 2 | Pending |
 | HMM-03 | Phase 2 | Pending |
@@ -186,8 +188,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-13 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 58 total
-- Mapped to phases: 58
+- v1 requirements: 59 total
+- Mapped to phases: 59
 - Unmapped: 0 ✓
 
 ---
