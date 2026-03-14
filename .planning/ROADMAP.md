@@ -106,7 +106,13 @@ Plans:
   3. A manual run from Stage 01 through Stage 04 through Stage 05 produces a well-formed verdict_report.md with a net-of-cost Sharpe that is less than 80% of the gross Sharpe, confirming realistic cost modeling
   4. config_schema.json and config_schema.md document every field, distinguish FIXED from CANDIDATE parameters, and trail step validation rules are enforced by the engine on load
   5. Loading the engine with a config pointing to an unimplemented adapter stub aborts at load time with a clear error naming the adapter — not silently failing mid-experiment
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Reference docs: QA answers, simulation rules, config schema and documentation
+- [ ] 04-02-PLAN.md — Data loader and scoring adapter factory implementation with tests
+- [ ] 04-03-PLAN.md — Zone touch simulator and backtest engine implementation with tests
+- [ ] 04-04-PLAN.md — Determinism verification and manual end-to-end pass
 
 ### Phase 5: Stage 04 Autoresearch
 **Goal**: The Stage 04 overnight loop runs unattended against the fixed backtest engine, enforces its iteration budget from statistical_gates config, and populates results.tsv with keep/revert decisions that a human can review in the morning
@@ -153,7 +159,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | 01.2. Bar Type Registry | 1/1 | Complete    | 2026-03-14 |
 | 2. HMM Regime Fitter | 2/2 | Complete | 2026-03-14 |
 | 3. Git Infrastructure | 2/2 | Complete | 2026-03-14 |
-| 4. Backtest Engine | 0/TBD | Not started | - |
+| 4. Backtest Engine | 0/4 | Planning complete | - |
 | 5. Stage 04 Autoresearch | 0/TBD | Not started | - |
 | 6. Stage 02 Autoresearch | 0/TBD | Not started | - |
 | 7. Stage 03 Autoresearch | 0/TBD | Not started | - |
