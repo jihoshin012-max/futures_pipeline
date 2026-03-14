@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-04-PLAN.md (determinism test ENGINE-06 and assess.py ENGINE-07)
-last_updated: "2026-03-14T13:22:52.356Z"
+stopped_at: Completed 05-01-PLAN.md (autoresearch driver and baseline seed)
+last_updated: "2026-03-14T14:42:47.680Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 9
   completed_phases: 6
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 19
+  completed_plans: 17
   percent: 17
 ---
 
@@ -67,6 +67,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 04-backtest-engine P02 | 3 | 2 tasks | 5 files |
 | Phase 04-backtest-engine P03 | 16 | 2 tasks | 4 files |
 | Phase 04-backtest-engine P04 | 30 | 2 tasks | 4 files |
+| Phase 05-stage-04-autoresearch P01 | 10 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,9 @@ Recent decisions affecting current work:
 - [Phase 04-backtest-engine]: test_determinism added as standalone function (not class method) so pytest::test_determinism address works per plan verify step
 - [Phase 04-backtest-engine]: assess.py uses parse_instruments_md() from shared.data_loader for cost_ticks — consistent with engine, no regex duplication
 - [Phase 04-backtest-engine]: INSUFFICIENT_DATA verdict in verdict_report.md is correct for uncalibrated model — plan explicitly anticipated this outcome
+- [Phase 05-stage-04-autoresearch]: validate_trail_steps() returns bool not raises — driver retries proposal with valid steps rather than propagating exceptions
+- [Phase 05-stage-04-autoresearch]: score_threshold=0 in seeded baseline — BinnedScoringAdapter returns zeros; threshold=48 produces n_trades=0 for every experiment
+- [Phase 05-stage-04-autoresearch]: Budget counts seeded row — n_prior_tests=1 at start of first experiment; budget=3 means 2 new experiments run
 
 ### Pending Todos
 
@@ -137,6 +141,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T05:40:04.513Z
-Stopped at: Completed 04-04-PLAN.md (determinism test ENGINE-06 and assess.py ENGINE-07)
+Last session: 2026-03-14T14:42:47.677Z
+Stopped at: Completed 05-01-PLAN.md (autoresearch driver and baseline seed)
 Resume file: None
