@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-02-PLAN.md (regime_labels.csv and hmm_regime_v1.pkl committed, strategy_archetypes.md updated, 13 tests green)
-last_updated: "2026-03-14T02:14:47.756Z"
+stopped_at: Completed 01.2-01-PLAN.md (bar data migrated to volume/, registry updated with typed source_ids, bar_data_volume_schema.md created, 23 tests green)
+last_updated: "2026-03-14T02:33:59.633Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
-  total_phases: 8
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 9
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
   percent: 17
 ---
 
@@ -60,6 +60,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01.1-scoring-adapter-scaffold-generator P01 | 1 | 2 tasks | 2 files |
 | Phase 02-hmm-regime-fitter P01 | 4 | 2 tasks | 4 files |
 | Phase 02-hmm-regime-fitter P02 | 5 | 2 tasks | 3 files |
+| Phase 01.2-bar-type-registry-and-subfolder-structure P01 | 2 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase 02-hmm-regime-fitter]: P1 standardization stats stored as _p1_mean/_p1_std on fitted model; P1 mask uses <= P1_END (inclusive); P1 row count asserted == 77 before fit()
 - [Phase 02-hmm-regime-fitter]: Artifacts (regime_labels.csv, hmm_regime_v1.pkl) committed in Plan 02 after validation — separates fitter code delivery from validated artifact delivery
 - [Phase 02-hmm-regime-fitter]: Shared Scoring Models section in strategy_archetypes.md placed above archetype placeholder — shared resources registration pattern established for pkl model artifacts
+- [Phase 01.2-bar-type-registry-and-subfolder-structure]: bar_data_volume source_id used (not bar_data) — encodes bar type, matches schema filename convention, aligns with architecture doc
+- [Phase 01.2-bar-type-registry-and-subfolder-structure]: bar_data_time and bar_data_tick registered as placeholder rows with periods=none — documents intent without claiming coverage
+- [Phase 01.2-bar-type-registry-and-subfolder-structure]: bar_data subfolder convention: bar_data/<bar_type>/ differs from other sources <source_id>/ — documented in data_registry.md To Add a New Source workflow
 
 ### Pending Todos
 
@@ -102,6 +106,7 @@ None yet.
 ### Roadmap Evolution
 
 - Phase 01.1 inserted after Phase 1: Scoring Adapter Scaffold Generator (URGENT) — adds scaffold_adapter.py to auto-generate adapter stubs when new archetypes are registered
+- Phase 01.2 inserted after Phase 1: Bar type registry and subfolder structure (URGENT) — splits flat bar_data/ into typed subfolders (volume/time/tick), registers each as separate source_id in data_registry.md
 
 ### Blockers/Concerns
 
@@ -111,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T02:11:42.234Z
-Stopped at: Completed 02-02-PLAN.md (regime_labels.csv and hmm_regime_v1.pkl committed, strategy_archetypes.md updated, 13 tests green)
+Last session: 2026-03-14T02:33:59.630Z
+Stopped at: Completed 01.2-01-PLAN.md (bar data migrated to volume/, registry updated with typed source_ids, bar_data_volume_schema.md created, 23 tests green)
 Resume file: None
