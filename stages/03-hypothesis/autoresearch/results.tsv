@@ -1,4 +1,0 @@
-run_id	stage	timestamp	hypothesis_name	archetype	version	features	pf_p1	pf_p2	trades_p1	trades_p2	mwu_p	perm_p	pctile	n_prior_tests	verdict	sharpe_p1	max_dd_ticks	avg_winner_ticks	dd_multiple	win_rate	regime_breakdown	api_cost_usd	notes	replication_pass
-3bc0a8a	03-hypothesis	2026-03-14T17:38:15	zone_touch	zone_touch	v1		0.8222231897102676		4674					0	kept_weak_replication		30461.479999999996			0.7886178861788617			replication_pass:False|pf_p1b:0.884|git:d717404	False
-b54475f	03-hypothesis	2026-03-14T17:39:49	zone_touch	zone_touch	v1		0.8258752220362929		4674					1	reverted		34609.95999999999			0.7652973898160034				
-0e1c29e	03-hypothesis	2026-03-14T17:41:23	zone_touch	zone_touch	v1		0.8531238735270943		4674					2	reverted		33274.479999999996			0.732135216089003				
