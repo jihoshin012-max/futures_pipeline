@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: planning
 stopped_at: Completed 02-02-PLAN.md (regime_labels.csv and hmm_regime_v1.pkl committed, strategy_archetypes.md updated, 13 tests green)
-last_updated: "2026-03-14T02:11:42.237Z"
+last_updated: "2026-03-14T02:14:47.756Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 8
