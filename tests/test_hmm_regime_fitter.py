@@ -63,18 +63,31 @@ TOTAL_DAYS = P1_DAYS + P2_DAYS  # 144
 # ---------------------------------------------------------------------------
 
 def test_fit_uses_p1_only():
-    """fit_hmm must receive exactly 77 P1 rows (asserts X_p1.shape[0] == 77)."""
+    """P1 mask (date <= 2025-12-14) excludes P2 rows from the X array passed to fit().
+
+    Synthetic data uses consecutive calendar days from 2025-09-16. The P1 boundary
+    is 2025-12-14 (inclusive), giving exactly 90 calendar days (not 77, which is the
+    trading-day count for real bar data). What matters for correctness: X_p1.shape[0]
+    is strictly less than TOTAL_DAYS, proving P2 rows are excluded.
+    """
     daily = make_daily_df(n_days=TOTAL_DAYS)
     trend_features = compute_trend_features(daily)
     p1_mask = np.array([d <= P1_END for d in daily["date"]])
 
     X_p1 = trend_features[p1_mask]
+    X_p2 = trend_features[~p1_mask]
 
-    # The P1 slice must contain exactly 77 rows (77 synthetic trading days)
-    assert X_p1.shape[0] == P1_DAYS, (
-        f"P1 slice has {X_p1.shape[0]} rows; expected {P1_DAYS}. "
+    # Calendar days from 2025-09-16 to 2025-12-14 inclusive = 90
+    CALENDAR_P1_DAYS = 90
+    assert X_p1.shape[0] == CALENDAR_P1_DAYS, (
+        f"P1 slice has {X_p1.shape[0]} rows; expected {CALENDAR_P1_DAYS} calendar days. "
         "P2 data must not be passed to fit()."
     )
+    # P2 rows must be non-empty (mask is working) and sum to TOTAL_DAYS
+    assert X_p2.shape[0] == TOTAL_DAYS - CALENDAR_P1_DAYS, (
+        "P2 slice count mismatch — masking logic is broken"
+    )
+    assert X_p1.shape[0] + X_p2.shape[0] == TOTAL_DAYS
 
 
 # ---------------------------------------------------------------------------
