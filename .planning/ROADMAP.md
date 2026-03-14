@@ -125,7 +125,7 @@ Note: Phase 2 (HMM) and Phase 3 (Git Infrastructure) both depend only on Phase 1
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scaffold | 6/6 | Complete   | 2026-03-14 |
-| 01.1. Scoring Adapter Scaffold Generator | 1/1 | Complete   | 2026-03-14 |
+| 01.1. Scoring Adapter Scaffold Generator | 1/1 | Complete    | 2026-03-14 |
 | 2. HMM Regime Fitter | 0/TBD | Not started | - |
 | 3. Git Infrastructure | 0/TBD | Not started | - |
 | 4. Backtest Engine | 0/TBD | Not started | - |
