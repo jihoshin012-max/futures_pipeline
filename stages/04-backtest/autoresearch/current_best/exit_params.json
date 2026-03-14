@@ -17,30 +17,30 @@
     "seq_limit": 3
   },
   "M1": {
-    "stop_ticks": 171,
+    "stop_ticks": 174,
     "leg_targets": [
-      57,
-      63,
-      238
+      60,
+      81,
+      249
     ],
     "trail_steps": [
       {
-        "trigger_ticks": 79,
-        "new_stop_ticks": 39
+        "trigger_ticks": 76,
+        "new_stop_ticks": 37
       },
       {
-        "trigger_ticks": 83,
-        "new_stop_ticks": 39
+        "trigger_ticks": 91,
+        "new_stop_ticks": 47
       },
       {
-        "trigger_ticks": 121,
-        "new_stop_ticks": 39
+        "trigger_ticks": 109,
+        "new_stop_ticks": 47
       },
       {
-        "trigger_ticks": 205,
-        "new_stop_ticks": 95
+        "trigger_ticks": 220,
+        "new_stop_ticks": 94
       }
     ],
-    "time_cap_bars": 96
+    "time_cap_bars": 85
   }
 }
