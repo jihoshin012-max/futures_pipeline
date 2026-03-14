@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-06-PLAN.md (dashboard stubs, audit infrastructure, strategy archetypes)
-last_updated: "2026-03-14T01:10:14.426Z"
+stopped_at: Completed 01.1-01-PLAN.md (scaffold_adapter.py committed, SCAF-27 integration tests green)
+last_updated: "2026-03-14T01:38:56.949Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
-  total_phases: 7
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 8
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 7
   percent: 17
 ---
 
@@ -57,6 +57,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-scaffold P05 | 2 | 2 tasks | 8 files |
 | Phase 01-scaffold P04 | 10 | 2 tasks | 8 files |
 | Phase 01-scaffold P06 | 1 | 2 tasks | 5 files |
+| Phase 01.1-scoring-adapter-scaffold-generator P01 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 01-scaffold]: results_master.tsv created programmatically using printf \t to guarantee tab delimiters -- not hand-authored
 - [Phase 01-scaffold]: strategy_archetypes.md has no active archetype entry -- intake checklist required before first autoresearch run (anti-pattern: entry without registered simulator)
 - [Phase 01-scaffold]: Simulator interface: def run(bar_df, touch_row, config, bar_offset) -> SimResult -- pure function, no I/O, returns pnl_ticks/win/exit_reason/bars_held
+- [Phase 01.1-scoring-adapter-scaffold-generator]: Tests monkeypatch all 4 module-level Path constants for test isolation without touching live audit_log.md and scoring_adapter.py
+- [Phase 01.1-scoring-adapter-scaffold-generator]: tests/ directory created at repo root as first integration test location for pipeline
 
 ### Pending Todos
 
@@ -101,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T01:05:09.870Z
-Stopped at: Completed 01-06-PLAN.md (dashboard stubs, audit infrastructure, strategy archetypes)
+Last session: 2026-03-14T01:38:56.946Z
+Stopped at: Completed 01.1-01-PLAN.md (scaffold_adapter.py committed, SCAF-27 integration tests green)
 Resume file: None
