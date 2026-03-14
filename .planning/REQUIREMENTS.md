@@ -66,14 +66,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Backtest Engine
 
-- [ ] **ENGINE-01**: Q1-Q6 answers documented in backtest_engine_qa.md
+- [x] **ENGINE-01**: Q1-Q6 answers documented in backtest_engine_qa.md
 - [ ] **ENGINE-02**: data_loader.py patched (5 hardcoded paths parameterized, existing callers updated)
 - [ ] **ENGINE-03**: backtest_engine.py written (~175-225 lines, dynamic dispatch, holdout guard, per-mode breakdown)
-- [ ] **ENGINE-04**: config_schema.json written (all fields, trail step validation rules)
-- [ ] **ENGINE-05**: config_schema.md written (every field documented, FIXED vs CANDIDATE)
+- [x] **ENGINE-04**: config_schema.json written (all fields, trail step validation rules)
+- [x] **ENGINE-05**: config_schema.md written (every field documented, FIXED vs CANDIDATE)
 - [ ] **ENGINE-06**: Determinism verified (identical config → identical output, diffed)
 - [ ] **ENGINE-07**: Manual end-to-end pass (01 → 04 → 05, verdict_report.md well-formed)
-- [ ] **ENGINE-08**: shared/archetypes/{archetype}/simulation_rules.md written from actual source
+- [x] **ENGINE-08**: shared/archetypes/{archetype}/simulation_rules.md written from actual source
 - [ ] **ENGINE-09**: Scoring adapter interface validated at engine load time (instantiate + call score() on empty df), not at first experiment run. Unimplemented adapter aborts with clear error identifying which adapter stub needs implementation.
 
 ### Autoresearch Loops
@@ -177,14 +177,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GIT-02 | Phase 3 | Complete |
 | GIT-03 | Phase 3 | Complete |
 | GIT-04 | Phase 3 | Complete |
-| ENGINE-01 | Phase 4 | Pending |
+| ENGINE-01 | Phase 4 | Complete |
 | ENGINE-02 | Phase 4 | Pending |
 | ENGINE-03 | Phase 4 | Pending |
-| ENGINE-04 | Phase 4 | Pending |
-| ENGINE-05 | Phase 4 | Pending |
+| ENGINE-04 | Phase 4 | Complete |
+| ENGINE-05 | Phase 4 | Complete |
 | ENGINE-06 | Phase 4 | Pending |
 | ENGINE-07 | Phase 4 | Pending |
-| ENGINE-08 | Phase 4 | Pending |
+| ENGINE-08 | Phase 4 | Complete |
 | ENGINE-09 | Phase 4 | Pending |
 | AUTO-01 | Phase 5 | Pending |
 | AUTO-02 | Phase 5 | Pending |
