@@ -18,9 +18,24 @@ last_reviewed: 2026-03-14
 
 ---
 
-## [Add first archetype here after completing NEW ARCHETYPE INTAKE checklist]
+## zone_touch
+- Description: Zone-rejection scalp on NQ futures
+- Instrument: NQ (from _config/instruments.md)
+- Required data: zone_touch_v2 (touches), volume_bar (bar data)
+- Simulator module: shared/archetypes/zone_touch/zone_touch_simulator.py
+- feature_evaluator: shared/archetypes/zone_touch/feature_evaluator.py
+- feature_engine: shared/archetypes/zone_touch/feature_engine.py
+- Periods: P1, P2
+- Current status: active
 
-See Futures_Pipeline_Architecture_ICM.md "New strategy archetype" checklist for intake requirements.
+---
+
+## rotational
+- Description: Rotational momentum strategy on NQ futures
+- Instrument: NQ (from _config/instruments.md)
+- Required data: tick_bar (bar data)
+- Periods: P1, P2
+- Current status: intake
 
 ---
 

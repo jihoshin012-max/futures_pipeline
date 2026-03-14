@@ -10,3 +10,528 @@
           Pass 1 complete. All five pipeline rules in effect.
           No strategies in autoresearch yet. Gap A controls will activate before first autoresearch run.
 - human: Ji
+
+## 2026-03-14 17:12:31 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 957c5e3
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmpqxy8hosp_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:13:47 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: f092675
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmpts2kvhig_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:14:50 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 24f45aa
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmp1uwd7_tc_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:16:00 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 2818d80
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmpvwcno_61_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:17:10 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 5add949
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmppx7o6c6z_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:18:17 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 0b075e7
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmp6nsxg70t_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:21:05 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 3c222f4
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmpnvwu8gnl_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:22:11 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 5cdb898
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmplq3vymv7_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:23:21 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: c0c4013
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmpdn24tzav_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:24:22 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 4a1a7ae
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmp6agye55y_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:25:23 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: bb3b096
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmpa0w9mrtx_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:27:06 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 3371c75
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmptmjzg9sh_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 143.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:30:13 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 6b56068
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmpwjljqrwy_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:31:15 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 5f2514d
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmptu77lzs8_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:32:20 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: b8bef56
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmpcecit4ai_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:33:20 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: fcc4da4
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmplwgufied_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 17:34:22 | EXPERIMENT_ANOMALY
+- stage: 03-hypothesis
+- run_id: 2995d1a
+- detected_by: exit_code
+- error_output:         ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        repo_root=args.repo_root,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\pipeline\stages\03-hypothesis\autoresearch\hypothesis_generator.py", line 204, in run
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<9 lines>...
+        check=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Projects\\pipeline\\stages\\04-backtest\\autoresearch\\backtest_engine.py', '--config', 'C:\\Users\\jshin\\AppData\\Local\\Temp\\tmpf4r04h01_p1b_config.json', '--output', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json', '--output-p1b', 'C:\\Projects\\pipeline\\stages\\03-hypothesis\\autoresearch\\result_p1b.json']' returned non-zero exit status 2.
+- investigation: # TODO: fill in
+- resolution: # TODO: fill in
+- resolution_commit: # TODO: fill in
+- generated_by: autoresearch driver
+
+## 2026-03-14 19:37:52 | PERIOD_CONFIG_CHANGED
+- file: _config/period_config.md
+- commit: 6c09c42
+- before: | period_id | role | start_date | end_date   | notes                        |
+|-----------|------|------------|------------|------------------------------|
+| P1        | IS   | 2025-09-16 | 2025-12-14 | Calibration — used freely    |
+| P2        | OOS  | 2025-12-15 | 2026-03-02 | Holdout — one-shot only      |
+| P1 | IS  | 2025-09-16 | 2025-12-14 |
+| P2 | OOS | 2025-12-15 | 2026-03-02 |
+| P1 | IS  | 2025-09-16 | 2025-12-14 |
+| P2 | IS  | 2025-12-15 | 2026-03-02 | promoted after one-shot OOS test |
+| P3 | OOS | 2026-03-03 | 2026-06-30 | new holdout                      |
+- after: | period_id | archetype  | role | start_date | end_date   | notes                     |
+|-----------|------------|------|------------|------------|---------------------------|
+| P1        | zone_touch | IS   | 2025-09-16 | 2025-12-14 | Calibration — used freely |
+| P2        | zone_touch | OOS  | 2025-12-15 | 2026-03-02 | Holdout — one-shot only   |
+| P1        | rotational | IS   | 2025-09-21 | 2025-12-14 | Calibration — used freely |
+| P2        | rotational | OOS  | 2025-12-15 | 2026-03-13 | Holdout — one-shot only   |
+| P1 | zone_touch | IS  | 2025-09-16 | 2025-12-14 |
+| P2 | zone_touch | OOS | 2025-12-15 | 2026-03-02 |
+| P1 | rotational | IS  | 2025-09-21 | 2025-12-14 |
+| P2 | rotational | OOS | 2025-12-15 | 2026-03-13 |
+| P1 | zone_touch | IS  | 2025-09-16 | 2025-12-14 |
+| P2 | zone_touch | IS  | 2025-12-15 | 2026-03-02 | promoted after one-shot OOS test |
+| P3 | *          | OOS | 2026-03-03 | 2026-06-30 | new holdout (all archetypes)      |
+| P1 | rotational | IS  | 2025-09-21 | 2025-12-14 |
+| P2 | rotational | IS  | 2025-12-15 | 2026-03-13 | promoted after one-shot OOS test |
+#   zone_touch: P1a = 2025-09-16 to 2025-10-31 | P1b = 2025-11-01 to 2025-12-14
+#   rotational: P1a = 2025-09-21 to 2025-11-02 | P1b = 2025-11-03 to 2025-12-14
+- reason: chore: complete v1.0 milestone — archive, evolve PROJECT.md, retrospective
+- generated_by: pre-commit hook
