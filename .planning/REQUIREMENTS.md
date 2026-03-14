@@ -62,7 +62,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **GIT-01**: autocommit.sh (30s poll, auto: prefix, nohup-compatible, run_id contract)
 - [x] **GIT-02**: .git/hooks/pre-commit (holdout guard, audit append-only, HYPOTHESIS_PROMOTED, PERIOD_CONFIG_CHANGED, period rollover warning)
 - [x] **GIT-03**: .git/hooks/post-commit (commit_log.txt, OOS_RUN, DEPLOYMENT_APPROVED auto-entries)
-- [ ] **GIT-04**: Infrastructure verification (autocommit tested, holdout guard tested, commit log verified)
+- [x] **GIT-04**: Infrastructure verification (autocommit tested, holdout guard tested, commit log verified)
 
 ### Backtest Engine
 
@@ -176,7 +176,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GIT-01 | Phase 3 | Complete |
 | GIT-02 | Phase 3 | Complete |
 | GIT-03 | Phase 3 | Complete |
-| GIT-04 | Phase 3 | Pending |
+| GIT-04 | Phase 3 | Complete |
 | ENGINE-01 | Phase 4 | Pending |
 | ENGINE-02 | Phase 4 | Pending |
 | ENGINE-03 | Phase 4 | Pending |
