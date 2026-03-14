@@ -18,12 +18,24 @@ No feature may use data from bars after entry. feature_rules.md enforces this.
 Features marked "Entry-time computable: NO" in feature_definitions.md are blocked.
 
 ## Rule 4 — Internal Replication
-Before any P2 run, the strategy must show positive PF on both P1a and P1b independently.
-P1a = calibration half. P1b = replication half (held out during calibration).
-If P1b fails, do not advance to P2 regardless of P1a result.
+Before any P2 run, the strategy must pass internal replication on P1a
+and P1b. P1a = calibration half. P1b = replication half (never used
+during calibration).
+Stage 01 computes P1a/P1b boundaries dynamically from p1_split_rule
+in period_config.md.
 
-GRANDFATHERING: Any strategy calibrated on full P1 before Rule 4 was introduced is
-grandfathered — its existing P2 result stands. Rule 4 applies to all new hypotheses.
+Gate behaviour is controlled by replication_gate in period_config.md:
+  hard_block      — P1b fail = NO verdict, do not advance to P2
+  flag_and_review — P1b fail = WEAK_REPLICATION flag, human decides
+
+flag_and_review is recommended when n_trades_p1b < 50 — thin trade
+counts make P1b pass/fail unreliable as a hard gate. A genuine edge
+may fail P1b by variance alone. Human review distinguishes variance
+from genuine lack of edge.
+
+GRANDFATHERING: Any strategy calibrated on full P1 before Rule 4 was
+introduced is grandfathered — its existing P2 result stands. Rule 4
+applies to all new hypotheses.
 
 ## Rule 5 — Instrument Constants from Registry
 Every instrument-specific constant (tick size, dollar value per tick, session times,
