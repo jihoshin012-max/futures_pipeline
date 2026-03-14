@@ -1,3 +1,11 @@
 run_id	stage	timestamp	hypothesis_name	archetype	version	features	pf_p1	pf_p2	trades_p1	trades_p2	mwu_p	perm_p	pctile	n_prior_tests	verdict	sharpe_p1	max_dd_ticks	avg_winner_ticks	dd_multiple	win_rate	regime_breakdown	api_cost_usd	notes
 2836418	04-backtest	2026-03-14T10:36:29		zone_touch	v1		0.4533655411476163		4674					0	seeded		83094.0			0.3380402225074882			
 b5a47036	04-backtest	2026-03-14T13:35:11	zone_touch	zone_touch	v1		0.8096825202667672		4674					1	kept		42131.919999999984			0.6902011125374412			
+e1ac86e7	04-backtest	2026-03-14T13:36:21	zone_touch	zone_touch	v1		0.70799931180589		4674					2	reverted		64895.919999999984			0.6991869918699187			
+65ec93a3	04-backtest	2026-03-14T13:37:28	zone_touch	zone_touch	v1		0.818571287417524		4674					3	reverted		37508.95999999999			0.7227214377406932			
+c67c8a53	04-backtest	2026-03-14T13:38:35	zone_touch	zone_touch	v1		0.7821094929885074		4674					4	reverted		38333.95999999999			0.7584510055626872			
+2f3cc473	04-backtest	2026-03-14T13:39:40	zone_touch	zone_touch	v1		0.6754872910417596		4674					5	reverted		75202.43999999999			0.6583226358579375			
+ca15dab1	04-backtest	2026-03-14T13:40:42	zone_touch	zone_touch	v1		0.8154131247641896		4674					6	reverted		34716.95999999999			0.7800599058622165			
+c82c1606	04-backtest	2026-03-14T13:41:41	zone_touch	zone_touch	v1		0.8252450946271163		4674					7	reverted		32018.959999999992			0.7623020967051776			
+59407708	04-backtest	2026-03-14T13:42:43	zone_touch	zone_touch	v1		0.7041444002529864		4674					8	reverted		68789.87999999998			0.6765083440308087			
+c47b808f	04-backtest	2026-03-14T13:43:44	zone_touch	zone_touch	v1		0.7710980829325487		4674					9	reverted		50964.95999999999			0.6480530594779632			
