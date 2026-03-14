@@ -30,10 +30,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SCAF-12**: 02-features/references/feature_rules.md (5 rules, ≤30 lines)
 - [x] **SCAF-13**: 02-features/references/feature_catalog.md (active/dropped/dead-end tables)
 - [x] **SCAF-14**: shared/scoring_models/ directory + _template.json + scoring_adapter.py (3 adapter stubs)
-- [ ] **SCAF-15**: Stage 01 CONTEXT.md + reference schema files + data_manifest.json schema spec
-- [ ] **SCAF-16**: Stage 02 CONTEXT.md
-- [ ] **SCAF-17**: Stage 03 CONTEXT.md
-- [ ] **SCAF-18**: Stage 04 CONTEXT.md + shared/archetypes/{archetype}/exit_templates.md
+- [x] **SCAF-15**: Stage 01 CONTEXT.md + reference schema files + data_manifest.json schema spec
+- [x] **SCAF-16**: Stage 02 CONTEXT.md
+- [x] **SCAF-17**: Stage 03 CONTEXT.md
+- [x] **SCAF-18**: Stage 04 CONTEXT.md + shared/archetypes/{archetype}/exit_templates.md
 - [x] **SCAF-19**: Stage 05 CONTEXT.md + verdict_criteria.md + statistical_tests.md
 - [x] **SCAF-20**: Stage 06 CONTEXT.md + context_package_spec.md + assemble_context.sh
 - [x] **SCAF-21**: Stage 07 CONTEXT.md + triggers/review_triggers.md
@@ -144,10 +144,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCAF-12 | Phase 1 | Complete |
 | SCAF-13 | Phase 1 | Complete |
 | SCAF-14 | Phase 1 | Complete |
-| SCAF-15 | Phase 1 | Pending |
-| SCAF-16 | Phase 1 | Pending |
-| SCAF-17 | Phase 1 | Pending |
-| SCAF-18 | Phase 1 | Pending |
+| SCAF-15 | Phase 1 | Complete |
+| SCAF-16 | Phase 1 | Complete |
+| SCAF-17 | Phase 1 | Complete |
+| SCAF-18 | Phase 1 | Complete |
 | SCAF-19 | Phase 1 | Complete |
 | SCAF-20 | Phase 1 | Complete |
 | SCAF-21 | Phase 1 | Complete |

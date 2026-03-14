@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-05-PLAN.md (all tasks done — 8 files created for stages 05-07)
-last_updated: "2026-03-14T01:01:14.872Z"
+stopped_at: Completed 01-04-PLAN.md (stage CONTEXT.md files and reference docs for Stages 01-04)
+last_updated: "2026-03-14T01:01:21.719Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 7
@@ -78,6 +78,8 @@ Recent decisions affecting current work:
 - [Phase 01-scaffold]: verdict_criteria.md is a local copy for agent access; source of truth remains _config/statistical_gates.md
 - [Phase 01-scaffold]: assemble_context.sh reads archetype from frozen_params.json at runtime — never hardcoded (Pitfall 6 prevention)
 - [Phase 01-scaffold]: Stage 07 review triggers kept in separate file to allow threshold expansion without exceeding CONTEXT.md 80-line limit
+- [Phase 01-scaffold]: zone_csv_v2_schema.md filename matches zone_csv_v2 source_id in data_registry.md — schema-to-source_id naming convention established
+- [Phase 01-scaffold]: trail_steps[0] where new_stop_ticks=0 IS the BE trigger — no separate be_trigger_ticks field per Q3 answer
 
 ### Pending Todos
 
@@ -91,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T01:01:08.252Z
-Stopped at: Completed 01-05-PLAN.md (all tasks done — 8 files created for stages 05-07)
+Last session: 2026-03-14T01:01:21.716Z
+Stopped at: Completed 01-04-PLAN.md (stage CONTEXT.md files and reference docs for Stages 01-04)
 Resume file: None
