@@ -5,7 +5,7 @@ milestone_name: Futures Pipeline
 status: complete
 stopped_at: v1.0 milestone completed and archived
 last_updated: "2026-03-14T23:00:00.000Z"
-last_activity: 2026-03-14 — quick task 1 complete: per-archetype period boundaries (PM-01)
+last_activity: 2026-03-14 - Completed quick task 1: Per-archetype period boundaries — Stage 01 and config updates
 progress:
   total_phases: 9
   completed_phases: 9
@@ -84,6 +84,12 @@ None — milestone complete.
 ### Blockers/Concerns
 
 None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.md.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | Per-archetype period boundaries — Stage 01 and config updates | 2026-03-14 | 1d11d6e | [1-per-archetype-period-boundaries-stage-01](./quick/1-per-archetype-period-boundaries-stage-01/) |
 
 ## Session Continuity
 
