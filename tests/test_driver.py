@@ -229,8 +229,7 @@ def test_budget_enforcement(tmp_path):
 
     mock_run = _mock_run_success(result_path, pf=2.0, n_trades=60)
 
-    with patch("driver.subprocess") as mock_subproc, \
-         patch("driver._get_run_id", return_value="abc1234"):
+    with patch("driver.subprocess") as mock_subproc:
         mock_subproc.run.side_effect = mock_run
         driver.run_loop(auto_dir, repo_root, max_iterations=100)
 
@@ -259,8 +258,7 @@ def test_revert_restores_prior(tmp_path):
         (auto_dir / "current_best" / "exit_params.json").read_text(encoding="utf-8")
     )
 
-    with patch("driver.subprocess") as mock_subproc, \
-         patch("driver._get_run_id", return_value="abc1234"):
+    with patch("driver.subprocess") as mock_subproc:
         mock_subproc.run.side_effect = mock_run
         driver.run_loop(auto_dir, repo_root, max_iterations=1)
 
@@ -279,8 +277,7 @@ def test_keep_updates_best(tmp_path):
     # Returns pf=3.0, well above seeded 1.2 + threshold 0.05
     mock_run = _mock_run_success(result_path, pf=3.0, n_trades=60)
 
-    with patch("driver.subprocess") as mock_subproc, \
-         patch("driver._get_run_id", return_value="abc1234"):
+    with patch("driver.subprocess") as mock_subproc:
         mock_subproc.run.side_effect = mock_run
         driver.run_loop(auto_dir, repo_root, max_iterations=1)
 
@@ -320,8 +317,7 @@ def test_experiment_anomaly(tmp_path):
             m.stderr = ""
         return m
 
-    with patch("driver.subprocess") as mock_subproc, \
-         patch("driver._get_run_id", return_value="abc1234"):
+    with patch("driver.subprocess") as mock_subproc:
         mock_subproc.run.side_effect = _mock_mixed
         driver.run_loop(auto_dir, repo_root, max_iterations=10)
 
@@ -369,8 +365,7 @@ def test_program_md_reread(tmp_path):
         m.stderr = ""
         return m
 
-    with patch("driver.subprocess") as mock_subproc, \
-         patch("driver._get_run_id", return_value="abc1234"):
+    with patch("driver.subprocess") as mock_subproc:
         mock_subproc.run.side_effect = _mock_run_and_update
         driver.run_loop(auto_dir, repo_root, max_iterations=100)
 
@@ -399,8 +394,7 @@ def test_results_tsv_columns(tmp_path):
 
     mock_run = _mock_run_success(result_path, pf=1.5, n_trades=60)
 
-    with patch("driver.subprocess") as mock_subproc, \
-         patch("driver._get_run_id", return_value="abc1234"):
+    with patch("driver.subprocess") as mock_subproc:
         mock_subproc.run.side_effect = mock_run
         driver.run_loop(auto_dir, repo_root, max_iterations=1)
 
@@ -412,3 +406,368 @@ def test_results_tsv_columns(tmp_path):
     exp_row_cols = lines[-1].split("\t")
     assert len(header_cols) == 24, f"Header should have 24 cols, got {len(header_cols)}"
     assert len(exp_row_cols) == 24, f"Row should have 24 cols, got {len(exp_row_cols)}"
+
+    # Note: test_results_tsv_columns also verifies that git calls don't break the 24-col assertion
+
+
+# ---------------------------------------------------------------------------
+# New tests for event-driven git commits, unique run_id, hypothesis_name,
+# and lockfile coordination (Task 1 of plan 05-04)
+# ---------------------------------------------------------------------------
+
+def _make_mock_subprocess_tracking():
+    """Return a mock subprocess that tracks git vs engine calls separately."""
+    git_calls = []
+    engine_results = []
+
+    class MockSubproc:
+        @staticmethod
+        def run(args, **kwargs):
+            m = MagicMock()
+            if args[0] == "git":
+                git_calls.append(args)
+                m.returncode = 0
+                m.stdout = ""
+                m.stderr = ""
+            else:
+                # Engine call — pop from engine_results queue
+                if engine_results:
+                    return engine_results.pop(0)
+                m.returncode = 0
+                m.stderr = ""
+            return m
+
+    return MockSubproc, git_calls, engine_results
+
+
+def _make_engine_mock_success(result_json_path, pf=1.5, n_trades=60):
+    """Build an engine mock result that writes result.json."""
+    def _write_and_return(*args, **kwargs):
+        _good_result_json(result_json_path.parent, pf=pf, n_trades=n_trades)
+        m = MagicMock()
+        m.returncode = 0
+        m.stderr = ""
+        return m
+    return _write_and_return
+
+
+def test_git_commit_on_kept(tmp_path):
+    """git add + git commit called with correct message when experiment is kept."""
+    auto_dir, repo_root = _make_autoresearch_dir(tmp_path)
+    _write_program_md(auto_dir, budget=2, keep_rule=0.05)
+    result_path = auto_dir / "result.json"
+
+    git_calls = []
+
+    def _mock_run(args, **kwargs):
+        m = MagicMock()
+        if args[0] == "git":
+            git_calls.append(list(args))
+            m.returncode = 0
+            m.stdout = ""
+            m.stderr = ""
+        else:
+            # Engine call
+            _good_result_json(result_path.parent, pf=3.0, n_trades=60)
+            m.returncode = 0
+            m.stderr = ""
+        return m
+
+    with patch("driver.subprocess") as mock_subproc:
+        mock_subproc.run.side_effect = _mock_run
+        driver.run_loop(auto_dir, repo_root, max_iterations=1)
+
+    # Find git commit calls
+    commit_calls = [c for c in git_calls if len(c) >= 3 and c[1] == "commit"]
+    assert len(commit_calls) >= 1, f"Expected at least 1 git commit call, got: {commit_calls}"
+    # Verify the kept commit message format
+    kept_commit = None
+    for c in commit_calls:
+        msg = " ".join(c)
+        if "kept experiment" in msg and "stage=04" in msg:
+            kept_commit = c
+            break
+    assert kept_commit is not None, (
+        f"Expected kept commit message format 'auto: kept experiment N | pf=X.XXX | archetype | stage=04', "
+        f"got commits: {commit_calls}"
+    )
+    # Verify git add was also called
+    add_calls = [c for c in git_calls if len(c) >= 2 and c[1] == "add"]
+    assert len(add_calls) >= 1, "Expected at least 1 git add call for kept experiment"
+
+
+def test_git_commit_on_budget_exhausted(tmp_path):
+    """git commit called with budget-exhausted message after loop ends."""
+    auto_dir, repo_root = _make_autoresearch_dir(tmp_path)
+    # budget=2: 1 seeded row, 1 experiment runs, then budget exhausted
+    _write_program_md(auto_dir, budget=2, keep_rule=0.05)
+    result_path = auto_dir / "result.json"
+
+    git_calls = []
+
+    def _mock_run(args, **kwargs):
+        m = MagicMock()
+        if args[0] == "git":
+            git_calls.append(list(args))
+            m.returncode = 0
+            m.stdout = ""
+            m.stderr = ""
+        else:
+            # Engine call — pf below threshold so reverted, no kept commit
+            _good_result_json(result_path.parent, pf=1.0, n_trades=60)
+            m.returncode = 0
+            m.stderr = ""
+        return m
+
+    with patch("driver.subprocess") as mock_subproc:
+        mock_subproc.run.side_effect = _mock_run
+        driver.run_loop(auto_dir, repo_root, max_iterations=100)
+
+    commit_calls = [c for c in git_calls if len(c) >= 3 and c[1] == "commit"]
+    exhausted_commit = None
+    for c in commit_calls:
+        msg = " ".join(c)
+        if "budget exhausted" in msg and "stage-04" in msg:
+            exhausted_commit = c
+            break
+    assert exhausted_commit is not None, (
+        f"Expected budget-exhausted commit message, got commits: {commit_calls}"
+    )
+
+
+def test_git_commit_on_anomaly(tmp_path):
+    """git commit called with ANOMALY message when engine returns non-zero."""
+    auto_dir, repo_root = _make_autoresearch_dir(tmp_path)
+    _write_program_md(auto_dir, budget=2)
+    result_path = auto_dir / "result.json"
+
+    git_calls = []
+    call_count = [0]
+
+    def _mock_run(args, **kwargs):
+        m = MagicMock()
+        if args[0] == "git":
+            git_calls.append(list(args))
+            m.returncode = 0
+            m.stdout = ""
+            m.stderr = ""
+        else:
+            call_count[0] += 1
+            if call_count[0] == 1:
+                # First engine call: anomaly
+                m.returncode = 1
+                m.stderr = "Engine crashed"
+            else:
+                _good_result_json(result_path.parent, pf=1.0, n_trades=60)
+                m.returncode = 0
+                m.stderr = ""
+        return m
+
+    with patch("driver.subprocess") as mock_subproc:
+        mock_subproc.run.side_effect = _mock_run
+        driver.run_loop(auto_dir, repo_root, max_iterations=10)
+
+    commit_calls = [c for c in git_calls if len(c) >= 3 and c[1] == "commit"]
+    anomaly_commit = None
+    for c in commit_calls:
+        msg = " ".join(c)
+        if "ANOMALY" in msg and "stage-04" in msg:
+            anomaly_commit = c
+            break
+    assert anomaly_commit is not None, (
+        f"Expected ANOMALY commit message, got commits: {commit_calls}"
+    )
+
+
+def test_no_git_commit_on_reverted(tmp_path):
+    """NO git commit called when experiment is reverted (metric did not improve)."""
+    auto_dir, repo_root = _make_autoresearch_dir(tmp_path)
+    # budget=2: exactly 1 experiment runs (seeded counts as 1, budget=2 → 1 new run)
+    _write_program_md(auto_dir, budget=2, keep_rule=0.05)
+    result_path = auto_dir / "result.json"
+
+    git_calls = []
+
+    def _mock_run(args, **kwargs):
+        m = MagicMock()
+        if args[0] == "git":
+            git_calls.append(list(args))
+            m.returncode = 0
+            m.stdout = ""
+            m.stderr = ""
+        else:
+            # pf=1.0 is below seeded 1.2 — reverted
+            _good_result_json(result_path.parent, pf=1.0, n_trades=60)
+            m.returncode = 0
+            m.stderr = ""
+        return m
+
+    with patch("driver.subprocess") as mock_subproc:
+        mock_subproc.run.side_effect = _mock_run
+        driver.run_loop(auto_dir, repo_root, max_iterations=1)
+
+    commit_calls = [c for c in git_calls if len(c) >= 3 and c[1] == "commit"]
+    # There should be NO kept-experiment commit
+    kept_commits = [c for c in commit_calls if "kept experiment" in " ".join(c)]
+    assert len(kept_commits) == 0, (
+        f"Expected no kept-experiment commits on revert, got: {kept_commits}"
+    )
+
+
+def test_unique_run_id(tmp_path):
+    """run_id is unique per experiment (hash-based, not git HEAD)."""
+    auto_dir, repo_root = _make_autoresearch_dir(tmp_path)
+    _write_program_md(auto_dir, budget=4, keep_rule=0.0)
+    result_path = auto_dir / "result.json"
+
+    def _mock_run(args, **kwargs):
+        m = MagicMock()
+        if args[0] == "git":
+            m.returncode = 0
+            m.stdout = ""
+            m.stderr = ""
+        else:
+            _good_result_json(result_path.parent, pf=1.5, n_trades=60)
+            m.returncode = 0
+            m.stderr = ""
+        return m
+
+    with patch("driver.subprocess") as mock_subproc:
+        mock_subproc.run.side_effect = _mock_run
+        driver.run_loop(auto_dir, repo_root, max_iterations=3)
+
+    lines = [l for l in (auto_dir / "results.tsv").read_text(encoding="utf-8").splitlines() if l.strip()]
+    # Skip header and seeded row
+    data_rows = lines[2:]
+    run_ids = [row.split("\t")[0] for row in data_rows]
+    assert len(run_ids) == len(set(run_ids)), f"Duplicate run_ids found: {run_ids}"
+    # run_ids should be 8-char hex strings (SHA-256 prefix)
+    for rid in run_ids:
+        assert len(rid) == 8, f"Expected 8-char run_id, got: {rid!r}"
+        assert all(c in "0123456789abcdef" for c in rid), f"run_id not hex: {rid!r}"
+
+
+def test_hypothesis_name_from_file(tmp_path):
+    """hypothesis_name column populated from promoted_hypothesis.json when it exists."""
+    auto_dir, repo_root = _make_autoresearch_dir(tmp_path)
+    _write_program_md(auto_dir, budget=2, keep_rule=0.0)
+    result_path = auto_dir / "result.json"
+
+    # Write promoted_hypothesis.json
+    (auto_dir / "promoted_hypothesis.json").write_text(
+        json.dumps({"name": "mean_reversion_v2"}), encoding="utf-8"
+    )
+
+    def _mock_run(args, **kwargs):
+        m = MagicMock()
+        if args[0] == "git":
+            m.returncode = 0
+            m.stdout = ""
+            m.stderr = ""
+        else:
+            _good_result_json(result_path.parent, pf=1.5, n_trades=60)
+            m.returncode = 0
+            m.stderr = ""
+        return m
+
+    with patch("driver.subprocess") as mock_subproc:
+        mock_subproc.run.side_effect = _mock_run
+        driver.run_loop(auto_dir, repo_root, max_iterations=1)
+
+    lines = (auto_dir / "results.tsv").read_text(encoding="utf-8").splitlines()
+    last_row = lines[-1]
+    cols = last_row.split("\t")
+    # hypothesis_name is column index 3
+    assert cols[3] == "mean_reversion_v2", f"Expected 'mean_reversion_v2', got {cols[3]!r}"
+
+
+def test_hypothesis_name_fallback(tmp_path):
+    """hypothesis_name falls back to archetype name when promoted_hypothesis.json absent."""
+    auto_dir, repo_root = _make_autoresearch_dir(tmp_path)
+    _write_program_md(auto_dir, budget=2, keep_rule=0.0)
+    result_path = auto_dir / "result.json"
+
+    # No promoted_hypothesis.json
+
+    def _mock_run(args, **kwargs):
+        m = MagicMock()
+        if args[0] == "git":
+            m.returncode = 0
+            m.stdout = ""
+            m.stderr = ""
+        else:
+            _good_result_json(result_path.parent, pf=1.5, n_trades=60)
+            m.returncode = 0
+            m.stderr = ""
+        return m
+
+    with patch("driver.subprocess") as mock_subproc:
+        mock_subproc.run.side_effect = _mock_run
+        driver.run_loop(auto_dir, repo_root, max_iterations=1)
+
+    lines = (auto_dir / "results.tsv").read_text(encoding="utf-8").splitlines()
+    last_row = lines[-1]
+    cols = last_row.split("\t")
+    # hypothesis_name column (index 3) should be archetype name
+    archetype_name = SEEDED_CONFIG["archetype"]["name"]
+    assert cols[3] == archetype_name, (
+        f"Expected archetype name '{archetype_name}' as fallback, got {cols[3]!r}"
+    )
+
+
+def test_lockfile_created_and_removed(tmp_path):
+    """.autoresearch_running lockfile created at loop start and removed on completion."""
+    auto_dir, repo_root = _make_autoresearch_dir(tmp_path)
+    _write_program_md(auto_dir, budget=2, keep_rule=0.0)
+    result_path = auto_dir / "result.json"
+    lockfile = repo_root / ".autoresearch_running"
+
+    lockfile_states = []
+
+    def _mock_run(args, **kwargs):
+        m = MagicMock()
+        if args[0] == "git":
+            m.returncode = 0
+            m.stdout = ""
+            m.stderr = ""
+        else:
+            # Check lockfile exists during engine call
+            lockfile_states.append(lockfile.exists())
+            _good_result_json(result_path.parent, pf=1.5, n_trades=60)
+            m.returncode = 0
+            m.stderr = ""
+        return m
+
+    with patch("driver.subprocess") as mock_subproc:
+        mock_subproc.run.side_effect = _mock_run
+        driver.run_loop(auto_dir, repo_root, max_iterations=1)
+
+    # Lockfile should have existed during the run
+    assert any(lockfile_states), "Lockfile should exist during engine execution"
+    # Lockfile should be removed after completion
+    assert not lockfile.exists(), "Lockfile should be removed after loop completes"
+
+
+def test_lockfile_removed_on_error(tmp_path):
+    """.autoresearch_running lockfile removed even when loop raises exception."""
+    auto_dir, repo_root = _make_autoresearch_dir(tmp_path)
+    _write_program_md(auto_dir, budget=2)
+    lockfile = repo_root / ".autoresearch_running"
+
+    def _mock_run(args, **kwargs):
+        if args[0] != "git":
+            raise RuntimeError("Unexpected engine crash")
+        m = MagicMock()
+        m.returncode = 0
+        m.stdout = ""
+        m.stderr = ""
+        return m
+
+    with patch("driver.subprocess") as mock_subproc:
+        mock_subproc.run.side_effect = _mock_run
+        try:
+            driver.run_loop(auto_dir, repo_root, max_iterations=1)
+        except Exception:
+            pass  # Exception is expected — we only care about lockfile cleanup
+
+    assert not lockfile.exists(), "Lockfile should be removed even after exception"
