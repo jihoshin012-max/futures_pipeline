@@ -1,5 +1,5 @@
 # Stage 01 Validation Report
-Generated: 2026-03-14 23:40:14
+Generated: 2026-03-14 23:56:35
 
 ## Status: PASS
 
@@ -10,12 +10,18 @@ Generated: 2026-03-14 23:40:14
 - P1a: 2025-09-16 to 2025-10-31
 - P1b: 2025-11-01 to 2025-12-14
 - P2 (OOS): 2025-12-15 to 2026-03-02
+  Sources:
+  - zone_touch_v2 (touches): MISSING (0 rows, ? to ?)
+  - volume_bar (bar data): MISSING (0 rows, ? to ?)
 
 ### rotational
 - P1 (IS): 2025-09-21 to 2025-12-14
 - P1a: 2025-09-21 to 2025-11-02
 - P1b: 2025-11-03 to 2025-12-14
 - P2 (OOS): 2025-12-15 to 2026-03-13
+  Sources:
+  - bar_data_250vol_rot: FOUND (270413 rows, 2025-09-21 to 2026-03-13)
+  - bar_data_250tick_rot: FOUND (249162 rows, 2025-09-21 to 2026-03-13)
 
 ## Backwards-Compatible Flat Periods
 (zone_touch dates — for downstream consumers not yet updated)
