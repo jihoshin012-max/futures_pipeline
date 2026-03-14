@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Futures Pipeline
 status: complete
 stopped_at: v1.0 milestone completed and archived
-last_updated: "2026-03-14T23:00:00.000Z"
-last_activity: 2026-03-14 - Completed quick task 1: Per-archetype period boundaries — Stage 01 and config updates
+last_updated: "2026-03-14T23:30:00.000Z"
+last_activity: 2026-03-14 - Completed quick task 2: Onboard rotational data files, registry, and archetype skeleton
 progress:
   total_phases: 9
   completed_phases: 9
@@ -76,6 +76,7 @@ Progress: [██████████] 100%
 See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 
 - quick-1 (PM-01): Per-archetype period boundaries in period_config.md; validate.py generates archetypes key in data_manifest.json. Flat periods kept as zone_touch-aliased backwards-compat structure.
+- quick-2 (DM-01): bar_data_250vol_rot and bar_data_250tick_rot registered; validate.py is now registry-aware (file/column/date checks); manifest has archetypes.rotational.sources; rotational archetype skeleton created.
 
 ### Pending Todos
 
@@ -90,9 +91,10 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Per-archetype period boundaries — Stage 01 and config updates | 2026-03-14 | 1d11d6e | [1-per-archetype-period-boundaries-stage-01](./quick/1-per-archetype-period-boundaries-stage-01/) |
+| 2 | Onboard rotational data files, registry, and archetype skeleton | 2026-03-14 | 954c253 | [2-onboard-rotational-data-files-registry-s](./quick/2-onboard-rotational-data-files-registry-s/) |
 
 ## Session Continuity
 
-Last session: 2026-03-14T23:00:00.000Z
-Stopped at: Completed quick task 1 — per-archetype period boundaries
+Last session: 2026-03-14T23:30:00.000Z
+Stopped at: Completed quick task 2 — rotational data onboarding
 Resume file: None
