@@ -37,11 +37,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SCAF-19**: Stage 05 CONTEXT.md + verdict_criteria.md + statistical_tests.md
 - [x] **SCAF-20**: Stage 06 CONTEXT.md + context_package_spec.md + assemble_context.sh
 - [x] **SCAF-21**: Stage 07 CONTEXT.md + triggers/review_triggers.md
-- [ ] **SCAF-22**: dashboard/results_master.tsv (header row, 24 columns)
-- [ ] **SCAF-23**: dashboard/index.html stub
-- [ ] **SCAF-24**: audit/audit_log.md stub (append-only header + first manual entry)
-- [ ] **SCAF-25**: audit/audit_entry.sh (promote, deploy, note, fill commands)
-- [ ] **SCAF-26**: 03-hypothesis/references/strategy_archetypes.md (template + simulator interface contract)
+- [x] **SCAF-22**: dashboard/results_master.tsv (header row, 24 columns)
+- [x] **SCAF-23**: dashboard/index.html stub
+- [x] **SCAF-24**: audit/audit_log.md stub (append-only header + first manual entry)
+- [x] **SCAF-25**: audit/audit_entry.sh (promote, deploy, note, fill commands)
+- [x] **SCAF-26**: 03-hypothesis/references/strategy_archetypes.md (template + simulator interface contract)
 
 ### HMM Regime
 
@@ -151,11 +151,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCAF-19 | Phase 1 | Complete |
 | SCAF-20 | Phase 1 | Complete |
 | SCAF-21 | Phase 1 | Complete |
-| SCAF-22 | Phase 1 | Pending |
-| SCAF-23 | Phase 1 | Pending |
-| SCAF-24 | Phase 1 | Pending |
-| SCAF-25 | Phase 1 | Pending |
-| SCAF-26 | Phase 1 | Pending |
+| SCAF-22 | Phase 1 | Complete |
+| SCAF-23 | Phase 1 | Complete |
+| SCAF-24 | Phase 1 | Complete |
+| SCAF-25 | Phase 1 | Complete |
+| SCAF-26 | Phase 1 | Complete |
 | HMM-01 | Phase 2 | Pending |
 | HMM-02 | Phase 2 | Pending |
 | HMM-03 | Phase 2 | Pending |

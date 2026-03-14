@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-04-PLAN.md (stage CONTEXT.md files and reference docs for Stages 01-04)
-last_updated: "2026-03-14T01:01:21.719Z"
+stopped_at: Completed 01-06-PLAN.md (dashboard stubs, audit infrastructure, strategy archetypes)
+last_updated: "2026-03-14T01:05:09.872Z"
 last_activity: 2026-03-13 — Roadmap created; all 7 phases derived from requirements and build order constraints
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 17
 ---
 
@@ -56,6 +56,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-scaffold P03 | 8 | 2 tasks | 5 files |
 | Phase 01-scaffold P05 | 2 | 2 tasks | 8 files |
 | Phase 01-scaffold P04 | 10 | 2 tasks | 8 files |
+| Phase 01-scaffold P06 | 1 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Recent decisions affecting current work:
 - [Phase 01-scaffold]: Stage 07 review triggers kept in separate file to allow threshold expansion without exceeding CONTEXT.md 80-line limit
 - [Phase 01-scaffold]: zone_csv_v2_schema.md filename matches zone_csv_v2 source_id in data_registry.md — schema-to-source_id naming convention established
 - [Phase 01-scaffold]: trail_steps[0] where new_stop_ticks=0 IS the BE trigger — no separate be_trigger_ticks field per Q3 answer
+- [Phase 01-scaffold]: results_master.tsv created programmatically using printf \t to guarantee tab delimiters -- not hand-authored
+- [Phase 01-scaffold]: strategy_archetypes.md has no active archetype entry -- intake checklist required before first autoresearch run (anti-pattern: entry without registered simulator)
+- [Phase 01-scaffold]: Simulator interface: def run(bar_df, touch_row, config, bar_offset) -> SimResult -- pure function, no I/O, returns pnl_ticks/win/exit_reason/bars_held
 
 ### Pending Todos
 
@@ -93,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T01:01:21.716Z
-Stopped at: Completed 01-04-PLAN.md (stage CONTEXT.md files and reference docs for Stages 01-04)
+Last session: 2026-03-14T01:05:09.870Z
+Stopped at: Completed 01-06-PLAN.md (dashboard stubs, audit infrastructure, strategy archetypes)
 Resume file: None
