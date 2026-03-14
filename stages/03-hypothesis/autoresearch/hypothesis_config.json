@@ -1,0 +1,46 @@
+{
+  "version": "v1",
+  "instrument": "NQ",
+  "touches_csv": "stages/01-data/data/touches/ZRA_Hist_P1.csv",
+  "bar_data": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_P1.txt",
+  "scoring_model_path": "shared/scoring_models/zone_touch_v1.json",
+  "archetype": {
+    "name": "zone_touch",
+    "simulator_module": "zone_touch_simulator",
+    "scoring_adapter": "BinnedScoringAdapter"
+  },
+  "active_modes": [
+    "M1"
+  ],
+  "routing": {
+    "score_threshold": 0,
+    "seq_limit": 3
+  },
+  "M1": {
+    "stop_ticks": 204,
+    "leg_targets": [
+      34,
+      102,
+      261
+    ],
+    "trail_steps": [
+      {
+        "trigger_ticks": 80,
+        "new_stop_ticks": 38
+      },
+      {
+        "trigger_ticks": 86,
+        "new_stop_ticks": 38
+      },
+      {
+        "trigger_ticks": 109,
+        "new_stop_ticks": 57
+      },
+      {
+        "trigger_ticks": 227,
+        "new_stop_ticks": 95
+      }
+    ],
+    "time_cap_bars": 84
+  }
+}

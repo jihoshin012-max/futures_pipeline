@@ -382,8 +382,8 @@ def run_loop(
         repo_root: Path to repository root (for generator cwd and audit_log.md)
         max_iterations: Hard cap on iterations (for testing). None = no cap.
     """
-    autoresearch_dir = Path(autoresearch_dir)
-    repo_root = Path(repo_root)
+    autoresearch_dir = Path(autoresearch_dir).resolve()
+    repo_root = Path(repo_root).resolve()
 
     generator_path = autoresearch_dir / "hypothesis_generator.py"
     hypothesis_config_path = autoresearch_dir / "hypothesis_config.json"

@@ -207,7 +207,6 @@ def run(
                 str(engine_path),
                 "--config", str(temp_config_path),
                 "--output", str(result_p1b_path),
-                "--output-p1b", str(result_p1b_path),
             ],
             capture_output=True,
             text=True,

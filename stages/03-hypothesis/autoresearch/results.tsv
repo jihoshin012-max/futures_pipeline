@@ -1,0 +1,13 @@
+run_id	stage	timestamp	hypothesis_name	archetype	version	features	pf_p1	pf_p2	trades_p1	trades_p2	mwu_p	perm_p	pctile	n_prior_tests	verdict	sharpe_p1	max_dd_ticks	avg_winner_ticks	dd_multiple	win_rate	regime_breakdown	api_cost_usd	notes	replication_pass
+d5b6973	03-hypothesis	2026-03-14T17:43:52	zone_touch	zone_touch	v1		0.8140725880991667		4674					0	kept_weak_replication		28477.520000000004			0.8172871202396235			replication_pass:False|pf_p1b:0.888|git:f16af15	False
+1354fdf	03-hypothesis	2026-03-14T17:45:24	zone_touch	zone_touch	v1		0.8343731643723983		4674					1	reverted		29539.439999999988			0.7777064612751391				
+7f573b7	03-hypothesis	2026-03-14T17:46:58	zone_touch	zone_touch	v1		0.7796864726193513		4674					2	reverted		27738.0			0.8399657680787335				
+78757e5	03-hypothesis	2026-03-14T17:48:25	zone_touch	zone_touch	v1		0.8115465569113409		4674					3	reverted		30444.0			0.7984595635430038				
+eb5345e	03-hypothesis	2026-03-14T17:49:59	zone_touch	zone_touch	v1		0.7998290893993911		4674					4	reverted		35337.95999999999			0.7473256311510483				
+f5f0a77	03-hypothesis	2026-03-14T17:51:32	zone_touch	zone_touch	v1		0.66138299619695		4674					5	reverted		27296.520000000004			0.8979460847240052				
+8536024	03-hypothesis	2026-03-14T17:52:58	zone_touch	zone_touch	v1		0.820898835501471		4674					6	reverted		36502.43999999999			0.7293538724860933				
+fdd3c72	03-hypothesis	2026-03-14T17:54:31	zone_touch	zone_touch	v1		0.7853129985126501		4674					7	reverted		29033.0			0.8354728284124947				
+400a036	03-hypothesis	2026-03-14T17:56:00	zone_touch	zone_touch	v1		0.7147545407998332		4674					8	reverted		27582.520000000004			0.8859649122807017				
+382f616	03-hypothesis	2026-03-14T17:57:25	zone_touch	zone_touch	v1		0.8349226769180794		4674					9	reverted		25013.520000000004			0.8318356867779204				
+602dfcd	03-hypothesis	2026-03-14T17:58:54	zone_touch	zone_touch	v1		0.8231791593247872		4674					10	reverted		26179.0			0.8239195549850236				
+9910dd3	03-hypothesis	2026-03-14T18:00:22	zone_touch	zone_touch	v1		0.8214757325054809		4674					11	reverted		34386.95999999999			0.766367137355584				
