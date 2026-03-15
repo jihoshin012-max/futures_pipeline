@@ -2,47 +2,64 @@
 # Simulation Rules — rotational archetype
 last_reviewed: 2026-03-14
 
-## Status: Stub
+## Engine
 
-This is a bar-only archetype. No external touch events (zone_csv_v2 or similar) are required.
-Signal logic lives entirely in archetype code, operating on bar data.
+`rotational_engine.py` — separate from `backtest_engine.py` (zone_touch).
+Continuous state machine harness: loads bars, dispatches to RotationalSimulator, collects cycle-level results.
 
-## Bar-Only Architecture
+## State Machine
 
-Unlike zone_touch, the rotational archetype does not rely on a pre-computed touch/signal file.
-Entry signals are generated programmatically from bar features during Stage 03 hypothesis
-development. This means:
-- No BarIndex-to-touch-row pairing step
-- No entry_time_violation safety net (bar_df truncation must be enforced explicitly in feature engine)
-- The feature engine receives bar_df only (no touch_row parameter)
+```
+States:  FLAT → POSITIONED (Long/Short, Level 0..N)
+Actions: SEED, REVERSAL, ADD
 
-## Entry/Exit Mechanics
+SEED:     Position flat, no anchor → Buy InitialQty, Direction=Long, Level=0
+REVERSAL: Price ≥ StepDist IN FAVOR from Anchor → Flatten all, enter opposite at InitialQty, Level=0
+ADD:      Price ≥ StepDist AGAINST from Anchor → Add (InitialQty × 2^Level), Level++
+          Cap: add qty > MaxContractSize → reset to InitialQty, Level=0
+```
 
-TBD — will be defined during Stage 03 hypothesis development.
+## Unit of Analysis: CYCLE
 
-Placeholder constraints:
-- Entry: long or short signal from bar-based indicator logic (specific signal TBD)
-- Exit: target/stop/time-cap pattern (parameters TBD)
-- Direction: momentum-following (likely long-biased or dual-direction, TBD)
+A **cycle** = seed/reversal through all adds to the next reversal.
+Trades within a cycle are NOT independent. All metrics computed on cycles.
 
-## SimResult Contract
+Cycle record: cycle_id, start_bar, end_bar, direction, duration_bars,
+entry_price, exit_price, avg_entry_price, adds_count, max_level_reached,
+max_position_qty, gross_pnl_ticks, net_pnl_ticks, max_adverse_excursion_ticks,
+max_favorable_excursion_ticks, retracement_depths[], time_at_max_level_bars,
+trend_defense_level_max, exit_reason
 
-Not yet defined. Will be specified when the simulator module is created in Stage 03.
+## SimulationResult Contract
 
-Reference contract from zone_touch (for pattern):
 ```python
-from dataclasses import dataclass
-
 @dataclass
-class SimResult:
-    pnl_ticks: float
-    win: bool
-    exit_reason: str
-    bars_held: int
+class SimulationResult:
+    trades: pd.DataFrame    # Individual actions (seed, reversal, add)
+    cycles: pd.DataFrame    # Reversal-to-reversal summaries — PRIMARY assessment unit
+    bars_processed: int
 ```
 
 ## Cost Model
 
-Cost applied per trade as per _config/instruments.md cost_ticks.
-Individual trade pnl_ticks in SimResult is RAW (no cost deduction).
-Cost applied during metrics aggregation — never hardcode cost_ticks.
+Each trade action (seed, reversal entry, add) incurs cost_ticks from instruments.md.
+Reversal incurs cost twice (flatten + re-enter).
+Cycle net_pnl = gross_pnl - (number_of_actions × cost_ticks × position_size_at_action).
+
+## Determinism
+
+- Identical config + identical data → identical results (diff empty)
+- No randomness in simulation loop
+- Bar processing strictly sequential (no lookahead)
+- Features at bar i use only data from bars 0..i (Pipeline Rule 3: Entry-Time Only)
+
+## Data Sources
+
+- **Primary** (250-vol, 250-tick): strategy runs independently on each
+- **Reference** (10-sec): loaded as supplementary lookup via as-of timestamp index
+- Engine runs simulation per primary source, results compared
+
+## Scoring
+
+No scoring adapter. Decision logic lives inside the simulator.
+`config.archetype.scoring_adapter = null` — engine skips scoring entirely.
