@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Strategy Data Guide — Futures Pipeline</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #ffffff;
+  --bg2: #f7f6f2;
+  --bg3: #f0efe8;
+  --text: #1a1a18;
+  --text2: #5a5a55;
+  --text3: #9a9a90;
+  --border: rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+  --info-bg: #e6f1fb;
+  --info-text: #0c447c;
+  --info-border: rgba(20,90,165,0.3);
+  --success-bg: #eaf3de;
+  --success-text: #3b6d11;
+  --success-border: rgba(60,110,17,0.3);
+  --warn-bg: #faeeda;
+  --warn-text: #854f0b;
+  --warn-border: rgba(133,79,11,0.3);
+  --danger-bg: #fcebeb;
+  --danger-text: #a32d2d;
+  --danger-border: rgba(163,45,45,0.3);
+  --accent: #1a1a18;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --mono: 'SF Mono','Fira Code','Cascadia Code',monospace;
+  --sans: -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1a;
+    --bg2: #252523;
+    --bg3: #2e2e2b;
+    --text: #f0efe8;
+    --text2: #a8a89f;
+    --text3: #6a6a62;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.16);
+    --info-bg: #0c2a44;
+    --info-text: #85b7eb;
+    --info-border: rgba(100,170,230,0.25);
+    --success-bg: #162a08;
+    --success-text: #97c459;
+    --success-border: rgba(100,180,60,0.25);
+    --warn-bg: #2a1a04;
+    --warn-text: #ef9f27;
+    --warn-border: rgba(200,140,30,0.25);
+    --danger-bg: #2a0c0c;
+    --danger-text: #f09595;
+    --danger-border: rgba(200,80,80,0.25);
+  }
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg3);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.page-wrap { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+/* Header */
+.page-header { margin-bottom: 2.5rem; }
+.page-header h1 { font-size: 26px; font-weight: 500; margin-bottom: 6px; }
+.page-header p { font-size: 15px; color: var(--text2); max-width: 600px; }
+
+/* Tab nav */
+.tab-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 2rem;
+  overflow-x: auto;
+}
+.tab-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-family: var(--sans);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text3);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Section */
+.section { margin-bottom: 2rem; }
+.section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+/* Cards */
+.card {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 10px;
+}
+
+/* Step cards */
+.step-card {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.step-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.step-header:hover { background: var(--bg2); }
+.step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500;
+  color: var(--text2);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-card.done .step-num {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success-text);
+}
+.step-card.warn .step-num {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+  color: var(--warn-text);
+}
+.step-title-block { flex: 1; }
+.step-title { font-size: 15px; font-weight: 500; margin-bottom: 2px; }
+.step-subtitle { font-size: 13px; color: var(--text2); }
+.step-toggle { font-size: 18px; color: var(--text3); flex-shrink: 0; transition: transform 0.2s; }
+.step-card.open .step-toggle { transform: rotate(180deg); }
+.step-body {
+  display: none;
+  padding: 0 16px 16px 58px;
+  border-top: 0.5px solid var(--border);
+}
+.step-card.open .step-body { display: block; padding-top: 14px; }
+
+/* File paths */
+.file-path {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg2);
+  border: 0.5px solid var(--border2);
+  border-radius: 5px;
+  padding: 2px 7px;
+  color: var(--text);
+}
+
+/* Code blocks */
+.code-block {
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--text);
+  margin: 10px 0;
+  position: relative;
+}
+.copy-btn {
+  position: absolute;
+  top: 8px; right: 8px;
+  font-size: 11px;
+  padding: 3px 8px;
+  background: var(--bg3);
+  border: 0.5px solid var(--border2);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text3);
+  font-family: var(--sans);
+}
+.copy-btn:hover { color: var(--text); }
+.copy-btn.copied { color: var(--success-text); border-color: var(--success-border); }
+
+/* Notice boxes */
+.notice {
+  display: flex;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 10px 0;
+}
+.notice.info { background: var(--info-bg); border: 0.5px solid var(--info-border); color: var(--info-text); }
+.notice.warn { background: var(--warn-bg); border: 0.5px solid var(--warn-border); color: var(--warn-text); }
+.notice.success { background: var(--success-bg); border: 0.5px solid var(--success-border); color: var(--success-text); }
+.notice.danger { background: var(--danger-bg); border: 0.5px solid var(--danger-border); color: var(--danger-text); }
+.notice-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+.notice strong { font-weight: 500; display: block; margin-bottom: 2px; }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--bg2);
+  color: var(--text2);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border2);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 9px 12px;
+  border-bottom: 0.5px solid var(--border);
+  vertical-align: top;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--bg2);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Tag */
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.tag-required { background: var(--danger-bg); color: var(--danger-text); border: 0.5px solid var(--danger-border); }
+.tag-conditional { background: var(--warn-bg); color: var(--warn-text); border: 0.5px solid var(--warn-border); }
+.tag-optional { background: var(--bg2); color: var(--text3); border: 0.5px solid var(--border2); }
+.tag-auto { background: var(--success-bg); color: var(--success-text); border: 0.5px solid var(--success-border); }
+
+/* Inline code */
+code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg2);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 0.5px solid var(--border);
+  color: var(--text);
+}
+
+/* List */
+.guide-list { list-style: none; padding: 0; }
+.guide-list li {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 14px;
+  color: var(--text2);
+  border-bottom: 0.5px solid var(--border);
+  line-height: 1.5;
+}
+.guide-list li:last-child { border-bottom: none; }
+.guide-list .li-icon { flex-shrink: 0; color: var(--text3); margin-top: 1px; }
+
+/* Flow diagram */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.flow-node {
+  background: var(--bg2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+}
+.flow-node.highlight {
+  background: var(--info-bg);
+  border-color: var(--info-border);
+  color: var(--info-text);
+}
+.flow-arrow {
+  color: var(--text3);
+  font-size: 16px;
+  padding: 0 6px;
+}
+
+.two-col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+@media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+.divider { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="page-header">
+    <h1>New strategy data guide</h1>
+    <p>What needs to be updated in the pipeline when introducing data for a new strategy. Follow the tabs in order — registration before migration, migration before validation.</p>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+    <button class="tab-btn" onclick="switchTab('registration')">1 — Registration</button>
+    <button class="tab-btn" onclick="switchTab('migration')">2 — Migration</button>
+    <button class="tab-btn" onclick="switchTab('validation')">3 — Validation</button>
+    <button class="tab-btn" onclick="switchTab('archetype')">4 — Archetype wiring</button>
+    <button class="tab-btn" onclick="switchTab('reference')">Reference</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="tab-overview" class="tab-panel active">
+
+    <div class="notice info">
+      <span class="notice-icon">ℹ</span>
+      <div><strong>How the pipeline resolves data paths</strong>
+      No stage hardcodes file paths. Every data path flows through three files in order: <code>strategy_archetypes.md</code> names the source_ids → <code>data_registry.md</code> maps them to file patterns → Stage 01 validation resolves actual paths into <code>data_manifest.json</code>. Downstream stages read from the manifest only.</div>
+    </div>
+
+    <div class="section" style="margin-top:1.5rem;">
+      <div class="section-title">Data flow</div>
+      <div class="card">
+        <div class="flow">
+          <div class="flow-node highlight">strategy_archetypes.md<br><span style="font-size:11px;font-weight:400;">names source_ids</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">data_registry.md<br><span style="font-size:11px;font-weight:400;">file patterns + locations</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Stage 01 validation<br><span style="font-size:11px;font-weight:400;">resolves actual paths</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node highlight">data_manifest.json<br><span style="font-size:11px;font-weight:400;">runtime source of truth</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">What needs updating</div>
+      <table class="data-table" style="background:var(--bg);border-radius:var(--radius-lg);overflow:hidden;border:0.5px solid var(--border);">
+        <thead><tr>
+          <th>File</th>
+          <th>What changes</th>
+          <th>When</th>
+          <th>Required?</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><code>_config/data_registry.md</code></td>
+            <td>Add row for each new source_id</td>
+            <td>Before data files exist</td>
+            <td><span class="tag tag-required">required</span></td>
+          </tr>
+          <tr>
+            <td><code>01-data/references/{source_id}_schema.md</code></td>
+            <td>Column contract for Stage 01 validation</td>
+            <td>Before Stage 01 runs</td>
+            <td><span class="tag tag-required">required</span></td>
+          </tr>
+          <tr>
+            <td><code>01-data/data/{bar_type}/</code> or <code>touches/</code></td>
+            <td>Drop actual data files</td>
+            <td>Before Stage 01 runs</td>
+            <td><span class="tag tag-required">required</span></td>
+          </tr>
+          <tr>
+            <td><code>03-hypothesis/references/strategy_archetypes.md</code></td>
+            <td>Add source_ids to Required data field</td>
+            <td>Before Stage 03 runs</td>
+            <td><span class="tag tag-required">required</span></td>
+          </tr>
+          <tr>
+            <td><code>01-data/output/data_manifest.json</code></td>
+            <td>Auto-regenerated by Stage 01</td>
+            <td>After Stage 01 re-run</td>
+            <td><span class="tag tag-auto">auto</span></td>
+          </tr>
+          <tr>
+            <td><code>_config/instruments.md</code></td>
+            <td>Add instrument if new symbol</td>
+            <td>Before any stage runs</td>
+            <td><span class="tag tag-conditional">if new instrument</span></td>
+          </tr>
+          <tr>
+            <td><code>shared/archetypes/{name}/feature_evaluator.py</code></td>
+            <td>Load new source in evaluation harness</td>
+            <td>Before Stage 02 runs</td>
+            <td><span class="tag tag-conditional">if new source used in features</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bar type pairing rule</div>
+      <div class="notice warn">
+        <span class="notice-icon">⚠</span>
+        <div><strong>Touches are coupled to a specific bar type</strong>
+        ZRA touch files contain a <code>BarIndex</code> field — an absolute index into whichever bar series ZRA was configured on. The simulator resolves this via timestamp matching at runtime. If you load touch data against a different bar type than ZRA was configured on, <code>BarIndex</code> maps to wrong rows and entry prices are silently wrong. Always pair touches with the matching bar type.</div>
+      </div>
+      <div class="two-col" style="margin-top:10px;">
+        <div class="card">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">zone_touch (current)</div>
+          <div style="font-size:13px;"><code>zone_csv_v2</code> → paired with <code>bar_data_volume</code><br>ZRA configured on 250-vol bars</div>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">new archetype example</div>
+          <div style="font-size:13px;">If ZRA reconfigured to 1-min bars → register as <code>zone_csv_v2_time</code> + pair with <code>bar_data_time</code></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- REGISTRATION -->
+  <div id="tab-registration" class="tab-panel">
+
+    <p style="font-size:14px;color:var(--text2);margin-bottom:1.5rem;">Register data sources before dropping any files. Stage 01 validation reads the registry to know what to look for.</p>
+
+    <div class="step-card open" id="step-r1">
+      <div class="step-header" onclick="toggleStep('step-r1')">
+        <div class="step-num">1</div>
+        <div class="step-title-block">
+          <div class="step-title">Add row(s) to data_registry.md</div>
+          <div class="step-subtitle">_config/data_registry.md — one row per new source_id</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <p style="font-size:14px;color:var(--text2);margin-bottom:10px;">Add one row per new data source to the Registered Sources table. The <code>source_id</code> must be unique and match the schema filename you'll create in Step 2.</p>
+        <div class="notice info">
+          <span class="notice-icon">ℹ</span>
+          <div>Bar data must use typed source_ids — not a generic <code>bar_data</code>. Use <code>bar_data_volume</code>, <code>bar_data_time</code>, or <code>bar_data_tick</code> depending on bar type.</div>
+        </div>
+        <div class="code-block" id="cb-r1">| {source_id}     | {type}  | {description}                   | P1, P2  | {SYMBOL}_{source_id}_*.txt   | {stages}                 |
+
+Examples:
+| bar_data_volume | price   | 250-vol OHLCV bars (zone_touch) | P1, P2  | NQ_BarData_250vol_*.txt      | 02-features, 04-backtest |
+| bar_data_time   | price   | 1-min time OHLCV bars           | P1, P2  | NQ_BarData_1min_*.txt        | {future strategies}      |
+| orderflow_data  | orderflow | Cumulative delta per bar      | P1, P2  | NQ_Delta_*.csv               | 02-features              |
+| zone_csv_v2_time| touches | ZRA touches on 1-min bars       | P1, P2  | NQ_ZRA_1min_*.csv            | 02-features, 04-backtest |<button class="copy-btn" onclick="copyCode('cb-r1',this)">Copy</button></div>
+        <div class="notice warn">
+          <span class="notice-icon">⚠</span>
+          <div><strong>File pattern must match Sierra Chart's actual export filename</strong>
+          Check what Sierra Chart names the export before writing the pattern. The glob pattern must match the real filename — the pipeline doesn't rename files.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-r2">
+      <div class="step-header" onclick="toggleStep('step-r2')">
+        <div class="step-num">2</div>
+        <div class="step-title-block">
+          <div class="step-title">Create schema file(s)</div>
+          <div class="step-subtitle">stages/01-data/references/{source_id}_schema.md</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <p style="font-size:14px;color:var(--text2);margin-bottom:10px;">One schema file per source_id. The filename must exactly match the source_id. Stage 01 validation checks every data file against this column contract — validation fails if any required column is missing.</p>
+        <div class="code-block" id="cb-r2"># {Source Name} Schema
+last_reviewed: {date}
+# Required columns for {source_id} data files.
+# Validation fails if any column is missing.
+# source_id must match data_registry.md exactly.
+
+| Column   | Type   | Description                          |
+|----------|--------|--------------------------------------|
+| datetime | str    | Bar datetime YYYY-MM-DD HH:MM:SS     |
+| open     | float  | Bar open price                       |
+| high     | float  | Bar high price                       |
+| low      | float  | Bar low price                        |
+| close    | float  | Bar close price                      |
+| volume   | int    | Bar volume                           |
+
+# Bar type note (for bar_data_* sources):
+# source_id determines bar type:
+#   bar_data_volume — 250-vol bars
+#   bar_data_time   — 1-min time bars
+#   bar_data_tick   — N-tick bars<button class="copy-btn" onclick="copyCode('cb-r2',this)">Copy</button></div>
+        <div class="notice info">
+          <span class="notice-icon">ℹ</span>
+          <div>For new bar types (time, tick), create stub schema files even if you don't have the data yet. The stub signals that the source_id is registered and the schema will be populated when data arrives.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-r3">
+      <div class="step-header" onclick="toggleStep('step-r3')">
+        <div class="step-num">3</div>
+        <div class="step-title-block">
+          <div class="step-title">Add instrument (if new symbol)</div>
+          <div class="step-subtitle">_config/instruments.md — only if new instrument symbol</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <p style="font-size:14px;color:var(--text2);margin-bottom:10px;">NQ, ES, and GC are already registered. Only needed if adding a new instrument symbol (e.g. CL, MNQ, MES). No stage may hardcode instrument constants — they must come from this file (Rule 5).</p>
+        <div class="code-block" id="cb-r3">## {SYMBOL}
+- tick_size: {value}        # Minimum price increment
+- point_value: {value}      # Dollar value per full point
+- cost_ticks: {value}       # Round-trip transaction cost in ticks
+- session_start: {HH:MM}    # RTH session start (ET)
+- session_end: {HH:MM}      # RTH session end (ET)
+- bar_data_prefix: {SYMBOL} # Prefix for bar data filenames<button class="copy-btn" onclick="copyCode('cb-r3',this)">Copy</button></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MIGRATION -->
+  <div id="tab-migration" class="tab-panel">
+
+    <p style="font-size:14px;color:var(--text2);margin-bottom:1.5rem;">Drop data files into the correct subfolders. File placement must match the <code>file_pattern</code> in data_registry.md and the subfolder structure below.</p>
+
+    <div class="section">
+      <div class="section-title">Folder structure</div>
+      <div class="card">
+        <div class="code-block" id="cb-folders" style="margin:0;">stages/01-data/data/
+├── touches/              ← ZRA touch/signal CSVs (all bar types)
+│   ├── NQ_ZRA_v2_P1.csv
+│   └── NQ_ZRA_v2_P2.csv
+├── bar_data/
+│   ├── volume/           ← 250-vol OHLCV bars  (bar_data_volume)
+│   │   ├── NQ_BarData_250vol_P1.txt
+│   │   └── NQ_BarData_250vol_P2.txt
+│   ├── time/             ← 1-min time bars     (bar_data_time)
+│   └── tick/             ← N-tick bars         (bar_data_tick)
+└── labels/               ← Derived labels (SBB, regime, etc.)<button class="copy-btn" onclick="copyCode('cb-folders',this)">Copy</button></div>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-m1">
+      <div class="step-header" onclick="toggleStep('step-m1')">
+        <div class="step-num">1</div>
+        <div class="step-title-block">
+          <div class="step-title">Copy touch / signal files</div>
+          <div class="step-subtitle">→ stages/01-data/data/touches/</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block" id="cb-m1"># Copy ZRA touch CSVs for P1 and P2
+cp /path/to/NQ_ZRA_v2_*.csv stages/01-data/data/touches/
+
+# Verify
+ls stages/01-data/data/touches/<button class="copy-btn" onclick="copyCode('cb-m1',this)">Copy</button></div>
+        <div class="notice warn">
+          <span class="notice-icon">⚠</span>
+          <div><strong>Touch files are bar-type coupled</strong>
+          If ZRA was configured on 250-vol bars, these files must be paired with <code>bar_data_volume</code>. If you reconfigure ZRA to a different bar type, register a new source_id (e.g. <code>zone_csv_v2_time</code>) — do not reuse the existing source_id.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-m2">
+      <div class="step-header" onclick="toggleStep('step-m2')">
+        <div class="step-num">2</div>
+        <div class="step-title-block">
+          <div class="step-title">Copy bar data files</div>
+          <div class="step-subtitle">→ stages/01-data/data/bar_data/{volume|time|tick}/</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block" id="cb-m2"># 250-volume bars (zone_touch current default)
+cp /path/to/NQ_BarData_250vol_*.txt stages/01-data/data/bar_data/volume/
+
+# 1-minute time bars (future strategies)
+cp /path/to/NQ_BarData_1min_*.txt stages/01-data/data/bar_data/time/
+
+# Tick bars (future strategies)
+cp /path/to/NQ_BarData_tick_*.txt stages/01-data/data/bar_data/tick/
+
+# Verify
+ls stages/01-data/data/bar_data/volume/<button class="copy-btn" onclick="copyCode('cb-m2',this)">Copy</button></div>
+        <div class="notice info">
+          <span class="notice-icon">ℹ</span>
+          <div>Files go in the subfolder matching their bar type and registered source_id. <code>bar_data_volume</code> → <code>volume/</code>, <code>bar_data_time</code> → <code>time/</code>, <code>bar_data_tick</code> → <code>tick/</code>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-m3">
+      <div class="step-header" onclick="toggleStep('step-m3')">
+        <div class="step-num">3</div>
+        <div class="step-title-block">
+          <div class="step-title">Copy derived label files (if applicable)</div>
+          <div class="step-subtitle">→ stages/01-data/data/labels/</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <p style="font-size:14px;color:var(--text2);margin-bottom:10px;">Derived labels are computed from other sources — SBB labels (v2-only-broken, normal, v2-only-held) and regime labels (generated by hmm_regime_fitter.py). Only copy if your archetype uses <code>sbb_labels</code> as a registered source.</p>
+        <div class="code-block" id="cb-m3"># SBB labels (if archetype uses sbb_labels source_id)
+cp /path/to/sbb_labels_*.csv stages/01-data/data/labels/
+
+# Regime labels are auto-generated by Stage 01 — do not copy manually
+# stages/01-data/data/labels/regime_labels.csv ← generated<button class="copy-btn" onclick="copyCode('cb-m3',this)">Copy</button></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- VALIDATION -->
+  <div id="tab-validation" class="tab-panel">
+
+    <p style="font-size:14px;color:var(--text2);margin-bottom:1.5rem;">Re-run Stage 01 validation after every data change. This regenerates <code>data_manifest.json</code> — never edit it manually.</p>
+
+    <div class="notice danger" style="margin-bottom:1.5rem;">
+      <span class="notice-icon">⛔</span>
+      <div><strong>Never hand-edit data_manifest.json</strong>
+      It is auto-generated by Stage 01. Any manual edit will be overwritten on the next Stage 01 run. All configuration belongs in <code>data_registry.md</code> and <code>period_config.md</code>.</div>
+    </div>
+
+    <div class="step-card open" id="step-v1">
+      <div class="step-header" onclick="toggleStep('step-v1')">
+        <div class="step-num">1</div>
+        <div class="step-title-block">
+          <div class="step-title">Re-run Stage 01 validation</div>
+          <div class="step-subtitle">Regenerates data_manifest.json and validation_report.md</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block" id="cb-v1">cd futures-pipeline
+python stages/01-data/validate.py
+
+# Outputs:
+#   stages/01-data/output/data_manifest.json  ← updated
+#   stages/01-data/output/validation_report.md ← review this<button class="copy-btn" onclick="copyCode('cb-v1',this)">Copy</button></div>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-v2">
+      <div class="step-header" onclick="toggleStep('step-v2')">
+        <div class="step-num">2</div>
+        <div class="step-title-block">
+          <div class="step-title">Review validation_report.md</div>
+          <div class="step-subtitle">Human checkpoint — do not proceed until clean</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <p style="font-size:14px;color:var(--text2);margin-bottom:10px;">Check the report for the following before advancing to any downstream stage:</p>
+        <ul class="guide-list">
+          <li><span class="li-icon">○</span><span>All registered source_ids have files found for P1 and P2</span></li>
+          <li><span class="li-icon">○</span><span>Schema validation passed for all sources (no missing columns)</span></li>
+          <li><span class="li-icon">○</span><span>Bar offset computed successfully (timestamp alignment verified)</span></li>
+          <li><span class="li-icon">○</span><span>Date coverage is complete — no unexpected gaps</span></li>
+          <li><span class="li-icon">○</span><span>Row counts are plausible for each period</span></li>
+          <li><span class="li-icon">○</span><span>regime_labels.csv generated covering P1 and P2</span></li>
+        </ul>
+        <div class="notice warn" style="margin-top:10px;">
+          <span class="notice-icon">⚠</span>
+          <div>A failed schema check on one source does not block other sources — check the report per source. Fix schema issues in the data files or update the schema contract, then re-run Stage 01.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-v3">
+      <div class="step-header" onclick="toggleStep('step-v3')">
+        <div class="step-num">3</div>
+        <div class="step-title-block">
+          <div class="step-title">Commit the updated manifest</div>
+          <div class="step-subtitle">manual: prefix — this is a human-verified checkpoint</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block" id="cb-v3">git add stages/01-data/output/data_manifest.json
+git add stages/01-data/output/validation_report.md
+git add _config/data_registry.md
+git add stages/01-data/references/
+git commit -m "manual: register {source_id} — Stage 01 validation clean"<button class="copy-btn" onclick="copyCode('cb-v3',this)">Copy</button></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ARCHETYPE WIRING -->
+  <div id="tab-archetype" class="tab-panel">
+
+    <p style="font-size:14px;color:var(--text2);margin-bottom:1.5rem;">After data is registered and validated, wire it into the archetype so the pipeline knows to use it.</p>
+
+    <div class="step-card open" id="step-a1">
+      <div class="step-header" onclick="toggleStep('step-a1')">
+        <div class="step-num">1</div>
+        <div class="step-title-block">
+          <div class="step-title">Update strategy_archetypes.md</div>
+          <div class="step-subtitle">03-hypothesis/references/strategy_archetypes.md</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <p style="font-size:14px;color:var(--text2);margin-bottom:10px;">Add or update the <code>Required data</code> field for the archetype to include the new source_ids.</p>
+        <div class="code-block" id="cb-a1">## {archetype_name}
+- Description: {description}
+- Instrument: {SYMBOL}
+- Required data: zone_csv_v2, bar_data_volume   ← add new source_ids here
+- Simulator module: `shared/archetypes/{name}/m1_simulator.py`
+- Scoring model: `shared/scoring_models/{name}_v1.json`
+- Scoring adapter: BinnedScoringAdapter
+- feature_evaluator: `shared/archetypes/{name}/feature_evaluator.py`
+- feature_engine: `shared/archetypes/{name}/feature_engine.py`
+- Optimization surface: stop_ticks, targets, trail_steps, time_cap_bars
+- Structural reference: `stages/06-deployment/references/M1B_AutoTrader.cpp`
+- Current status: hypothesis stage<button class="copy-btn" onclick="copyCode('cb-a1',this)">Copy</button></div>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-a2">
+      <div class="step-header" onclick="toggleStep('step-a2')">
+        <div class="step-num">2</div>
+        <div class="step-title-block">
+          <div class="step-title">Update feature_evaluator.py</div>
+          <div class="step-subtitle">shared/archetypes/{name}/feature_evaluator.py</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <p style="font-size:14px;color:var(--text2);margin-bottom:10px;">If the new data source will be used in feature computation, update the evaluator harness to load it. The evaluator reads paths from <code>data_manifest.json</code> — never hardcode paths.</p>
+        <div class="code-block" id="cb-a2">import json
+
+def evaluate() -> dict:
+    # Load manifest
+    with open("stages/01-data/output/data_manifest.json") as f:
+        manifest = json.load(f)
+
+    # Load required sources for P1a (calibration half)
+    touches_path = manifest["periods"]["P1a"]["sources"]["zone_csv_v2"]["path"]
+    bar_path = manifest["periods"]["P1a"]["sources"]["bar_data_volume"]["path"]
+
+    # Load new source if needed
+    # new_data_path = manifest["periods"]["P1a"]["sources"]["{source_id}"]["path"]
+
+    # ... compute features, return spread + mwu_p per feature
+    return {
+        "features": [{"name": "...", "spread": 0.0, "mwu_p": 1.0, "kept": False}],
+        "n_touches": 0
+    }<button class="copy-btn" onclick="copyCode('cb-a2',this)">Copy</button></div>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-a3">
+      <div class="step-header" onclick="toggleStep('step-a3')">
+        <div class="step-num">3</div>
+        <div class="step-title-block">
+          <div class="step-title">Run the intake wizard</div>
+          <div class="step-subtitle">tools/strategy_intake_wizard.html</div>
+        </div>
+        <div class="step-toggle">⌄</div>
+      </div>
+      <div class="step-body">
+        <p style="font-size:14px;color:var(--text2);margin-bottom:10px;">For a new archetype, use the intake wizard to generate all required files in one step. Open it in a browser, fill the six steps, and download the setup script.</p>
+        <div class="notice success">
+          <span class="notice-icon">✓</span>
+          <div>The wizard generates: intake doc, strategy_archetypes.md entry, simulation_rules.md, exit_templates.md, feature_engine.py stub, feature_evaluator.py stub, scoring model JSON stub, and a bash setup script that creates all folders and writes all files from the repo root.</div>
+        </div>
+        <div class="code-block" id="cb-a3"># After downloading setup_{archetype}.sh from the wizard:
+cd futures-pipeline
+bash setup_{archetype}.sh
+
+# Then commit:
+git add -A
+git commit -m "manual: add {archetype} intake"<button class="copy-btn" onclick="copyCode('cb-a3',this)">Copy</button></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- REFERENCE -->
+  <div id="tab-reference" class="tab-panel">
+
+    <div class="section">
+      <div class="section-title">Data type taxonomy</div>
+      <table class="data-table" style="background:var(--bg);border-radius:var(--radius-lg);overflow:hidden;border:0.5px solid var(--border);">
+        <thead><tr><th>type</th><th>description</th><th>examples</th></tr></thead>
+        <tbody>
+          <tr><td><code>touches</code></td><td>Per-touch or per-signal event data</td><td>ZRA CSVs, signal event files</td></tr>
+          <tr><td><code>price</code></td><td>OHLCV bar data</td><td>NQ_BarData_250vol files</td></tr>
+          <tr><td><code>label</code></td><td>Derived classification labels</td><td>SBB labels, regime labels</td></tr>
+          <tr><td><code>orderflow</code></td><td>Intrabar volume/delta data</td><td>Cumulative delta, VAP, footprint</td></tr>
+          <tr><td><code>fundamental</code></td><td>Macro/economic data</td><td>COT reports, economic calendar</td></tr>
+          <tr><td><code>alt</code></td><td>Anything else</td><td>Sentiment, news, custom signals</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bar type source_id convention</div>
+      <table class="data-table" style="background:var(--bg);border-radius:var(--radius-lg);overflow:hidden;border:0.5px solid var(--border);">
+        <thead><tr><th>source_id</th><th>bar type</th><th>subfolder</th><th>status</th></tr></thead>
+        <tbody>
+          <tr><td><code>bar_data_volume</code></td><td>250-vol bars</td><td>bar_data/volume/</td><td><span class="tag tag-auto">active</span></td></tr>
+          <tr><td><code>bar_data_time</code></td><td>1-min time bars</td><td>bar_data/time/</td><td><span class="tag tag-optional">stub only</span></td></tr>
+          <tr><td><code>bar_data_tick</code></td><td>N-tick bars</td><td>bar_data/tick/</td><td><span class="tag tag-optional">stub only</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Key rules</div>
+      <ul class="guide-list">
+        <li><span class="li-icon">→</span><span><strong>Rule:</strong> No stage hardcodes data paths. All paths come from <code>data_manifest.json</code> (Stage 01 output), which is generated from <code>data_registry.md</code>.</span></li>
+        <li><span class="li-icon">→</span><span><strong>Rule:</strong> Never hand-edit <code>data_manifest.json</code>. Re-run Stage 01 to regenerate it.</span></li>
+        <li><span class="li-icon">→</span><span><strong>Rule:</strong> Touch data is coupled to a bar type via <code>BarIndex</code>. Pair touches with the bar type ZRA was configured on.</span></li>
+        <li><span class="li-icon">→</span><span><strong>Rule:</strong> <code>source_id</code> must be unique and match the schema filename in <code>01-data/references/</code>.</span></li>
+        <li><span class="li-icon">→</span><span><strong>Rule:</strong> All instrument constants (tick size, point value, cost_ticks) must come from <code>_config/instruments.md</code> — never hardcoded (Rule 5).</span></li>
+        <li><span class="li-icon">→</span><span><strong>Rule:</strong> Period boundaries come from <code>_config/period_config.md</code> only. Stage 01 writes resolved dates into <code>data_manifest.json</code>.</span></li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Quick checklist</div>
+      <div class="card">
+        <ul class="guide-list">
+          <li><span class="li-icon">○</span><span><code>data_registry.md</code> row added for each new source_id</span></li>
+          <li><span class="li-icon">○</span><span>Schema file created at <code>01-data/references/{source_id}_schema.md</code></span></li>
+          <li><span class="li-icon">○</span><span>Data files in correct subfolder matching source_id</span></li>
+          <li><span class="li-icon">○</span><span>File pattern in registry matches actual Sierra Chart export filename</span></li>
+          <li><span class="li-icon">○</span><span>Instruments.md updated if new symbol (Rule 5)</span></li>
+          <li><span class="li-icon">○</span><span>Stage 01 re-run — validation_report.md clean</span></li>
+          <li><span class="li-icon">○</span><span><code>data_manifest.json</code> committed (auto-generated)</span></li>
+          <li><span class="li-icon">○</span><span><code>strategy_archetypes.md</code> Required data field updated</span></li>
+          <li><span class="li-icon">○</span><span><code>feature_evaluator.py</code> updated to load new source if used in features</span></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${name}')"]`).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function toggleStep(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('open');
+}
+
+function copyCode(id, btn) {
+  const block = document.getElementById(id);
+  const text = block.innerText.replace(/^Copy$/m, '').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
