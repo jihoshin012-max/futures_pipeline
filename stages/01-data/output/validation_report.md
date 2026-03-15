@@ -1,5 +1,5 @@
 # Stage 01 Validation Report
-Generated: 2026-03-14 23:56:35
+Generated: 2026-03-15 02:45:49
 
 ## Status: PASS
 
@@ -22,6 +22,7 @@ Generated: 2026-03-14 23:56:35
   Sources:
   - bar_data_250vol_rot: FOUND (270413 rows, 2025-09-21 to 2026-03-13)
   - bar_data_250tick_rot: FOUND (249162 rows, 2025-09-21 to 2026-03-13)
+  - bar_data_10sec_rot: FOUND (976982 rows, 2025-09-21 to 2026-03-13)
 
 ## Backwards-Compatible Flat Periods
 (zone_touch dates — for downstream consumers not yet updated)
@@ -36,6 +37,8 @@ Generated: 2026-03-14 23:56:35
 - stages/01-data/data/touches/ZRA_Hist_P2.csv (5891 rows)
 - stages/01-data/data/bar_data/tick/NQ_BarData_250tick_rot_P1.csv (127567 rows)
 - stages/01-data/data/bar_data/tick/NQ_BarData_250tick_rot_P2.csv (121595 rows)
+- stages/01-data/data/bar_data/time/NQ_BarData_10sec_rot_P1.csv (477810 rows)
+- stages/01-data/data/bar_data/time/NQ_BarData_10sec_rot_P2.csv (499172 rows)
 - stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P1.csv (138704 rows)
 - stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P2.csv (131709 rows)
 - stages/01-data/data/bar_data/volume/NQ_BarData_250vol_P1.txt (146166 rows)

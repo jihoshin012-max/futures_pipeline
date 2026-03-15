@@ -33,7 +33,7 @@ last_reviewed: 2026-03-14
 ## rotational
 - Description: Rotational momentum strategy on NQ futures
 - Instrument: NQ (from _config/instruments.md)
-- Required data: bar_data_250vol_rot, bar_data_250tick_rot
+- Required data: bar_data_250vol_rot, bar_data_250tick_rot, bar_data_10sec_rot
 - Periods: P1, P2
 - Current status: intake
 
