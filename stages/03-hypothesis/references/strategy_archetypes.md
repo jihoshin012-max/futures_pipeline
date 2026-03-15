@@ -31,11 +31,17 @@ last_reviewed: 2026-03-14
 ---
 
 ## rotational
-- Description: Rotational momentum strategy on NQ futures
+- Description: Always-in-market direction-rotation state machine with martingale averaging on NQ futures
 - Instrument: NQ (from _config/instruments.md)
 - Required data: bar_data_250vol_rot, bar_data_250tick_rot, bar_data_10sec_rot
+- Data sources primary: bar_data_250vol_rot, bar_data_250tick_rot
+- Data sources reference: bar_data_10sec_rot
+- Simulator module: shared/archetypes/rotational/rotational_simulator.py
+- Scoring adapter: null
+- feature_evaluator: shared/archetypes/rotational/rotational_feature_evaluator.py
+- feature_engine: shared/archetypes/rotational/rotational_feature_engine.py
 - Periods: P1, P2
-- Current status: intake
+- Current status: infrastructure
 
 ---
 

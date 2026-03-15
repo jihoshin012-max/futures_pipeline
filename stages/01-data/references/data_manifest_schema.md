@@ -42,6 +42,11 @@ last_reviewed: 2026-03-13
         "P1a": {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"},
         "P1b": {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"},
         "P2":  {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "role": "OOS"}
+      },
+      "sources": { "...per required_data..." },
+      "data_sources": {
+        "primary": ["{source_id}", "..."],
+        "reference": ["{source_id}", "..."]
       }
     }
   },
@@ -71,6 +76,8 @@ last_reviewed: 2026-03-13
 - **archetypes**: Per-archetype period boundaries. Preferred over flat `periods` for new consumers.
 - **archetypes.{name}.periods.P1/P2**: Full IS/OOS boundaries for the archetype (role field included)
 - **archetypes.{name}.periods.P1a/P1b**: Internal replication sub-periods computed from P1 using p1_split_rule in period_config.md. P1a = first half (calibration search), P1b = second half (replication gate).
+- **archetypes.{name}.sources**: Per-source file info (path, rows, date_range) for each required_data entry
+- **archetypes.{name}.data_sources**: Optional. Classifies sources into `primary` (strategy runs independently on each) and `reference` (loaded as supplementary lookup data). Present only for archetypes that define `data_sources_primary`/`data_sources_reference` in strategy_archetypes.md. Zone_touch omits this (single-source pattern). Rotational uses it to distinguish execution series (250-vol, 250-tick) from reference layer (10-sec).
 - **bar_offset.offset_bars**: Number of bars between signal bar and entry bar (0 = same bar)
 - **bar_offset.method**: Free text — e.g. "visual alignment on 5 sample dates" or "automated correlation"
 - **validation_summary.status**: PASS only if all sources PASS and no errors

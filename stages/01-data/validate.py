@@ -142,6 +142,10 @@ def parse_archetypes(path: Path) -> dict[str, dict]:
         elif key == "required_data":
             # e.g. "bar_data_250vol_rot, bar_data_250tick_rot"
             current["required_data"] = [s.strip() for s in val.split(",") if s.strip()]
+        elif key == "data_sources_primary":
+            current["data_sources_primary"] = [s.strip() for s in val.split(",") if s.strip()]
+        elif key == "data_sources_reference":
+            current["data_sources_reference"] = [s.strip() for s in val.split(",") if s.strip()]
 
     return archetypes
 
@@ -552,6 +556,15 @@ def build_manifest(
         archetypes_out[arch_name] = {"periods": periods_out}
         if arch_sources:
             archetypes_out[arch_name]["sources"] = arch_sources
+
+        # Emit data_sources classification if primary/reference defined
+        ds_primary = archetypes_meta[arch_name].get("data_sources_primary", [])
+        ds_reference = archetypes_meta[arch_name].get("data_sources_reference", [])
+        if ds_primary or ds_reference:
+            archetypes_out[arch_name]["data_sources"] = {
+                "primary": ds_primary,
+                "reference": ds_reference,
+            }
 
     # --- Backwards-compatible flat periods (zone_touch dates) ---
     flat_p1_start = zone_touch_p1_start or "2025-09-16"

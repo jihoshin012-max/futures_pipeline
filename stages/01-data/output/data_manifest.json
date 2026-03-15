@@ -1,5 +1,5 @@
 {
-  "generated": "2026-03-15 02:45:49",
+  "generated": "2026-03-15 03:38:04",
   "periods": {
     "P1": {
       "start": "2025-09-16",
@@ -175,6 +175,15 @@
             "end": "2026-03-13"
           }
         }
+      },
+      "data_sources": {
+        "primary": [
+          "bar_data_250vol_rot",
+          "bar_data_250tick_rot"
+        ],
+        "reference": [
+          "bar_data_10sec_rot"
+        ]
       }
     }
   },
