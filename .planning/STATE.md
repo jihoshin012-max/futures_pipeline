@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Futures Pipeline
-status: complete
-stopped_at: v1.0 milestone completed and archived
-last_updated: "2026-03-14T23:30:00.000Z"
-last_activity: 2026-03-14 - Completed quick task 2: Onboard rotational data files, registry, and archetype skeleton
+milestone: rotational
+milestone_name: Rotational Archetype
+status: active
+stopped_at: Phase A Step 1 — G-01 multi-source data loading
+last_updated: "2026-03-14T23:45:00.000Z"
+last_activity: 2026-03-14 - Rotational Archetype milestone started, beginning Phase A infrastructure
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 26
-  completed_plans: 26
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** Every deployed strategy traces back to a statistically validated, internally replicated hypothesis with frozen parameters — no unaudited shortcuts from idea to live trading.
-**Current focus:** Planning next milestone
+**Current focus:** Phase A — Infrastructure (resolve pipeline gaps)
 
 ## Current Position
 
-Milestone: v1.0 COMPLETE (shipped 2026-03-14)
-Next: `/gsd:new-milestone` to start v1.1 planning
+Milestone: Rotational Archetype (active)
+Spec: xtra/Rotational_Archetype_Spec.md
+Phase: A — Infrastructure
+Step: 1 — G-01 multi-source data loading
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 

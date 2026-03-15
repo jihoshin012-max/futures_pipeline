@@ -22,7 +22,15 @@ Every deployed strategy traces back to a statistically validated, internally rep
 
 ### Active
 
-(None yet — define with `/gsd:new-milestone`)
+<!-- Rotational Archetype milestone — spec: xtra/Rotational_Archetype_Spec.md -->
+
+- [ ] Resolve 9 pipeline gaps (3 HIGH: G-01 multi-source data, G-02 continuous simulator, G-04 feature evaluation)
+- [ ] Build rotational simulator (continuous state machine, cycle-level analysis)
+- [ ] Build feature computer + evaluator for bar-level outcomes
+- [ ] Establish baseline + fixed-step parameter sweep
+- [ ] Execute 32-hypothesis research plan (500-experiment budget)
+- [ ] Build Trend Defense System (3-level escalation)
+- [ ] Cycle-level assessment with robustness gates
 
 ### Out of Scope
 
@@ -75,5 +83,18 @@ Tech stack: Python 3, hmmlearn (GaussianHMM), pandas, scipy (MWU), bash (git hoo
 | PF-only verdicts in assess.py | MWU/permutation specs ready but deferred | ⚠️ Revisit — statistical rigor gap |
 | P1b replication as flag_and_review | Allows kept_weak_replication while pipeline matures | — Pending (may switch to hard_block) |
 
+## Current Milestone: Rotational Archetype
+
+**Goal:** Build the rotational archetype — always-in-market direction-rotation state machine with martingale averaging, 32 research hypotheses, Trend Defense System, and cycle-level assessment.
+
+**Spec:** `xtra/Rotational_Archetype_Spec.md` (source of truth for all design decisions)
+
+**Target features:**
+- Pipeline infrastructure gaps (G-01 through G-09)
+- Rotational simulator + baseline establishment
+- 32-hypothesis research execution (6 dimensions, 500-experiment budget)
+- Trend Defense System (3-level escalation for straight-line moves)
+- Cycle-level assessment with 8 metric categories + robustness gates
+
 ---
-*Last updated: 2026-03-14 after v1.0 milestone*
+*Last updated: 2026-03-14 after Rotational Archetype milestone started*
