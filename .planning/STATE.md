@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: active
-stopped_at: Phase 1 complete, Phase 2 planning
-last_updated: "2026-03-15T22:30:00.000Z"
+status: unknown
+stopped_at: Completed 02-feature-evaluator-screening/02-01-PLAN.md
+last_updated: "2026-03-15T22:44:27.064Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
   percent: 20
 ---
 
@@ -72,6 +72,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 01-rotational-simulator-baseline P01 | 4 | 1 tasks | 2 files |
 | Phase 01 P02 | 9 | 2 tasks | 3 files |
 | Phase 01-rotational-simulator-baseline P03 | 10 | 2 tasks | 4 files |
+| Phase 02-feature-evaluator-screening P01 | 30 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 01-02]: Determinism tests use check_exact=True on real P1a data (66539 bars) — no float tolerance
 - [Phase 01-rotational-simulator-baseline]: All 3 bar types peak at StepDist=6.0 for cycle_pf on P1a — sweep topped out at upper bound; Phase C hypotheses must beat these sub-1.0 baselines
 - [Phase 01-rotational-simulator-baseline]: 10-sec bar Time format is HH:MM:SS.ffffff — fixed _parse_time with int(float(s)) to handle fractional seconds
+- [Phase 02-01]: H23 placed in Dimension D (Conditional adds, structural modification) per spec Section 3.4
+- [Phase 02-01]: FeatureComputer dispatches to feature_engine for non-baseline configs; baseline unchanged
+- [Phase 02-01]: evaluate() outcome_type defaults to direction for backward compat with Stage 02 dispatcher
 
 ### Pending Todos
 
@@ -109,6 +113,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-15T21:43:51.455Z
-Stopped at: Completed 01-rotational-simulator-baseline/01-03-PLAN.md
+Last session: 2026-03-15T22:44:27.062Z
+Stopped at: Completed 02-feature-evaluator-screening/02-01-PLAN.md
 Resume file: None
