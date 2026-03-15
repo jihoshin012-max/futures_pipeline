@@ -1,0 +1,26 @@
+{
+  "_comment": "Default rotational hypothesis config. Agent-editable in Stage 03.",
+  "archetype": "rotational",
+  "trigger_mechanism": "fixed",
+  "trigger_params": {
+    "step_dist": 2.0
+  },
+  "symmetry": "symmetric",
+  "symmetry_params": {},
+  "active_filters": [],
+  "filter_params": {},
+  "structural_mods": [],
+  "structural_params": {},
+  "trend_defense": {
+    "enabled": false,
+    "level_1": {},
+    "level_2": {},
+    "level_3": {}
+  },
+  "martingale": {
+    "initial_qty": 1,
+    "max_levels": 4,
+    "max_contract_size": 8,
+    "progression": "geometric"
+  }
+}

@@ -42,6 +42,10 @@ last_reviewed: 2026-03-14
 - feature_engine: shared/archetypes/rotational/rotational_feature_engine.py
 - Periods: P1, P2
 - Current status: infrastructure
+- Autoresearch mapping:
+  - Stage 02: agent edits rotational_feature_engine.py, harness rotational_feature_evaluator.py, metric predictive_spread > 0.15 MWU p < 0.10, budget 300
+  - Stage 03: agent edits rotational_hypothesis_config.json, harness rotational_hypothesis_generator.py, metric P1a cycle PF + replication_pass on P1b, budget 200
+  - Stage 04: agent edits rotational_params.json, harness rotational_engine.py, metric P1a cycle PF + survival gates + improve > 0.05, budget 500
 
 ---
 

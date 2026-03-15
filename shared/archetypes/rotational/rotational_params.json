@@ -1,0 +1,37 @@
+{
+  "_comment": "Rotational backtest params. Agent-editable in Stage 04. Consumed by rotational_engine.py.",
+  "version": "v1",
+  "instrument": "NQ",
+  "archetype": {
+    "name": "rotational",
+    "simulator_module": "rotational_simulator"
+  },
+  "period": "P1a",
+  "bar_data_primary": {
+    "bar_data_250vol_rot": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P1.csv"
+  },
+  "bar_data_reference": {
+    "bar_data_10sec_rot": "stages/01-data/data/bar_data/time/NQ_BarData_10sec_rot_P1.csv"
+  },
+  "hypothesis": {
+    "trigger_mechanism": "fixed",
+    "trigger_params": {
+      "step_dist": 2.0
+    },
+    "symmetry": "symmetric",
+    "symmetry_params": {},
+    "active_filters": [],
+    "filter_params": {},
+    "structural_mods": [],
+    "structural_params": {}
+  },
+  "martingale": {
+    "initial_qty": 1,
+    "max_levels": 4,
+    "max_contract_size": 8,
+    "progression": "geometric"
+  },
+  "trend_defense": {
+    "enabled": false
+  }
+}
