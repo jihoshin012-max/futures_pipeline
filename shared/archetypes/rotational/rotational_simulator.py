@@ -77,10 +77,36 @@ class FeatureComputer:
     def compute_static_features(self, bar_df: pd.DataFrame) -> pd.DataFrame:
         """Return bar_df with any additional feature columns appended.
 
-        For the baseline, returns bar_df unchanged — all needed columns
+        For the baseline (trigger_mechanism="fixed", no active_filters, no
+        structural_mods), returns bar_df unchanged — all needed columns
         (ATR, SD bands, etc.) are already present in the CSV.
+
+        For hypothesis configs that require computed features, dispatches to
+        feature_engine.compute_hypothesis_features() which returns a new
+        DataFrame with feature columns appended (vectorized, entry-time safe).
         """
-        return bar_df
+        hyp = self._config.get("hypothesis", {})
+        trigger = hyp.get("trigger_mechanism", "fixed")
+        active_filters = hyp.get("active_filters", [])
+        structural_mods = hyp.get("structural_mods", [])
+
+        needs_features = (
+            trigger != "fixed"
+            or bool(active_filters)
+            or bool(structural_mods)
+        )
+
+        if not needs_features:
+            return bar_df
+
+        # Import feature_engine dynamically to avoid circular imports
+        # and to keep the simulator self-contained.
+        try:
+            from feature_engine import compute_hypothesis_features  # noqa: PLC0415
+            return compute_hypothesis_features(bar_df, hyp)
+        except Exception:
+            # If feature engine unavailable (e.g., missing module), return unchanged
+            return bar_df
 
 
 # ---------------------------------------------------------------------------
