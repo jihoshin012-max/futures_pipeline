@@ -1,16 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: rotational
-milestone_name: Rotational Archetype
-status: active
-stopped_at: Phase A complete — all 9 gaps resolved, ready for Phase B
-last_updated: "2026-03-15T00:30:00.000Z"
-last_activity: 2026-03-15 - Phase A infrastructure complete (G-01 through G-09)
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+stopped_at: Completed 01-rotational-simulator-baseline/01-01-PLAN.md
+last_updated: "2026-03-15T21:30:53.014Z"
 progress:
-  total_phases: 4
-  completed_phases: 1
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 25
 ---
 
@@ -70,6 +69,7 @@ Progress: [██░░░░░░░░] 25%
 | Phase 07 P01 | 10 | 2 tasks | 7 files |
 | Phase 07 P03 | 11 | 1 tasks | 2 files |
 | Phase 07 P02 | 45 | 1 tasks | 4 files |
+| Phase 01-rotational-simulator-baseline P01 | 4 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -79,6 +79,8 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 
 - quick-1 (PM-01): Per-archetype period boundaries in period_config.md; validate.py generates archetypes key in data_manifest.json. Flat periods kept as zone_touch-aliased backwards-compat structure.
 - quick-2 (DM-01): bar_data_250vol_rot and bar_data_250tick_rot registered; validate.py is now registry-aware (file/column/date checks); manifest has archetypes.rotational.sources; rotational archetype skeleton created.
+- [Phase 01-01]: RTH filter keyed on bar_data_primary key containing '10sec' — no new config field needed
+- [Phase 01-01]: FeatureComputer is a no-op pass-through for baseline; extensible for Phase C computed features
 
 ### Pending Todos
 
@@ -101,6 +103,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-14T23:30:00.000Z
-Stopped at: Completed quick task 2 — rotational data onboarding
+Last session: 2026-03-15T21:30:53.012Z
+Stopped at: Completed 01-rotational-simulator-baseline/01-01-PLAN.md
 Resume file: None

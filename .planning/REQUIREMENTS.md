@@ -4,10 +4,10 @@ Source: xtra/Rotational_Archetype_Spec.md
 
 ## Phase 1: Simulator & Baseline
 
-- **ROT-SIM-01**: Build RotationalSimulator class implementing the state machine (FLAT/POSITIONED states, SEED/REVERSAL/ADD actions) per spec Section 1.2
-- **ROT-SIM-02**: Build FeatureComputer with compute_static_features() for baseline (reads ATR, SD bands from CSV columns)
-- **ROT-SIM-03**: Build TradeLogger with cycle tracking — cycle record per spec Section 6.4 with all required fields
-- **ROT-SIM-04**: Implement RTH session filter for 10-sec bars (9:30-16:00 ET)
+- **ROT-SIM-01** ✅: Build RotationalSimulator class implementing the state machine (FLAT/POSITIONED states, SEED/REVERSAL/ADD actions) per spec Section 1.2 — completed 01-01
+- **ROT-SIM-02** ✅: Build FeatureComputer with compute_static_features() for baseline (reads ATR, SD bands from CSV columns) — completed 01-01
+- **ROT-SIM-03** ✅: Build TradeLogger with cycle tracking — cycle record per spec Section 6.4 with all required fields — completed 01-01
+- **ROT-SIM-04** ✅: Implement RTH session filter for 10-sec bars (9:30-16:00 ET) — completed 01-01
 - **ROT-SIM-05**: Verify determinism — identical config+data produces identical output
 - **ROT-SIM-06**: Run C++ defaults baseline (StepDist=2.0, MaxLevels=4) on all 3 bar types P1a, produce raw baseline metrics
 - **ROT-SIM-07**: Execute fixed-step parameter sweep (StepDist 1.0-6.0, step 0.5) on P1a all 3 bar types, establish per-bar-type optimized baseline
