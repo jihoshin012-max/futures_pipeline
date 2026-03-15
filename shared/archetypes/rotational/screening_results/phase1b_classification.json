@@ -1,0 +1,985 @@
+{
+  "generated": "2026-03-15T23:45:24.492423+00:00",
+  "framework": "spec-section-3.7",
+  "source": "phase1_results_rth.tsv",
+  "total_hypotheses": 41,
+  "ranked_hypotheses": 40,
+  "not_tested_hypotheses": 1,
+  "summary": {
+    "ADVANCE_HIGH": 0,
+    "ADVANCE_FLAGGED": 0,
+    "DO_NOT_ADVANCE": 40,
+    "NOT_TESTED": 1
+  },
+  "classifications": [
+    {
+      "hypothesis_id": "H1",
+      "hypothesis_name": "ATR-scaled step",
+      "dimension": "A",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H3",
+      "hypothesis_name": "SD band triggers",
+      "dimension": "A",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H8",
+      "hypothesis_name": "SD-scaled step from anchor",
+      "dimension": "A",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H9",
+      "hypothesis_name": "VWAP SD bands",
+      "dimension": "A",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H10",
+      "hypothesis_name": "Price z-score threshold",
+      "dimension": "A",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H2",
+      "hypothesis_name": "Asymmetric reversal vs add thresholds",
+      "dimension": "B",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H4",
+      "hypothesis_name": "ZZ swing confirmation",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H5",
+      "hypothesis_name": "Regime-conditional parameters",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H6",
+      "hypothesis_name": "Bid/Ask volume imbalance",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H7",
+      "hypothesis_name": "ZZ Oscillator gating",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H11",
+      "hypothesis_name": "Time-of-day conditioning",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H12",
+      "hypothesis_name": "Day-of-week conditioning",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H16",
+      "hypothesis_name": "Bar formation quality filter",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H17",
+      "hypothesis_name": "Cycle performance feedback",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H33",
+      "hypothesis_name": "PriceSpeed filter",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H34",
+      "hypothesis_name": "Absorption rate proxy",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H35",
+      "hypothesis_name": "Imbalance trend",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H36",
+      "hypothesis_name": "Adverse move speed",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H37",
+      "hypothesis_name": "Bar formation rate",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "10sec": null,
+        "tick": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=N/A)"
+    },
+    {
+      "hypothesis_id": "H39",
+      "hypothesis_name": "Cycle adverse velocity ratio",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H40",
+      "hypothesis_name": "Band-relative speed regime",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H41",
+      "hypothesis_name": "Band-relative ATR behavior",
+      "dimension": "C",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H13",
+      "hypothesis_name": "Selective flat periods",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H14",
+      "hypothesis_name": "Adaptive martingale progression",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H15",
+      "hypothesis_name": "Alternative anchor strategies",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H20",
+      "hypothesis_name": "Partial rotation",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H21",
+      "hypothesis_name": "Cycle profit target",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H22",
+      "hypothesis_name": "Cycle time decay",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H23",
+      "hypothesis_name": "Conditional adds",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H24",
+      "hypothesis_name": "Intra-cycle de-escalation",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H25",
+      "hypothesis_name": "Higher-timeframe context",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H26",
+      "hypothesis_name": "Session range position",
+      "dimension": "D",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H18",
+      "hypothesis_name": "Directional asymmetry",
+      "dimension": "E",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H27",
+      "hypothesis_name": "Volatility rate of change",
+      "dimension": "F",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H28",
+      "hypothesis_name": "Price momentum / ROC",
+      "dimension": "F",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H29",
+      "hypothesis_name": "Acceleration / deceleration",
+      "dimension": "F",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H30",
+      "hypothesis_name": "Volatility compression breakout",
+      "dimension": "F",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H31",
+      "hypothesis_name": "Momentum divergence from price",
+      "dimension": "F",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H32",
+      "hypothesis_name": "Volume rate of change",
+      "dimension": "F",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H38",
+      "hypothesis_name": "Regime transition speed",
+      "dimension": "F",
+      "classification": "NO_SIGNAL",
+      "advancement_decision": "DO_NOT_ADVANCE",
+      "wins": {
+        "vol": false,
+        "tick": false,
+        "10sec": false
+      },
+      "cycle_pf_by_bar_type": {
+        "vol": 0.6714,
+        "tick": 0.7339,
+        "10sec": 0.755
+      },
+      "delta_pf_by_bar_type": {
+        "vol": 0.0,
+        "tick": 0.0,
+        "10sec": 0.0
+      },
+      "max_delta_pf": 0.0,
+      "notes": "No bar type beats baseline at default params. (vol=FAIL, tick=FAIL, 10sec=FAIL)"
+    },
+    {
+      "hypothesis_id": "H19",
+      "hypothesis_name": "Bar-type divergence signal",
+      "dimension": "E",
+      "classification": "SKIPPED_REFERENCE_REQUIRED",
+      "advancement_decision": "NOT_TESTED",
+      "wins": {},
+      "cycle_pf_by_bar_type": {},
+      "delta_pf_by_bar_type": {},
+      "notes": "Excluded: requires simultaneous multi-source access not supported by single-source runner."
+    }
+  ]
+}
