@@ -36,6 +36,10 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 5. Stage 04 Autoresearch | v1.0 | 4/4 | Complete | 2026-03-14 |
 | 6. Stage 02 Autoresearch | v1.0 | 3/3 | Complete | 2026-03-14 |
 | 7. Stage 03 Autoresearch | v1.0 | 3/3 | Complete | 2026-03-14 |
+| 2. Feature Evaluator + Screening | Rotational | 0/0 | Not started | - |
+| 3. TDS Build + Testing | Rotational | 0/0 | Not started | - |
+| 4. Combination Testing + Replication | Rotational | 0/0 | Not started | - |
+| 5. Assessment & Deployment | Rotational | 0/0 | Not started | - |
 
 ### Phase 1: Rotational Simulator & Baseline
 
@@ -45,6 +49,34 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 01-01-PLAN.md — Build RotationalSimulator class with state machine, FeatureComputer, TradeLogger, RTH filter, date filtering, and unit tests
-- [ ] 01-02-PLAN.md — Verify determinism on real data and run C++ defaults baseline (StepDist=2.0) on P1a
-- [ ] 01-03-PLAN.md — Execute parameter sweep (StepDist 1.0-6.0) on P1a and identify per-bar-type optimized baselines
+- [x] 01-01-PLAN.md — Build RotationalSimulator class with state machine, FeatureComputer, TradeLogger, RTH filter, date filtering, and unit tests
+- [x] 01-02-PLAN.md — Verify determinism on real data and run C++ defaults baseline (StepDist=2.0) on P1a
+- [x] 01-03-PLAN.md — Execute parameter sweep (StepDist 1.0-6.0) on P1a and identify per-bar-type optimized baselines
+
+### Phase 2: Feature Evaluator + Phase 1 Screening
+
+**Goal:** Build rotational_feature_evaluator.py (bar-level MWU, Gap G-04). Run 122 meaningful experiments (41 hypotheses × 3 bar types, H37 excluded from 10-sec). Run Phase 1b cross-bar-type robustness classification (Section 3.7 of spec): classify each hypothesis as Robust / Activity-dependent / Sampling-coupled / Time-dependent / No signal. Output: ranked advancement list with bar-type-specific notes. All runs on P1a only.
+**Requirements**: ROT-RES-01, ROT-RES-02, ROT-RES-03
+**Depends on:** Phase 1
+**Plans:** 0 plans
+
+### Phase 3: TDS Build + Testing
+
+**Goal:** Build trend_defense.py with 5 detectors and 3-level escalation (Section 4 of spec). Include hypothesis feed-ins (H33, H36, H38, H39, H40 into TDS detectors). Test TDS levels 1, 2, 3 independently against baseline on all 3 bar types. TDS velocity thresholds and cooldown periods may need bar-type-specific tuning (10-sec has ~5× more bars per unit time). Measure on survival metrics: worst-cycle DD, max-level exposure %, tail ratio, drawdown budget hit count.
+**Requirements**: ROT-RES-04
+**Depends on:** Phase 1
+**Plans:** 0 plans
+
+### Phase 4: Combination Testing + Replication
+
+**Goal:** Combine Phase 2 winners (robust signals prioritized) across dimensions: Dimension A winner × H2 on/off × Dimension C winners × Dimension D winners × H18/H19. Run on all 3 bar types — combinations must show consistent improvement to advance. Integrate best combination with best TDS configuration from Phase 3. Run P1b replication gate on final candidates — soft gate (flag_and_review), WEAK_REPLICATION surfaces for human review, not a hard block. Cross-bar-type analysis repeated on combinations. All research on P1a only; P1b strictly for replication check.
+**Requirements**: ROT-RES-05, ROT-RES-06, ROT-RES-07
+**Depends on:** Phase 2, Phase 3
+**Plans:** 0 plans
+
+### Phase 5: Assessment & Deployment
+
+**Goal:** P2 one-shot run with frozen parameters on all 3 bar types (Pipeline Rule 2 — NEVER re-run). Stage 05 verdict using rotational 5-tier logic: primary gates, survival gates, robustness gates (slippage sensitivity, breakeven removal, asymmetry ratio), multiple testing correction (G-10 Bonferroni), replication gate. Compute all 11 extended metric categories. Cross-bar-type consistency is a factor in verdict confidence. If PASS/CONDITIONAL → Stage 06 deployment prep.
+**Requirements**: ROT-ASS-01, ROT-ASS-02, ROT-ASS-03
+**Depends on:** Phase 4
+**Plans:** 0 plans
