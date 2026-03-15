@@ -316,8 +316,14 @@ def main(config_path: str, output_path: str) -> None:
     for source_id, bars in primary_bars.items():
         print(f"Running simulation on {source_id} ({len(bars)} bars)...")
 
+        # Pass a per-source config so the simulator's RTH filter only activates
+        # for the source actually being processed (not because another source in
+        # bar_data_primary happens to have "10sec" in its key).
+        source_config = dict(config)
+        source_config["bar_data_primary"] = {source_id: config["bar_data_primary"][source_id]}
+
         simulator = sim_mod.RotationalSimulator(
-            config=config,
+            config=source_config,
             bar_data=bars,
             reference_data=reference_bars if reference_bars else None,
         )

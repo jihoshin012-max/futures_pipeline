@@ -637,3 +637,101 @@ class TestDeterminism:
         sim2 = RotationalSimulator(config=cfg, bar_data=bars.copy())
 
         assert sim1.run().bars_processed == sim2.run().bars_processed
+
+
+# ---------------------------------------------------------------------------
+# Test: Determinism on Real P1a Data
+# ---------------------------------------------------------------------------
+
+class TestDeterminismRealData:
+    """Verify determinism using real P1a bar data (250-vol bar type).
+
+    These tests load actual CSV files from the pipeline data directory and
+    confirm that two consecutive runs with identical config+data produce
+    bit-for-bit identical output.  Marked slow because file I/O is involved.
+    """
+
+    _REPO_ROOT = Path(__file__).resolve().parents[3]
+    _VOL_PATH = (
+        _REPO_ROOT
+        / "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P1.csv"
+    )
+    _CONFIG = {
+        "period": "P1a",
+        "instrument": "NQ",
+        "_instrument": {
+            "tick_size": 0.25,
+            "tick_value": 5.0,
+            "cost_ticks": 3,
+        },
+        "hypothesis": {
+            "trigger_params": {"step_dist": 2.0},
+        },
+        "martingale": {
+            "initial_qty": 1,
+            "max_levels": 4,
+            "max_contract_size": 8,
+        },
+        # Single-source config so RTH filter is NOT applied to vol bars
+        "bar_data_primary": {
+            "bar_data_250vol_rot": str(
+                _REPO_ROOT
+                / "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P1.csv"
+            ),
+        },
+    }
+
+    @pytest.fixture(scope="class")
+    def vol_bars(self):
+        """Load 250-vol P1a bars once per test class."""
+        import sys as _sys
+        _sys.path.insert(0, str(self._REPO_ROOT))
+        from shared.data_loader import load_bars
+        return load_bars(str(self._VOL_PATH))
+
+    @pytest.mark.slow
+    def test_determinism_bars_processed(self, vol_bars):
+        """Two runs on real P1a data return identical bars_processed."""
+        sim1 = RotationalSimulator(config=self._CONFIG, bar_data=vol_bars.copy())
+        run1 = sim1.run()
+
+        sim2 = RotationalSimulator(config=self._CONFIG, bar_data=vol_bars.copy())
+        run2 = sim2.run()
+
+        assert run1.bars_processed == run2.bars_processed
+        assert run1.bars_processed > 0, "P1a filter should retain bars"
+
+    @pytest.mark.slow
+    def test_determinism_trades_equal(self, vol_bars):
+        """Two runs on real P1a data return identical trades DataFrame."""
+        sim1 = RotationalSimulator(config=self._CONFIG, bar_data=vol_bars.copy())
+        run1 = sim1.run()
+
+        sim2 = RotationalSimulator(config=self._CONFIG, bar_data=vol_bars.copy())
+        run2 = sim2.run()
+
+        pd.testing.assert_frame_equal(
+            run1.trades.reset_index(drop=True),
+            run2.trades.reset_index(drop=True),
+            check_exact=True,
+        )
+
+    @pytest.mark.slow
+    def test_determinism_cycles_equal(self, vol_bars):
+        """Two runs on real P1a data return identical cycles DataFrame (excl. retracement_depths list col)."""
+        sim1 = RotationalSimulator(config=self._CONFIG, bar_data=vol_bars.copy())
+        run1 = sim1.run()
+
+        sim2 = RotationalSimulator(config=self._CONFIG, bar_data=vol_bars.copy())
+        run2 = sim2.run()
+
+        assert not run1.cycles.empty, "P1a run should produce at least one cycle"
+        # Compare all columns except retracement_depths (contains Python lists)
+        numeric_cols = [c for c in run1.cycles.columns if c != "retracement_depths"]
+        pd.testing.assert_frame_equal(
+            run1.cycles[numeric_cols].reset_index(drop=True),
+            run2.cycles[numeric_cols].reset_index(drop=True),
+            check_exact=True,
+        )
+        # Verify retracement_depths lists are also identical
+        assert list(run1.cycles["retracement_depths"]) == list(run2.cycles["retracement_depths"])
