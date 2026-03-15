@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 *.pyo
+
+# Raw data files — too large for git
+stages/01-data/data/**/*.csv
+stages/01-data/data/**/*.txt
