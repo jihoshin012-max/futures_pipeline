@@ -6,7 +6,15 @@
       "WebSearch",
       "Read(//c/Users/jshin/.claude/get-shit-done/templates/**)",
       "Skill(gsd:insert-phase)",
-      "Skill(gsd:insert-phase:*)"
+      "Skill(gsd:insert-phase:*)",
+      "Skill(gsd:add-todo)",
+      "Skill(gsd:add-todo:*)",
+      "Skill(gsd:progress)",
+      "Skill(gsd:progress:*)",
+      "Read(//c/Trades/**)",
+      "Skill(gsd:quick)",
+      "Skill(gsd:quick:*)",
+      "Read(//c/Projects/sierrachart/**)"
     ],
     "additionalDirectories": [
       "C:\\Projects\\pipeline"

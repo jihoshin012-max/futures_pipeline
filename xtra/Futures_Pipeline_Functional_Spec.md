@@ -154,14 +154,46 @@ Document answers in `04-backtest/references/backtest_engine_qa.md` before writin
 ### Task 1-01: Create root folder structure
 
 ```bash
-mkdir -p futures-pipeline/{_config,shared/{scoring_models,archetypes/{archetype}},dashboard,archive}
+mkdir -p futures-pipeline/{_config,shared/{scoring_models,archetypes/{archetype},onboarding},dashboard,archive}
 mkdir -p futures-pipeline/shared/archetypes/{archetype}  # feature_evaluator.py + feature_engine.py live here
 mkdir -p futures-pipeline/stages/{01-data/{references,data/{touches,bar_data/{volume,time,tick},labels},output},02-features/{references,autoresearch/current_best,output},03-hypothesis/{references,autoresearch/current_best,output/promoted_hypotheses},04-backtest/{references,autoresearch/current_best,output,p2_holdout},05-assessment/{references,output},06-deployment/{references,output},07-live/{data,output,triggers}}
 mkdir -p futures-pipeline/audit
 git init futures-pipeline && cd futures-pipeline
 ```
 
-**DONE CHECK:** `find . -type d | head -40` shows full tree. Git initialized.
+Create `requirements.txt` in the repo root immediately after git init — before writing any pipeline code:
+
+```
+# Futures Pipeline — Python dependencies
+# Install: pip install -r requirements.txt
+# Update this file when adding new stages or adapters.
+
+# Core data
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0          # MWU test, permutation test (Stage 02, Stage 05)
+
+# Machine learning
+scikit-learn>=1.3.0    # SklearnScoringAdapter, feature bin calibration (Stage 02, Stage 04)
+hmmlearn>=0.3.0        # HMM regime fitter (Stage 01 Task 1-09b — mandatory Pass 1)
+
+# Technical analysis
+pandas-ta>=0.3.14b     # Technical indicators for Stage 02 feature_engine.py
+                       # and Stage 01 HMM regime fitter (ADX, ATR, VWAP etc.)
+                       # Entry-time rule still applies — truncate bar_df at
+                       # entry bar before calling any pandas-ta function
+
+# Visualization
+matplotlib>=3.7.0      # Stage 05 equity curves, Stage 07 drift reports
+                       # Not required for core pipeline execution
+```
+
+Then install:
+```bash
+pip install -r requirements.txt
+```
+
+**DONE CHECK:** `find . -type d | head -40` shows full tree. Git initialized. `pip install -r requirements.txt` completes without error.
 
 ---
 
@@ -331,6 +363,8 @@ which is generated from this registry.
 
 Note: Add one row per data source your archetype requires. `source_id` must be unique and
 match the schema file name in `01-data/references/{source_id}_schema.md`.
+The `periods` column lists which period_ids (from period_config.md) this source covers.
+Use archetype-specific period_ids (e.g. P1_rot) if the source only covers that archetype's date range.
 
 ## Data Type Taxonomy
 | type        | description                            |
@@ -365,10 +399,18 @@ last_reviewed: 2026-03-11
 
 ## Active Periods
 
-| period_id | role | start_date | end_date   | notes                            |
-|-----------|------|------------|------------|----------------------------------|
-| P1        | IS   | 2025-09-16 | 2025-12-14 | Calibration — used freely        |
-| P2        | OOS  | 2025-12-15 | 2026-03-02 | Holdout — one-shot only          |
+| period_id | archetype   | role | start_date | end_date   | notes                         |
+|-----------|-------------|------|------------|------------|-------------------------------|
+| P1        | zone_touch  | IS   | 2025-09-16 | 2025-12-14 | Calibration — used freely     |
+| P2        | zone_touch  | OOS  | 2025-12-15 | 2026-03-02 | Holdout — one-shot only       |
+| P1        | rotational  | IS   | 2025-09-21 | 2025-12-14 | Calibration — used freely     |
+| P2        | rotational  | OOS  | 2025-12-15 | 2026-03-13 | Holdout — one-shot only       |
+
+# archetype column is optional — use '*' to apply a period to all archetypes.
+# If an archetype is not listed, it inherits the '*' rows.
+# Archetype-specific rows take precedence over '*' rows.
+# Stage 01 reads this table and writes per-archetype period boundaries
+# into data_manifest.json["archetypes"][{name}]["periods"].
 
 ## Rules (do not change)
 - IS: used freely for calibration, hypothesis search, parameter optimization
@@ -376,8 +418,8 @@ last_reviewed: 2026-03-11
 - OOS periods become IS when a new OOS period is designated
 
 ## Rolling Forward (when P3 arrives ~Jun 2026)
-1. Add P3 row (role: OOS)
-2. Change P2 role to IS (after its one-shot OOS test is complete)
+1. Add P3 row per archetype (role: OOS) — or a single P3 row with archetype: '*' if dates are the same
+2. Change P2 role to IS per archetype (after each archetype's one-shot OOS test is complete)
 3. Re-run Stage 01 validation
 4. No code changes needed
 
@@ -400,7 +442,7 @@ replication_gate: flag_and_review
 Any strategy calibrated on full P1 before Rule 4 was introduced is grandfathered — its existing P2 result stands. Rule 4 applies to all new hypotheses.
 ```
 
-**DONE CHECK:** File exists. Both periods present. Rolling-forward instructions present.
+**DONE CHECK:** File exists. Period rows present for all registered archetypes (or wildcard). archetype column present. Rolling-forward instructions present.
 
 ---
 
@@ -959,21 +1001,34 @@ Bar offset: validated in Stage 01 — signal bar index must align to correct bar
 ```json
 {
   "generated": "YYYY-MM-DD HH:MM:SS",
-  "periods": {
-    "P1": {
-      "start": "YYYY-MM-DD",
-      "end": "YYYY-MM-DD",
-      "sources": {
-        "{source_id}": {
-          "path": "stages/01-data/data/{source_folder}/{filename}",
-          "row_count": 0,
-          "schema_version": "{schema_doc_filename}",
-          "validation_status": "PASS"
+  "archetypes": {
+    "{archetype_name}": {
+      "periods": {
+        "P1": {
+          "start": "YYYY-MM-DD",
+          "end": "YYYY-MM-DD",
+          "p1a_start": "YYYY-MM-DD",
+          "p1a_end": "YYYY-MM-DD",
+          "p1b_start": "YYYY-MM-DD",
+          "p1b_end": "YYYY-MM-DD",
+          "sources": {
+            "{source_id}": {
+              "path": "stages/01-data/data/{source_folder}/{filename}",
+              "row_count": 0,
+              "schema_version": "{schema_doc_filename}",
+              "validation_status": "PASS"
+            }
+          }
+        },
+        "P2": {
+          "start": "YYYY-MM-DD",
+          "end": "YYYY-MM-DD",
+          "sources": { ... }
         }
       }
-    },
-    "P2": { ... }
+    }
   },
+  "replication_gate": "flag_and_review",
   "bar_offset": {
     "verified": true,
     "offset_bars": 0,
@@ -989,14 +1044,14 @@ Bar offset: validated in Stage 01 — signal bar index must align to correct bar
 ```
 
 **How downstream stages use it:**
-- `feature_evaluator.py`: reads `periods.P1.sources.{source_id}.path` to load IS data — no hardcoded paths
-- `hypothesis_generator.py`: reads P1a/P1b paths by date-slicing paths in periods.P1
+- `feature_evaluator.py`: reads `archetypes.{archetype}.periods.P1.sources.{source_id}.path` to load IS data — no hardcoded paths
+- `hypothesis_generator.py`: reads P1a/P1b boundaries from `archetypes.{archetype}.periods.P1.p1a_start` etc. — dynamically computed by Stage 01 from p1_split_rule
 - `backtest_engine.py`: does NOT read data_manifest.json — it takes explicit paths in config (Q1 answer). Paths in data_manifest.json are what the caller passes into config.
 - `Stage 05`: reads paths for any supplementary validation only
 
 **Source IDs** match data_registry.md entries. Each archetype's feature_evaluator reads only the source_ids it needs.
 
-**DONE CHECK (Task 1-14c):** `cat stages/01-data/output/data_manifest.json` shows: both periods, correct paths, row_counts, bar_offset verified. Schema matches this spec exactly.
+**DONE CHECK (Task 1-14c):** `cat stages/01-data/output/data_manifest.json` shows: per-archetype periods block, correct paths per source_id, row_counts, p1a/p1b boundaries computed, bar_offset verified. Schema matches this spec exactly.
 
 ---
 
@@ -1591,6 +1646,7 @@ last_reviewed: 2026-03-11
 ## Example entry (for reference only — shows completed format):
 # {archetype_name}
 # - Instrument: {SYMBOL}
+# - Periods: P1, P2  (or archetype-specific period_ids from period_config.md)
 # - Required data: {source_id_1}, bar_data_volume  (use the specific bar type source_id)
 # - simulator_module: {archetype}_simulator
 # - scoring_adapter: BinnedScoringAdapter
@@ -1604,6 +1660,7 @@ last_reviewed: 2026-03-11
 ## [future archetype template]
 - Description:
 - Instrument: [symbol from _config/instruments.md — e.g. NQ, ES, GC]
+- Periods: [period_ids from period_config.md — e.g. P1, P2 or P1_rot, P2_rot]
 - Required data: [source_ids from data_registry.md — register new sources before intake]
 - simulator_module: [module name — must conform to run(bar_df, touch_row, config, bar_offset) -> SimResult]
 - scoring_adapter: [BinnedScoringAdapter | SklearnScoringAdapter | ONNXScoringAdapter]

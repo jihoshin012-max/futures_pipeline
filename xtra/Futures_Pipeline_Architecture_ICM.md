@@ -117,6 +117,7 @@ last_reviewed: 2026-03-11
 ## zone_touch
 - Description: Trade futures at supply/demand zone edges detected by V4/ZRA
 - Instrument: NQ (default; ES, GC supported via instruments.md)
+- Periods: P1, P2
 - Required data: zone_csv_v2, bar_data_volume
 - Simulator module: `shared/archetypes/zone_touch/m1_simulator.py`
 - Scoring model: `shared/scoring_models/zone_touch_variant_a.json`
@@ -130,6 +131,7 @@ last_reviewed: 2026-03-11
 ## [future archetype template]
 - Description: [what this strategy does]
 - Instrument: [symbol from _config/instruments.md]
+- Periods: [period_ids from period_config.md — e.g. P1, P2 or archetype-specific ids]
 - Required data: [source_ids from data_registry.md]
 - Simulator module: [shared/archetypes/{name}/{name}_simulator.py]
 - Scoring model: [shared/scoring_models/{name}_v1.json — or none if no scoring]
@@ -224,10 +226,17 @@ last_reviewed: 2026-03-11
 
 ## Active Periods
 
-| period_id | role | start_date | end_date   | notes                        |
-|-----------|------|------------|------------|------------------------------|
-| P1        | IS   | 2025-09-16 | 2025-12-14 | Calibration — used freely    |
-| P2        | OOS  | 2025-12-15 | 2026-03-02 | Holdout — one-shot only      |
+| period_id | archetype   | role | start_date | end_date   | notes                         |
+|-----------|-------------|------|------------|------------|-------------------------------|
+| P1        | zone_touch  | IS   | 2025-09-16 | 2025-12-14 | Calibration — used freely     |
+| P2        | zone_touch  | OOS  | 2025-12-15 | 2026-03-02 | Holdout — one-shot only       |
+| P1        | rotational  | IS   | 2025-09-21 | 2025-12-14 | Calibration — used freely     |
+| P2        | rotational  | OOS  | 2025-12-15 | 2026-03-13 | Holdout — one-shot only       |
+
+# Use archetype: '*' to apply a period row to all archetypes.
+# Archetype-specific rows take precedence over '*' rows.
+# Stage 01 writes per-archetype period boundaries into
+# data_manifest.json["archetypes"][{name}]["periods"].
 
 ## Rules (do not change)
 - IS periods: used for feature calibration, hypothesis search, parameter optimization
@@ -236,8 +245,8 @@ last_reviewed: 2026-03-11
 - OOS periods become IS when a new OOS period is designated (see Rolling Forward below)
 
 ## Rolling Forward (when P3 arrives ~Jun 2026)
-1. Add P3 row (role: OOS)
-2. Change P2 role to IS (after its one-shot OOS test is complete)
+1. Add P3 row per archetype (role: OOS) — or single P3 row with archetype: '*' if dates are the same
+2. Change P2 role to IS per archetype (after each archetype's one-shot OOS test is complete)
 3. Re-run Stage 01 validation
 4. No code changes needed
 
@@ -279,7 +288,7 @@ existing P2 result stands. Rule 4 applies to all new hypotheses.
 
 ### How stages consume period_config.md
 
-- **Stage 01** reads period_config.md and writes the resolved period table into `data_manifest.json` as `periods[]`. All downstream stages read periods from the manifest, never from period_config.md directly. This means period_config.md is edited once; the manifest is the runtime source of truth.
+- **Stage 01** reads period_config.md and writes per-archetype period boundaries into `data_manifest.json` under `archetypes.{name}.periods`. Each archetype gets its own P1/P2 date range (and computed P1a/P1b boundaries). Archetypes without explicit rows inherit wildcard (*) rows. All downstream stages read from the manifest — never from period_config.md directly.
 
 - **Stage 04** `backtest_engine.py` takes explicit file paths in config (`touches_csv`, `bar_data`) with no period awareness (Q1 answer). The driver loop is responsible for passing the correct period's paths. Switching periods = the caller changes the paths in config — the engine itself never reads `data_manifest.json` or resolves period labels.
 
