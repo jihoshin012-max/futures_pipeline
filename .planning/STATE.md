@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-rotational-simulator-baseline/01-02-PLAN.md
-last_updated: "2026-03-15T21:41:31.997Z"
+stopped_at: Completed 01-rotational-simulator-baseline/01-03-PLAN.md
+last_updated: "2026-03-15T21:43:51.457Z"
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 25
 ---
 
@@ -71,6 +71,7 @@ Progress: [██░░░░░░░░] 25%
 | Phase 07 P02 | 45 | 1 tasks | 4 files |
 | Phase 01-rotational-simulator-baseline P01 | 4 | 1 tasks | 2 files |
 | Phase 01 P02 | 9 | 2 tasks | 3 files |
+| Phase 01-rotational-simulator-baseline P03 | 10 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 01-01]: FeatureComputer is a no-op pass-through for baseline; extensible for Phase C computed features
 - [Phase 01-02]: Engine passes per-source config to simulator so RTH filter only activates for 10sec source, not vol/tick bars
 - [Phase 01-02]: Determinism tests use check_exact=True on real P1a data (66539 bars) — no float tolerance
+- [Phase 01-rotational-simulator-baseline]: All 3 bar types peak at StepDist=6.0 for cycle_pf on P1a — sweep topped out at upper bound; Phase C hypotheses must beat these sub-1.0 baselines
+- [Phase 01-rotational-simulator-baseline]: 10-sec bar Time format is HH:MM:SS.ffffff — fixed _parse_time with int(float(s)) to handle fractional seconds
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-15T21:41:31.995Z
-Stopped at: Completed 01-rotational-simulator-baseline/01-02-PLAN.md
+Last session: 2026-03-15T21:43:51.455Z
+Stopped at: Completed 01-rotational-simulator-baseline/01-03-PLAN.md
 Resume file: None

@@ -10,7 +10,7 @@ Source: xtra/Rotational_Archetype_Spec.md
 - **ROT-SIM-04** ✅: Implement RTH session filter for 10-sec bars (9:30-16:00 ET) — completed 01-01
 - **ROT-SIM-05** ✅: Verify determinism — identical config+data produces identical output — completed 01-02
 - **ROT-SIM-06** ✅: Run C++ defaults baseline (StepDist=2.0, MaxLevels=4) on all 3 bar types P1a, produce raw baseline metrics — completed 01-02
-- **ROT-SIM-07**: Execute fixed-step parameter sweep (StepDist 1.0-6.0, step 0.5) on P1a all 3 bar types, establish per-bar-type optimized baseline
+- **ROT-SIM-07** ✅: Execute fixed-step parameter sweep (StepDist 1.0-6.0, step 0.5) on P1a all 3 bar types, establish per-bar-type optimized baseline — completed 01-03
 
 ## Phase 2: Research Execution (future)
 
