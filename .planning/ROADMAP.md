@@ -42,7 +42,9 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 **Goal:** Build rotational_simulator.py (continuous state machine), FeatureComputer, TradeLogger with cycle tracking, verify determinism, implement RTH session filter, run C++ defaults baseline on all 3 bar types, execute fixed-step parameter sweep (StepDist 1.0-6.0) to establish per-bar-type optimized baselines
 **Requirements**: ROT-SIM-01, ROT-SIM-02, ROT-SIM-03, ROT-SIM-04, ROT-SIM-05, ROT-SIM-06, ROT-SIM-07
 **Depends on:** Phase A (Infrastructure — complete)
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 1 to break down)
+- [ ] 01-01-PLAN.md — Build RotationalSimulator class with state machine, FeatureComputer, TradeLogger, RTH filter, date filtering, and unit tests
+- [ ] 01-02-PLAN.md — Verify determinism on real data and run C++ defaults baseline (StepDist=2.0) on P1a
+- [ ] 01-03-PLAN.md — Execute parameter sweep (StepDist 1.0-6.0) on P1a and identify per-bar-type optimized baselines
