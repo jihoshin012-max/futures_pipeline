@@ -36,7 +36,7 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 
 _ARCHETYPE_DIR = Path(__file__).resolve().parent
-_REPO_ROOT = _ARCHETYPE_DIR.parents[3]
+_REPO_ROOT = _ARCHETYPE_DIR.parents[2]  # rotational -> archetypes -> shared -> pipeline
 sys.path.insert(0, str(_REPO_ROOT))
 sys.path.insert(0, str(_ARCHETYPE_DIR))
 
@@ -592,7 +592,13 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    output_dir = Path(_ARCHETYPE_DIR) / args.output_dir
+    # If output_dir is relative, resolve it relative to _ARCHETYPE_DIR
+    # If absolute, use as-is
+    _od = Path(args.output_dir)
+    if _od.is_absolute():
+        output_dir = _od
+    else:
+        output_dir = _ARCHETYPE_DIR / args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.rth_only:
@@ -617,7 +623,7 @@ def main() -> None:
 
     # --- Load instrument info ---
     print("\n[3/5] Loading instrument info...")
-    instrument_info = parse_instruments_md(str(_INSTRUMENTS_MD), "NQ")
+    instrument_info = parse_instruments_md("NQ", str(_INSTRUMENTS_MD))
     print(f"  tick_size={instrument_info['tick_size']}, cost_ticks={instrument_info['cost_ticks']}")
 
     # --- Load bar data once per source ---

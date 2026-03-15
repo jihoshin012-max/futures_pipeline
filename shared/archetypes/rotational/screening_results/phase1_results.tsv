@@ -1,0 +1,124 @@
+hypothesis_id	hypothesis_name	dimension	source_id	cycle_pf	delta_pf	total_pnl_ticks	delta_pnl	n_cycles	win_rate	sharpe	max_drawdown_ticks	avg_winner_ticks	avg_loser_ticks	beats_baseline	feature_compute_sec	simulator_sec	total_sec	classification
+H1	ATR-scaled step	A	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0337	8.1987	8.2324	OK
+H1	ATR-scaled step	A	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0338	7.7469	7.7808	OK
+H1	ATR-scaled step	A	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1215	7.929	8.0505	OK
+H3	SD band triggers	A	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0303	8.1212	8.1515	OK
+H3	SD band triggers	A	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.033	7.6476	7.6806	OK
+H3	SD band triggers	A	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.0995	7.7976	7.8971	OK
+H8	SD-scaled step from anchor	A	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0381	8.2396	8.2777	OK
+H8	SD-scaled step from anchor	A	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0358	7.7307	7.7666	OK
+H8	SD-scaled step from anchor	A	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1162	7.8318	7.948	OK
+H9	VWAP SD bands	A	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	2.5466	9.5267	12.0733	OK
+H9	VWAP SD bands	A	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	2.3306	8.8511	11.1818	OK
+H9	VWAP SD bands	A	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	10.0637	9.2532	19.3169	OK
+H10	Price z-score threshold	A	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0406	8.2097	8.2503	OK
+H10	Price z-score threshold	A	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0384	7.803	7.8414	OK
+H10	Price z-score threshold	A	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1363	7.8915	8.0279	OK
+H2	Asymmetric reversal vs add thresholds	B	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0252	8.7046	8.7298	OK
+H2	Asymmetric reversal vs add thresholds	B	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0252	8.2092	8.2344	OK
+H2	Asymmetric reversal vs add thresholds	B	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.069	8.1267	8.1958	OK
+H4	ZZ swing confirmation	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0305	8.0534	8.084	OK
+H4	ZZ swing confirmation	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0318	7.6157	7.6476	OK
+H4	ZZ swing confirmation	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1007	7.8613	7.962	OK
+H5	Regime-conditional parameters	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0304	8.2079	8.2384	OK
+H5	Regime-conditional parameters	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0321	7.7222	7.7543	OK
+H5	Regime-conditional parameters	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1012	7.9124	8.0137	OK
+H6	Bid/Ask volume imbalance	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0316	8.2128	8.2445	OK
+H6	Bid/Ask volume imbalance	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0324	8.1932	8.2257	OK
+H6	Bid/Ask volume imbalance	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1115	8.034	8.1455	OK
+H7	ZZ Oscillator gating	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0318	8.3635	8.3953	OK
+H7	ZZ Oscillator gating	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0336	7.8304	7.8641	OK
+H7	ZZ Oscillator gating	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1017	8.0587	8.1604	OK
+H11	Time-of-day conditioning	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0312	8.3707	8.402	OK
+H11	Time-of-day conditioning	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0334	7.8584	7.8918	OK
+H11	Time-of-day conditioning	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1111	8.0636	8.1747	OK
+H12	Day-of-week conditioning	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.034	8.5024	8.5364	OK
+H12	Day-of-week conditioning	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0332	7.8741	7.9073	OK
+H12	Day-of-week conditioning	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1113	8.0313	8.1427	OK
+H16	Bar formation quality filter	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0358	8.381	8.4167	OK
+H16	Bar formation quality filter	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0341	7.8913	7.9255	OK
+H16	Bar formation quality filter	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1177	8.0897	8.2074	OK
+H17	Cycle performance feedback	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0381	9.2621	9.3003	OK
+H17	Cycle performance feedback	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0367	8.671	8.7078	OK
+H17	Cycle performance feedback	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1065	8.9089	9.0154	OK
+H33	PriceSpeed filter	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0502	8.4775	8.5278	OK
+H33	PriceSpeed filter	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.044	7.9561	8.0002	OK
+H33	PriceSpeed filter	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1314	8.1067	8.2381	OK
+H34	Absorption rate proxy	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0498	8.4982	8.548	OK
+H34	Absorption rate proxy	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0468	7.9989	8.0458	OK
+H34	Absorption rate proxy	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1337	8.1487	8.2824	OK
+H35	Imbalance trend	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	5.5873	11.1292	16.7165	OK
+H35	Imbalance trend	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	5.138	10.3772	15.5153	OK
+H35	Imbalance trend	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	19.1906	10.9431	30.1338	OK
+H36	Adverse move speed	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0361	9.2468	9.283	OK
+H36	Adverse move speed	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0339	8.7072	8.7412	OK
+H36	Adverse move speed	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1068	8.9245	9.0314	OK
+H37	Bar formation rate	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0531	8.4835	8.5366	OK
+H37	Bar formation rate	C	bar_data_10sec_rot												0.0	0.0	0.0	N/A_10SEC
+H37	Bar formation rate	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.048	7.9538	8.0019	OK
+H39	Cycle adverse velocity ratio	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0308	9.2535	9.2843	OK
+H39	Cycle adverse velocity ratio	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0351	8.6967	8.7319	OK
+H39	Cycle adverse velocity ratio	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1057	8.9473	9.0531	OK
+H40	Band-relative speed regime	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0504	8.4819	8.5323	OK
+H40	Band-relative speed regime	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0469	8.0035	8.0504	OK
+H40	Band-relative speed regime	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1328	8.1544	8.2873	OK
+H41	Band-relative ATR behavior	C	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0363	8.412	8.4483	OK
+H41	Band-relative ATR behavior	C	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0338	7.9413	7.9751	OK
+H41	Band-relative ATR behavior	C	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1049	8.1118	8.2168	OK
+H13	Selective flat periods	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.032	8.3892	8.4212	OK
+H13	Selective flat periods	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0462	7.8864	7.9326	OK
+H13	Selective flat periods	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1159	8.0638	8.1797	OK
+H14	Adaptive martingale progression	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0356	8.3747	8.4104	OK
+H14	Adaptive martingale progression	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0347	7.8547	7.8894	OK
+H14	Adaptive martingale progression	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1069	8.0555	8.1624	OK
+H15	Alternative anchor strategies	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0342	8.3942	8.4284	OK
+H15	Alternative anchor strategies	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0333	7.8799	7.9132	OK
+H15	Alternative anchor strategies	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1094	8.052	8.1613	OK
+H20	Partial rotation	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0354	8.3601	8.3956	OK
+H20	Partial rotation	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0334	7.8875	7.9209	OK
+H20	Partial rotation	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1063	8.0196	8.1259	OK
+H21	Cycle profit target	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0352	8.4197	8.4549	OK
+H21	Cycle profit target	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0336	7.8624	7.896	OK
+H21	Cycle profit target	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1069	8.05	8.157	OK
+H22	Cycle time decay	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0352	8.3531	8.3884	OK
+H22	Cycle time decay	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0338	7.8888	7.9226	OK
+H22	Cycle time decay	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1049	8.0619	8.1669	OK
+H23	Conditional adds	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0331	8.4031	8.4362	OK
+H23	Conditional adds	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0339	7.86	7.8939	OK
+H23	Conditional adds	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1082	8.0914	8.1996	OK
+H24	Intra-cycle de-escalation	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0348	8.3487	8.3835	OK
+H24	Intra-cycle de-escalation	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0357	7.8513	7.8871	OK
+H24	Intra-cycle de-escalation	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1062	8.0154	8.1217	OK
+H25	Higher-timeframe context	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0352	8.3555	8.3907	OK
+H25	Higher-timeframe context	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0333	7.8424	7.8758	OK
+H25	Higher-timeframe context	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1044	8.0537	8.1581	OK
+H26	Session range position	D	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0324	8.3229	8.3553	OK
+H26	Session range position	D	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0333	7.7265	7.7598	OK
+H26	Session range position	D	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1102	7.8497	7.9599	OK
+H18	Directional asymmetry	E	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0259	8.6554	8.6813	OK
+H18	Directional asymmetry	E	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0251	8.188	8.2132	OK
+H18	Directional asymmetry	E	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.0685	8.3274	8.3959	OK
+H19	Bar-type divergence signal	E	bar_data_250vol_rot												0.0	0.0	0.0	SKIPPED_REFERENCE_REQUIRED
+H19	Bar-type divergence signal	E	bar_data_250tick_rot												0.0	0.0	0.0	SKIPPED_REFERENCE_REQUIRED
+H19	Bar-type divergence signal	E	bar_data_10sec_rot												0.0	0.0	0.0	SKIPPED_REFERENCE_REQUIRED
+H27	Volatility rate of change	F	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0326	8.1452	8.1778	OK
+H27	Volatility rate of change	F	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0336	7.6755	7.7092	OK
+H27	Volatility rate of change	F	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1023	7.909	8.0113	OK
+H28	Price momentum / ROC	F	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0352	8.258	8.2932	OK
+H28	Price momentum / ROC	F	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0333	7.7237	7.7571	OK
+H28	Price momentum / ROC	F	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1041	7.813	7.9171	OK
+H29	Acceleration / deceleration	F	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0366	8.2218	8.2585	OK
+H29	Acceleration / deceleration	F	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0344	7.8347	7.8692	OK
+H29	Acceleration / deceleration	F	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1069	7.8039	7.9108	OK
+H30	Volatility compression breakout	F	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0407	8.1752	8.2159	OK
+H30	Volatility compression breakout	F	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0389	7.7431	7.782	OK
+H30	Volatility compression breakout	F	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1272	7.854	7.9813	OK
+H31	Momentum divergence from price	F	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0349	8.213	8.2479	OK
+H31	Momentum divergence from price	F	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0348	7.6232	7.6581	OK
+H31	Momentum divergence from price	F	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.11	7.8614	7.9714	OK
+H32	Volume rate of change	F	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	0.0353	8.1393	8.1746	OK
+H32	Volume rate of change	F	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	0.0333	7.655	7.6884	OK
+H32	Volume rate of change	F	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	0.1093	7.8796	7.9889	OK
+H38	Regime transition speed	F	bar_data_250vol_rot	0.6174	-0.054	-171996.0	-72550.0	8968	0.8304	-0.0585	172877.0	37.27	-295.57	False	5.3488	10.7695	16.1183	OK
+H38	Regime transition speed	F	bar_data_250tick_rot	0.6847	-0.0492	-125983.0	-53417.0	8762	0.8269	-0.0487	129771.0	37.76	-263.38	False	4.913	10.0945	15.0076	OK
+H38	Regime transition speed	F	bar_data_10sec_rot	0.755	0.0	-58058.0	0.0	5957	0.8254	-0.033	65476.0	36.39	-227.89	False	18.4612	10.6513	29.1125	OK

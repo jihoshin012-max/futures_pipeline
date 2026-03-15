@@ -1,0 +1,8 @@
+=== Timing Profile ===
+Experiments run: 119
+Total wall time: 920.7s
+Feature compute: 75.9s (8.2%)
+Simulator:       839.1s (91.1%)
+Avg per run:     7.74s
+Avg feature:     0.638s
+Avg simulator:   7.052s

@@ -40,6 +40,12 @@ import run_hypothesis_screening as rhs  # noqa: E402
 # Expected TSV columns
 # ---------------------------------------------------------------------------
 
+# Total experiment count: 41 hypotheses × 3 bar types = 123.
+# H37/10sec included as N/A_10SEC placeholder (not a real run).
+# H19 × 3 bar types = 3 SKIPPED rows.
+# 119 OK runs + 3 H19 SKIPPED + 1 H37/10sec N/A = 123 total rows.
+EXPECTED_ROW_COUNT = 123
+
 EXPECTED_COLUMNS = [
     "hypothesis_id",
     "hypothesis_name",
