@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-03-14T19:52:06.526205+00:00",
+  "features_evaluated": [
+    {
+      "name": "zone_width",
+      "spread": 44.09449828231561,
+      "mwu_p": 1.484272324999293e-07,
+      "kept": true,
+      "entry_time_violation": false,
+      "reason": "ok"
+    }
+  ]
+}
