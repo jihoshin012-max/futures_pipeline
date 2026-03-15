@@ -8,11 +8,11 @@
   },
   "period": "P1a",
   "bar_data_primary": {
-    "bar_data_250vol_rot": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P1.csv"
-  },
-  "bar_data_reference": {
+    "bar_data_250vol_rot": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P1.csv",
+    "bar_data_250tick_rot": "stages/01-data/data/bar_data/tick/NQ_BarData_250tick_rot_P1.csv",
     "bar_data_10sec_rot": "stages/01-data/data/bar_data/time/NQ_BarData_10sec_rot_P1.csv"
   },
+  "bar_data_reference": {},
   "hypothesis": {
     "trigger_mechanism": "fixed",
     "trigger_params": {

@@ -179,11 +179,10 @@
       "data_sources": {
         "primary": [
           "bar_data_250vol_rot",
-          "bar_data_250tick_rot"
-        ],
-        "reference": [
+          "bar_data_250tick_rot",
           "bar_data_10sec_rot"
-        ]
+        ],
+        "reference": []
       }
     }
   },

@@ -55,9 +55,10 @@ Cycle net_pnl = gross_pnl - (number_of_actions × cost_ticks × position_size_at
 
 ## Data Sources
 
-- **Primary** (250-vol, 250-tick): strategy runs independently on each
-- **Reference** (10-sec): loaded as supplementary lookup via as-of timestamp index
-- Engine runs simulation per primary source, results compared
+- **Primary** (250-vol, 250-tick, 10-sec): strategy runs independently on all three
+- No reference sources — all three bar types are independent execution series
+- 10-sec bars filtered to RTH session only (09:30-16:00 ET) before simulation
+- Engine runs simulation per primary source, results compared in Phase 1b cross-bar-type analysis
 
 ## Scoring
 
