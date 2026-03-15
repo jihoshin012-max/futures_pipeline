@@ -197,15 +197,108 @@ def _compute_mwu_spread(
     }
 
 
-def evaluate(source_id: str = "bar_data_250vol_rot") -> dict:
+def _compute_reversal_quality_outcome(
+    bar_df: pd.DataFrame, bar_idx: int, lookforward: int
+) -> float:
+    """Compute reversal quality outcome at a given bar index.
+
+    Proxy: was there a directional reversal within the next N bars?
+    At each bar, compare the prior N bars direction vs next N bars direction.
+    +1 if price reversed from prior N bars direction, -1 if continuation, NaN if edge.
+
+    Args:
+        bar_df: Full bar DataFrame.
+        bar_idx: Current bar index (0-based integer position).
+        lookforward: Number of bars to look forward.
+
+    Returns:
+        +1 (reversal occurred), -1 (continuation), or NaN (insufficient data).
+    """
+    lookback = lookforward  # symmetric window
+    if bar_idx < lookback or bar_idx + lookforward >= len(bar_df):
+        return np.nan
+
+    prior_close = bar_df.iloc[bar_idx - lookback]["Last"]
+    current_close = bar_df.iloc[bar_idx]["Last"]
+    future_close = bar_df.iloc[bar_idx + lookforward]["Last"]
+
+    prior_direction = 1.0 if current_close > prior_close else -1.0 if current_close < prior_close else 0.0
+    future_direction = 1.0 if future_close > current_close else -1.0 if future_close < current_close else 0.0
+
+    if prior_direction == 0.0 or future_direction == 0.0:
+        return np.nan
+
+    # Reversal = future direction opposes prior direction
+    if future_direction != prior_direction:
+        return 1.0  # Reversal occurred — good
+    else:
+        return -1.0  # Continuation — bad for reversal quality
+
+
+def _compute_add_quality_outcome(
+    bar_df: pd.DataFrame, bar_idx: int, lookforward: int
+) -> float:
+    """Compute add quality outcome at a given bar index.
+
+    Proxy: did price mean-revert within the next N bars?
+    +1 if price moved back toward prior price (reversion), -1 if continued away.
+
+    Args:
+        bar_df: Full bar DataFrame.
+        bar_idx: Current bar index (0-based integer position).
+        lookforward: Number of bars to look forward.
+
+    Returns:
+        +1 (mean-reversion, add was justified), -1 (continuation, add was bad),
+        or NaN (insufficient data).
+    """
+    lookback = lookforward // 2
+    if bar_idx < lookback or bar_idx + lookforward >= len(bar_df):
+        return np.nan
+
+    anchor_close = bar_df.iloc[bar_idx - lookback]["Last"]
+    current_close = bar_df.iloc[bar_idx]["Last"]
+    future_close = bar_df.iloc[bar_idx + lookforward]["Last"]
+
+    current_move = current_close - anchor_close
+    if abs(current_move) < 1e-9:
+        return np.nan
+
+    future_move = future_close - current_close
+
+    # Add quality: if we added against the move (adverse add), recovery means
+    # price moved back toward anchor_close
+    # +1 if future move opposes current move (recovery = add was justified)
+    if (current_move > 0 and future_move < 0) or (current_move < 0 and future_move > 0):
+        return 1.0  # Reversion — add was justified
+    else:
+        return -1.0  # Continuation — add was a bad escalation
+
+
+_VALID_OUTCOME_TYPES = frozenset(["direction", "reversal_quality", "add_quality"])
+
+
+def evaluate(
+    source_id: str = "bar_data_250vol_rot",
+    outcome_type: str = "direction",
+) -> dict:
     """Evaluate features for rotational archetype on P1 bar data.
 
     Args:
         source_id: Which primary bar source to evaluate on. Defaults to 250-vol.
+        outcome_type: Which bar-level outcome to evaluate against. One of:
+            - "direction" (default): Did the next N bars move up or down?
+            - "reversal_quality": Did price reverse direction within N bars?
+            - "add_quality": Did price mean-revert (add recovery) within N bars?
 
     Returns:
-        dict with "features" list and "n_bars" count.
+        dict with "features" list, "n_bars" count, and "outcome_type".
     """
+    if outcome_type not in _VALID_OUTCOME_TYPES:
+        raise ValueError(
+            f"Invalid outcome_type '{outcome_type}'. "
+            f"Must be one of: {sorted(_VALID_OUTCOME_TYPES)}"
+        )
     manifest = _load_manifest()
     bar_path = _resolve_p1_bar_path(manifest, source_id)
     p1a_start, p1a_end, p1b_start, p1b_end = _get_period_boundaries(manifest)
@@ -235,10 +328,20 @@ def evaluate(source_id: str = "bar_data_250vol_rot") -> dict:
     # Collect feature values + outcomes
     feature_data: dict[str, dict] = {}
 
+    def _compute_outcome(bar_idx: int) -> float:
+        """Compute the appropriate outcome for the given outcome_type."""
+        if outcome_type == "direction":
+            return _compute_direction_outcome(bar_df, bar_idx, _DIRECTION_LOOKFORWARD)
+        elif outcome_type == "reversal_quality":
+            return _compute_reversal_quality_outcome(bar_df, bar_idx, _DIRECTION_LOOKFORWARD)
+        elif outcome_type == "add_quality":
+            return _compute_add_quality_outcome(bar_df, bar_idx, _DIRECTION_LOOKFORWARD)
+        else:
+            return np.nan
+
     def _process_bars(indices, period_label):
         for bar_idx in indices:
-            # Direction outcome (future bars — used as label, not feature)
-            outcome = _compute_direction_outcome(bar_df, bar_idx, _DIRECTION_LOOKFORWARD)
+            outcome = _compute_outcome(bar_idx)
             if np.isnan(outcome):
                 continue
 
@@ -285,4 +388,5 @@ def evaluate(source_id: str = "bar_data_250vol_rot") -> dict:
     return {
         "features": features_out,
         "n_bars": n_bars,
+        "outcome_type": outcome_type,
     }
