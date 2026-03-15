@@ -84,6 +84,10 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 
 None — milestone complete.
 
+### Roadmap Evolution
+
+- Phase 1 added: Rotational Simulator & Baseline (Phase B from spec)
+
 ### Blockers/Concerns
 
 None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.md.

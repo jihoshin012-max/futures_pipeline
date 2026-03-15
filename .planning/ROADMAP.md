@@ -36,3 +36,13 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 5. Stage 04 Autoresearch | v1.0 | 4/4 | Complete | 2026-03-14 |
 | 6. Stage 02 Autoresearch | v1.0 | 3/3 | Complete | 2026-03-14 |
 | 7. Stage 03 Autoresearch | v1.0 | 3/3 | Complete | 2026-03-14 |
+
+### Phase 1: Rotational Simulator & Baseline
+
+**Goal:** Build rotational_simulator.py (continuous state machine), FeatureComputer, TradeLogger with cycle tracking, verify determinism, implement RTH session filter, run C++ defaults baseline on all 3 bar types, execute fixed-step parameter sweep (StepDist 1.0-6.0) to establish per-bar-type optimized baselines
+**Requirements**: ROT-SIM-01, ROT-SIM-02, ROT-SIM-03, ROT-SIM-04, ROT-SIM-05, ROT-SIM-06, ROT-SIM-07
+**Depends on:** Phase A (Infrastructure — complete)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 1 to break down)
