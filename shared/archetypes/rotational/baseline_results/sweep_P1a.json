@@ -1,0 +1,500 @@
+{
+  "sweep_params": {
+    "step_values": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0,
+      3.5,
+      4.0,
+      4.5,
+      5.0,
+      5.5,
+      6.0
+    ],
+    "period": "P1a"
+  },
+  "results": {
+    "1.0": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.4828,
+        "n_cycles": 20901,
+        "win_rate": 0.6239,
+        "total_pnl_ticks": -356573.0,
+        "max_drawdown_ticks": 356726.0,
+        "avg_cycle_duration_bars": 3.5,
+        "sharpe": -0.077,
+        "avg_winner_ticks": 25.53,
+        "avg_loser_ticks": -87.72,
+        "max_consecutive_losing_cycles": 13,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.4908,
+        "n_cycles": 19507,
+        "win_rate": 0.6335,
+        "total_pnl_ticks": -328934.0,
+        "max_drawdown_ticks": 331637.0,
+        "avg_cycle_duration_bars": 3.5,
+        "sharpe": -0.0903,
+        "avg_winner_ticks": 25.66,
+        "avg_loser_ticks": -90.36,
+        "max_consecutive_losing_cycles": 9,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.4208,
+        "n_cycles": 26175,
+        "win_rate": 0.532,
+        "total_pnl_ticks": -380111.0,
+        "max_drawdown_ticks": 380311.0,
+        "avg_cycle_duration_bars": 3.7,
+        "sharpe": -0.1037,
+        "avg_winner_ticks": 19.83,
+        "avg_loser_ticks": -53.57,
+        "max_consecutive_losing_cycles": 16,
+        "bars_processed": 70200
+      }
+    },
+    "1.5": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.5337,
+        "n_cycles": 18599,
+        "win_rate": 0.6829,
+        "total_pnl_ticks": -292614.0,
+        "max_drawdown_ticks": 301682.0,
+        "avg_cycle_duration_bars": 3.8,
+        "sharpe": -0.0589,
+        "avg_winner_ticks": 26.37,
+        "avg_loser_ticks": -106.4,
+        "max_consecutive_losing_cycles": 11,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.5104,
+        "n_cycles": 17535,
+        "win_rate": 0.6928,
+        "total_pnl_ticks": -289035.0,
+        "max_drawdown_ticks": 292305.0,
+        "avg_cycle_duration_bars": 3.7,
+        "sharpe": -0.0837,
+        "avg_winner_ticks": 24.8,
+        "avg_loser_ticks": -109.59,
+        "max_consecutive_losing_cycles": 7,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.4647,
+        "n_cycles": 21641,
+        "win_rate": 0.6355,
+        "total_pnl_ticks": -301575.0,
+        "max_drawdown_ticks": 301739.0,
+        "avg_cycle_duration_bars": 4.2,
+        "sharpe": -0.0945,
+        "avg_winner_ticks": 19.04,
+        "avg_loser_ticks": -71.42,
+        "max_consecutive_losing_cycles": 12,
+        "bars_processed": 70200
+      }
+    },
+    "2.0": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.5638,
+        "n_cycles": 16495,
+        "win_rate": 0.7216,
+        "total_pnl_ticks": -244863.0,
+        "max_drawdown_ticks": 260646.0,
+        "avg_cycle_duration_bars": 4.2,
+        "sharpe": -0.0538,
+        "avg_winner_ticks": 26.59,
+        "avg_loser_ticks": -122.22,
+        "max_consecutive_losing_cycles": 8,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.546,
+        "n_cycles": 15731,
+        "win_rate": 0.7307,
+        "total_pnl_ticks": -244314.0,
+        "max_drawdown_ticks": 249787.0,
+        "avg_cycle_duration_bars": 4.0,
+        "sharpe": -0.0722,
+        "avg_winner_ticks": 25.56,
+        "avg_loser_ticks": -127.01,
+        "max_consecutive_losing_cycles": 7,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.5032,
+        "n_cycles": 17939,
+        "win_rate": 0.7029,
+        "total_pnl_ticks": -246516.0,
+        "max_drawdown_ticks": 246722.0,
+        "avg_cycle_duration_bars": 4.9,
+        "sharpe": -0.0869,
+        "avg_winner_ticks": 19.8,
+        "avg_loser_ticks": -93.12,
+        "max_consecutive_losing_cycles": 7,
+        "bars_processed": 70200
+      }
+    },
+    "2.5": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.6014,
+        "n_cycles": 14623,
+        "win_rate": 0.7365,
+        "total_pnl_ticks": -205145.0,
+        "max_drawdown_ticks": 225051.0,
+        "avg_cycle_duration_bars": 4.6,
+        "sharpe": -0.0466,
+        "avg_winner_ticks": 28.74,
+        "avg_loser_ticks": -133.59,
+        "max_consecutive_losing_cycles": 7,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.6049,
+        "n_cycles": 14011,
+        "win_rate": 0.7403,
+        "total_pnl_ticks": -188991.0,
+        "max_drawdown_ticks": 198036.0,
+        "avg_cycle_duration_bars": 4.4,
+        "sharpe": -0.0586,
+        "avg_winner_ticks": 27.89,
+        "avg_loser_ticks": -131.44,
+        "max_consecutive_losing_cycles": 7,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.5441,
+        "n_cycles": 15165,
+        "win_rate": 0.7227,
+        "total_pnl_ticks": -202047.0,
+        "max_drawdown_ticks": 203119.0,
+        "avg_cycle_duration_bars": 5.6,
+        "sharpe": -0.0664,
+        "avg_winner_ticks": 22.0,
+        "avg_loser_ticks": -105.37,
+        "max_consecutive_losing_cycles": 7,
+        "bars_processed": 70200
+      }
+    },
+    "3.0": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.6367,
+        "n_cycles": 12887,
+        "win_rate": 0.7515,
+        "total_pnl_ticks": -167656.0,
+        "max_drawdown_ticks": 187773.0,
+        "avg_cycle_duration_bars": 5.0,
+        "sharpe": -0.0435,
+        "avg_winner_ticks": 30.34,
+        "avg_loser_ticks": -144.08,
+        "max_consecutive_losing_cycles": 6,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.6095,
+        "n_cycles": 12443,
+        "win_rate": 0.752,
+        "total_pnl_ticks": -172624.0,
+        "max_drawdown_ticks": 180453.0,
+        "avg_cycle_duration_bars": 4.8,
+        "sharpe": -0.0569,
+        "avg_winner_ticks": 28.79,
+        "avg_loser_ticks": -143.25,
+        "max_consecutive_losing_cycles": 5,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.5736,
+        "n_cycles": 13023,
+        "win_rate": 0.7481,
+        "total_pnl_ticks": -171217.0,
+        "max_drawdown_ticks": 172045.0,
+        "avg_cycle_duration_bars": 6.4,
+        "sharpe": -0.0604,
+        "avg_winner_ticks": 23.64,
+        "avg_loser_ticks": -122.43,
+        "max_consecutive_losing_cycles": 6,
+        "bars_processed": 70200
+      }
+    },
+    "3.5": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.6239,
+        "n_cycles": 11347,
+        "win_rate": 0.7686,
+        "total_pnl_ticks": -161624.0,
+        "max_drawdown_ticks": 183348.0,
+        "avg_cycle_duration_bars": 5.6,
+        "sharpe": -0.0466,
+        "avg_winner_ticks": 30.74,
+        "avg_loser_ticks": -163.65,
+        "max_consecutive_losing_cycles": 6,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.624,
+        "n_cycles": 10989,
+        "win_rate": 0.7678,
+        "total_pnl_ticks": -154205.0,
+        "max_drawdown_ticks": 161514.0,
+        "avg_cycle_duration_bars": 5.4,
+        "sharpe": -0.0556,
+        "avg_winner_ticks": 30.34,
+        "avg_loser_ticks": -160.72,
+        "max_consecutive_losing_cycles": 6,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.6093,
+        "n_cycles": 11229,
+        "win_rate": 0.7686,
+        "total_pnl_ticks": -140068.0,
+        "max_drawdown_ticks": 140341.0,
+        "avg_cycle_duration_bars": 7.3,
+        "sharpe": -0.0544,
+        "avg_winner_ticks": 25.31,
+        "avg_loser_ticks": -138.0,
+        "max_consecutive_losing_cycles": 6,
+        "bars_processed": 70200
+      }
+    },
+    "4.0": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.6348,
+        "n_cycles": 10057,
+        "win_rate": 0.7862,
+        "total_pnl_ticks": -148898.0,
+        "max_drawdown_ticks": 173568.0,
+        "avg_cycle_duration_bars": 6.2,
+        "sharpe": -0.0382,
+        "avg_winner_ticks": 32.74,
+        "avg_loser_ticks": -189.65,
+        "max_consecutive_losing_cycles": 6,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.6606,
+        "n_cycles": 9817,
+        "win_rate": 0.786,
+        "total_pnl_ticks": -125478.0,
+        "max_drawdown_ticks": 132829.0,
+        "avg_cycle_duration_bars": 5.9,
+        "sharpe": -0.0503,
+        "avg_winner_ticks": 31.65,
+        "avg_loser_ticks": -175.95,
+        "max_consecutive_losing_cycles": 10,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.6282,
+        "n_cycles": 9717,
+        "win_rate": 0.7864,
+        "total_pnl_ticks": -124056.0,
+        "max_drawdown_ticks": 127475.0,
+        "avg_cycle_duration_bars": 8.2,
+        "sharpe": -0.0441,
+        "avg_winner_ticks": 27.43,
+        "avg_loser_ticks": -160.72,
+        "max_consecutive_losing_cycles": 6,
+        "bars_processed": 70200
+      }
+    },
+    "4.5": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.6432,
+        "n_cycles": 9009,
+        "win_rate": 0.7986,
+        "total_pnl_ticks": -136186.0,
+        "max_drawdown_ticks": 160828.0,
+        "avg_cycle_duration_bars": 6.8,
+        "sharpe": -0.0373,
+        "avg_winner_ticks": 34.12,
+        "avg_loser_ticks": -210.41,
+        "max_consecutive_losing_cycles": 5,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.6544,
+        "n_cycles": 8809,
+        "win_rate": 0.8021,
+        "total_pnl_ticks": -120216.0,
+        "max_drawdown_ticks": 124369.0,
+        "avg_cycle_duration_bars": 6.4,
+        "sharpe": -0.0529,
+        "avg_winner_ticks": 32.21,
+        "avg_loser_ticks": -199.56,
+        "max_consecutive_losing_cycles": 10,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.6987,
+        "n_cycles": 8593,
+        "win_rate": 0.8013,
+        "total_pnl_ticks": -89365.0,
+        "max_drawdown_ticks": 99770.0,
+        "avg_cycle_duration_bars": 9.2,
+        "sharpe": -0.0343,
+        "avg_winner_ticks": 30.09,
+        "avg_loser_ticks": -173.73,
+        "max_consecutive_losing_cycles": 5,
+        "bars_processed": 70200
+      }
+    },
+    "5.0": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.5914,
+        "n_cycles": 8057,
+        "win_rate": 0.8118,
+        "total_pnl_ticks": -156464.0,
+        "max_drawdown_ticks": 177044.0,
+        "avg_cycle_duration_bars": 7.5,
+        "sharpe": -0.049,
+        "avg_winner_ticks": 34.62,
+        "avg_loser_ticks": -252.6,
+        "max_consecutive_losing_cycles": 5,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.6684,
+        "n_cycles": 7901,
+        "win_rate": 0.8153,
+        "total_pnl_ticks": -107975.0,
+        "max_drawdown_ticks": 113761.0,
+        "avg_cycle_duration_bars": 7.1,
+        "sharpe": -0.0505,
+        "avg_winner_ticks": 33.78,
+        "avg_loser_ticks": -223.15,
+        "max_consecutive_losing_cycles": 10,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.6853,
+        "n_cycles": 7535,
+        "win_rate": 0.8115,
+        "total_pnl_ticks": -88566.0,
+        "max_drawdown_ticks": 102820.0,
+        "avg_cycle_duration_bars": 10.3,
+        "sharpe": -0.04,
+        "avg_winner_ticks": 31.53,
+        "avg_loser_ticks": -198.16,
+        "max_consecutive_losing_cycles": 4,
+        "bars_processed": 70200
+      }
+    },
+    "5.5": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.6287,
+        "n_cycles": 7229,
+        "win_rate": 0.8189,
+        "total_pnl_ticks": -124593.0,
+        "max_drawdown_ticks": 148483.0,
+        "avg_cycle_duration_bars": 8.2,
+        "sharpe": -0.0492,
+        "avg_winner_ticks": 35.63,
+        "avg_loser_ticks": -256.33,
+        "max_consecutive_losing_cycles": 5,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.697,
+        "n_cycles": 7101,
+        "win_rate": 0.8206,
+        "total_pnl_ticks": -89815.0,
+        "max_drawdown_ticks": 99842.0,
+        "avg_cycle_duration_bars": 7.7,
+        "sharpe": -0.0454,
+        "avg_winner_ticks": 35.45,
+        "avg_loser_ticks": -232.63,
+        "max_consecutive_losing_cycles": 5,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.6605,
+        "n_cycles": 6719,
+        "win_rate": 0.8192,
+        "total_pnl_ticks": -93037.0,
+        "max_drawdown_ticks": 103817.0,
+        "avg_cycle_duration_bars": 11.4,
+        "sharpe": -0.0456,
+        "avg_winner_ticks": 32.89,
+        "avg_loser_ticks": -225.56,
+        "max_consecutive_losing_cycles": 4,
+        "bars_processed": 70200
+      }
+    },
+    "6.0": {
+      "bar_data_250vol_rot": {
+        "cycle_pf": 0.6714,
+        "n_cycles": 6517,
+        "win_rate": 0.8329,
+        "total_pnl_ticks": -99446.0,
+        "max_drawdown_ticks": 118147.0,
+        "avg_cycle_duration_bars": 9.0,
+        "sharpe": -0.0454,
+        "avg_winner_ticks": 37.43,
+        "avg_loser_ticks": -277.9,
+        "max_consecutive_losing_cycles": 5,
+        "bars_processed": 52028
+      },
+      "bar_data_250tick_rot": {
+        "cycle_pf": 0.7339,
+        "n_cycles": 6403,
+        "win_rate": 0.8282,
+        "total_pnl_ticks": -72566.0,
+        "max_drawdown_ticks": 81307.0,
+        "avg_cycle_duration_bars": 8.5,
+        "sharpe": -0.0403,
+        "avg_winner_ticks": 37.74,
+        "avg_loser_ticks": -247.93,
+        "max_consecutive_losing_cycles": 4,
+        "bars_processed": 47837
+      },
+      "bar_data_10sec_rot": {
+        "cycle_pf": 0.755,
+        "n_cycles": 5957,
+        "win_rate": 0.8254,
+        "total_pnl_ticks": -58058.0,
+        "max_drawdown_ticks": 65476.0,
+        "avg_cycle_duration_bars": 12.8,
+        "sharpe": -0.033,
+        "avg_winner_ticks": 36.39,
+        "avg_loser_ticks": -227.89,
+        "max_consecutive_losing_cycles": 6,
+        "bars_processed": 70200
+      }
+    }
+  },
+  "best_per_source": {
+    "bar_data_250vol_rot": {
+      "step_dist": 6.0,
+      "cycle_pf": 0.6714,
+      "total_pnl_ticks": -99446.0,
+      "n_cycles": 6517,
+      "win_rate": 0.8329,
+      "sharpe": -0.0454,
+      "max_drawdown_ticks": 118147.0
+    },
+    "bar_data_250tick_rot": {
+      "step_dist": 6.0,
+      "cycle_pf": 0.7339,
+      "total_pnl_ticks": -72566.0,
+      "n_cycles": 6403,
+      "win_rate": 0.8282,
+      "sharpe": -0.0403,
+      "max_drawdown_ticks": 81307.0
+    },
+    "bar_data_10sec_rot": {
+      "step_dist": 6.0,
+      "cycle_pf": 0.755,
+      "total_pnl_ticks": -58058.0,
+      "n_cycles": 5957,
+      "win_rate": 0.8254,
+      "sharpe": -0.033,
+      "max_drawdown_ticks": 65476.0
+    }
+  }
+}

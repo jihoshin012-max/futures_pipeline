@@ -397,7 +397,10 @@ class RotationalSimulator:
         if is_10sec_source and "Time" in bars.columns:
             def _parse_time(t_str: str) -> datetime.time:
                 parts = str(t_str).strip().split(":")
-                h, m, s = int(parts[0]), int(parts[1]), int(parts[2]) if len(parts) > 2 else 0
+                h = int(parts[0])
+                m = int(parts[1])
+                # Strip fractional seconds (e.g. "00.000000" -> 0)
+                s = int(float(parts[2])) if len(parts) > 2 else 0
                 return datetime.time(h, m, s)
 
             times = bars["Time"].apply(_parse_time)
