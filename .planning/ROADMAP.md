@@ -27,7 +27,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Scaffold | 1/3 | In Progress|  | 2026-03-14 |
+| 1. Scaffold | 2/3 | In Progress|  | 2026-03-14 |
 | 01.1. Scoring Adapter | v1.0 | 1/1 | Complete | 2026-03-14 |
 | 01.2. Bar Type Registry | v1.0 | 1/1 | Complete | 2026-03-14 |
 | 2. HMM Regime Fitter | v1.0 | 2/2 | Complete | 2026-03-14 |
@@ -42,7 +42,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 **Goal:** Build rotational_simulator.py (continuous state machine), FeatureComputer, TradeLogger with cycle tracking, verify determinism, implement RTH session filter, run C++ defaults baseline on all 3 bar types, execute fixed-step parameter sweep (StepDist 1.0-6.0) to establish per-bar-type optimized baselines
 **Requirements**: ROT-SIM-01, ROT-SIM-02, ROT-SIM-03, ROT-SIM-04, ROT-SIM-05, ROT-SIM-06, ROT-SIM-07
 **Depends on:** Phase A (Infrastructure — complete)
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 01-01-PLAN.md — Build RotationalSimulator class with state machine, FeatureComputer, TradeLogger, RTH filter, date filtering, and unit tests

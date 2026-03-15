@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-rotational-simulator-baseline/01-01-PLAN.md
-last_updated: "2026-03-15T21:30:53.014Z"
+stopped_at: Completed 01-rotational-simulator-baseline/01-02-PLAN.md
+last_updated: "2026-03-15T21:41:31.997Z"
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 25
 ---
 
@@ -70,6 +70,7 @@ Progress: [██░░░░░░░░] 25%
 | Phase 07 P03 | 11 | 1 tasks | 2 files |
 | Phase 07 P02 | 45 | 1 tasks | 4 files |
 | Phase 01-rotational-simulator-baseline P01 | 4 | 1 tasks | 2 files |
+| Phase 01 P02 | 9 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - quick-2 (DM-01): bar_data_250vol_rot and bar_data_250tick_rot registered; validate.py is now registry-aware (file/column/date checks); manifest has archetypes.rotational.sources; rotational archetype skeleton created.
 - [Phase 01-01]: RTH filter keyed on bar_data_primary key containing '10sec' — no new config field needed
 - [Phase 01-01]: FeatureComputer is a no-op pass-through for baseline; extensible for Phase C computed features
+- [Phase 01-02]: Engine passes per-source config to simulator so RTH filter only activates for 10sec source, not vol/tick bars
+- [Phase 01-02]: Determinism tests use check_exact=True on real P1a data (66539 bars) — no float tolerance
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-15T21:30:53.012Z
-Stopped at: Completed 01-rotational-simulator-baseline/01-01-PLAN.md
+Last session: 2026-03-15T21:41:31.995Z
+Stopped at: Completed 01-rotational-simulator-baseline/01-02-PLAN.md
 Resume file: None
