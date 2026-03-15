@@ -4,6 +4,16 @@
 **Classification based on:** RTH-filtered results (`phase1_results_rth.tsv`)
 **Framework:** Spec Section 3.7 — cross-bar-type robustness matrix
 
+## Human Review Status
+
+**Status:** APPROVED — 2026-03-15
+**Reviewer decision:** Advancement list approved as-is.
+**H19 disposition:** SKIPPED_REFERENCE_REQUIRED — defer to Phase 4 when multi-source reference available.
+
+> **Note (strategic context recorded):** Before Phase 3 parameter-tuned hypothesis screening,
+> a sizing sweep is required: MaxLevels x MaxContractSize. This sweep must complete before
+> Phase 3 TDS runs so that tuning operates on the correct position-sizing configuration.
+
 ## Summary
 
 - **Total hypotheses classified:** 40 (ranked) + 1 NOT_TESTED
@@ -102,8 +112,9 @@ _None_
 |----|------|-----|--------|
 | H19 | Bar-type divergence signal | E | SKIPPED_REFERENCE_REQUIRED — requires simultaneous multi-source access not supported by single-source runner. |
 
-**H19 decision for Phase 4:** Multi-source H19 testing could be added to Phase 4
-if the runner is extended to load all 3 bar types simultaneously for divergence signal.
+**H19 decision for Phase 4:** DEFERRED — add to Phase 4 when multi-source reference is available.
+H19 requires simultaneous multi-source access; extend runner to load all 3 bar types for divergence signal.
+**Human disposition (2026-03-15):** SKIPPED_REFERENCE_REQUIRED — defer to Phase 4.
 
 ---
 

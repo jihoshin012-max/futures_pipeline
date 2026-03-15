@@ -5,6 +5,14 @@
   "total_hypotheses": 41,
   "ranked_hypotheses": 40,
   "not_tested_hypotheses": 1,
+  "human_review": {
+    "status": "APPROVED",
+    "reviewed_at": "2026-03-15",
+    "notes": "Advancement list approved as-is.",
+    "h19_disposition": "SKIPPED_REFERENCE_REQUIRED",
+    "h19_note": "Defer to Phase 4 when multi-source reference available.",
+    "strategic_note": "Before Phase 3 TDS, a sizing sweep (MaxLevels x MaxContractSize) is required."
+  },
   "summary": {
     "ADVANCE_HIGH": 0,
     "ADVANCE_FLAGGED": 0,
@@ -979,7 +987,8 @@
       "wins": {},
       "cycle_pf_by_bar_type": {},
       "delta_pf_by_bar_type": {},
-      "notes": "Excluded: requires simultaneous multi-source access not supported by single-source runner."
+      "notes": "Excluded: requires simultaneous multi-source access not supported by single-source runner.",
+      "human_disposition": "SKIPPED_REFERENCE_REQUIRED — defer to Phase 4 when multi-source reference available."
     }
   ]
 }
