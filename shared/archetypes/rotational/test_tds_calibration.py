@@ -572,3 +572,247 @@ from unittest.mock import patch
 def _patch_compute_extended(return_val: dict):
     with patch("run_tds_calibration.compute_extended_metrics", return_value=return_val):
         yield
+
+
+# ---------------------------------------------------------------------------
+# test_select_best_configs — selection logic with guard tests
+# ---------------------------------------------------------------------------
+
+def _make_exp_row(
+    experiment: int,
+    detector_name: str,
+    profile: str,
+    source_id: str,
+    worst_dd_reduction: float,
+    max_level_pct_reduction: float,
+    pnl_impact_ticks: float,
+    n_td_flatten_cycles: int,
+    n_cycles: int,
+    drawdown_budget_ticks: float = 999999.0,
+) -> dict:
+    """Helper to build a synthetic experiment row dict."""
+    return {
+        "experiment": experiment,
+        "detector_name": detector_name,
+        "profile": profile,
+        "source_id": source_id,
+        "worst_dd_reduction": worst_dd_reduction,
+        "max_level_pct_reduction": max_level_pct_reduction,
+        "pnl_impact_ticks": pnl_impact_ticks,
+        "n_td_flatten_cycles": n_td_flatten_cycles,
+        "n_cycles": n_cycles,
+        "drawdown_budget_ticks": drawdown_budget_ticks,
+        # Required columns with defaults
+        "l1_triggers": 0,
+        "l2_triggers": 0,
+        "l3_triggers": 0,
+        "tail_ratio_delta": 0.0,
+        "l3_recovery_bars_avg": 0.0,
+        "velocity_threshold_sec": 0.001,
+        "consecutive_adds_threshold": 999,
+        "cooldown_sec": 300.0,
+        "step_widen_factor": 1.5,
+        "max_levels_reduction": 1,
+        "retracement_reset_pct": 0.3,
+        "precursor_min_signals": 99,
+    }
+
+
+class TestSelectBestConfigs:
+    """Tests for select_best_configs() selection logic."""
+
+    _PROFILE = "MAX_PROFIT"
+    _SOURCE = "bar_data_250vol_rot"
+    _BASELINE_PNL = 10000.0
+    _BASELINE_N = 500
+
+    def _make_baselines(self, pnl=None, n=None):
+        return {
+            (self._PROFILE, self._SOURCE): {
+                "total_pnl_ticks": pnl or self._BASELINE_PNL,
+                "n_cycles": n or self._BASELINE_N,
+                "worst_cycle_dd": 8000.0,
+                "max_level_exposure_pct": 0.0,
+                "tail_ratio": 0.1,
+            }
+        }
+
+    def _make_dfs(self, exp1_rows, exp2_rows, exp3_rows):
+        return (
+            pd.DataFrame(exp1_rows),
+            pd.DataFrame(exp2_rows),
+            pd.DataFrame(exp3_rows),
+        )
+
+    def test_select_best_prefers_combined(self):
+        """When Exp 3 combined has higher composite score, it is selected."""
+        exp1 = [_make_exp_row(1, "velocity", self._PROFILE, self._SOURCE,
+                              worst_dd_reduction=100, max_level_pct_reduction=0,
+                              pnl_impact_ticks=-100, n_td_flatten_cycles=1, n_cycles=500)]
+        exp2 = [_make_exp_row(2, "drawdown_sweep_80", self._PROFILE, self._SOURCE,
+                              worst_dd_reduction=200, max_level_pct_reduction=0,
+                              pnl_impact_ticks=-500, n_td_flatten_cycles=5, n_cycles=500,
+                              drawdown_budget_ticks=80)]
+        exp3 = [_make_exp_row(3, "combined_velocity_dd80", self._PROFILE, self._SOURCE,
+                              worst_dd_reduction=350, max_level_pct_reduction=5,
+                              pnl_impact_ticks=-200, n_td_flatten_cycles=5, n_cycles=505)]
+        baselines = self._make_baselines()
+        e1, e2, e3 = self._make_dfs(exp1, exp2, exp3)
+        result = rc.select_best_configs(e1, e2, e3, baselines)
+        assert len(result) == 1
+        key = (self._PROFILE, self._SOURCE)
+        selected = result[key]["selected"]
+        # Exp 3 has composite=355, Exp 1 has composite=100, Exp 2 has composite=200
+        assert selected["_experiment_source"] == "exp3_combined"
+
+    def test_pnl_guard_excludes_high_impact_configs(self):
+        """Configs exceeding -20% PnL impact are excluded even if survival improvement is high."""
+        # Exp 1 has great dd reduction but catastrophic PnL: -3000 vs baseline 10000 -> fails guard (>-2000)
+        exp1_bad = [_make_exp_row(1, "velocity", self._PROFILE, self._SOURCE,
+                                  worst_dd_reduction=5000, max_level_pct_reduction=10,
+                                  pnl_impact_ticks=-3000, n_td_flatten_cycles=1, n_cycles=500)]
+        # Exp 3 has lower dd reduction but passes guard: -1000 < -2000 threshold
+        exp3_good = [_make_exp_row(3, "combined_velocity_dd80", self._PROFILE, self._SOURCE,
+                                   worst_dd_reduction=50, max_level_pct_reduction=0,
+                                   pnl_impact_ticks=-500, n_td_flatten_cycles=2, n_cycles=502)]
+        baselines = self._make_baselines(pnl=10000.0)  # guard threshold = -2000
+        e1 = pd.DataFrame(exp1_bad)
+        e2 = pd.DataFrame([_make_exp_row(2, "drawdown_sweep_80", self._PROFILE, self._SOURCE,
+                                         worst_dd_reduction=100, max_level_pct_reduction=0,
+                                         pnl_impact_ticks=-3500, n_td_flatten_cycles=10, n_cycles=500,
+                                         drawdown_budget_ticks=80)])
+        e3 = pd.DataFrame(exp3_good)
+        result = rc.select_best_configs(e1, e2, e3, baselines)
+        key = (self._PROFILE, self._SOURCE)
+        selected = result[key]["selected"]
+        # Only exp3 passes guard — must be selected despite lower dd_reduction
+        assert selected["_pnl_guard_passed"] is True
+        assert selected["_experiment_source"] == "exp3_combined"
+
+    def test_over_trigger_flag(self):
+        """Configs with n_td_flatten_cycles > 5% of n_cycles are flagged over_trigger."""
+        # baseline n_cycles = 500, 5% = 25 — flag if >25 td_flatten cycles
+        exp1 = [_make_exp_row(1, "velocity", self._PROFILE, self._SOURCE,
+                              worst_dd_reduction=100, max_level_pct_reduction=0,
+                              pnl_impact_ticks=-100, n_td_flatten_cycles=30, n_cycles=530)]
+        exp2 = [_make_exp_row(2, "drawdown_sweep_80", self._PROFILE, self._SOURCE,
+                              worst_dd_reduction=200, max_level_pct_reduction=0,
+                              pnl_impact_ticks=-500, n_td_flatten_cycles=5, n_cycles=505,
+                              drawdown_budget_ticks=80)]
+        exp3 = [_make_exp_row(3, "combined_velocity_dd80", self._PROFILE, self._SOURCE,
+                              worst_dd_reduction=250, max_level_pct_reduction=0,
+                              pnl_impact_ticks=-200, n_td_flatten_cycles=28, n_cycles=528)]
+        baselines = self._make_baselines()
+        e1, e2, e3 = self._make_dfs(exp1, exp2, exp3)
+        result = rc.select_best_configs(e1, e2, e3, baselines)
+        key = (self._PROFILE, self._SOURCE)
+        # The best config by composite score is exp3 (250 vs 200 vs 100) — but it has >25 td_flatten
+        # over_trigger flag should be set
+        selected = result[key]["selected"]
+        # Check _over_trigger on the selected entry (may or may not select exp3)
+        # Just verify that the flag is computed correctly for the config with 28 td_flatten cycles
+        # (baseline n=500, 5%=25, 28>25 => over_trigger=True)
+        exp3_candidate = [c for c in result[key]["all_candidates"] if "combined" in c.get("_experiment_source", "")]
+        assert len(exp3_candidate) == 1
+        assert exp3_candidate[0]["_over_trigger"] is True
+
+    def test_output_json_schema(self):
+        """best_tds_configs.json has all 9 profile x bar_type entries + baselines."""
+        import json
+        from pathlib import Path
+        output_path = Path(__file__).parent / "tds_profiles" / "best_tds_configs.json"
+        if not output_path.exists():
+            pytest.skip("best_tds_configs.json not yet generated (run experiments first)")
+
+        with open(output_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Must have all 3 profiles
+        assert "MAX_PROFIT" in data, "Missing MAX_PROFIT profile"
+        assert "SAFEST" in data, "Missing SAFEST profile"
+        assert "MOST_CONSISTENT" in data, "Missing MOST_CONSISTENT profile"
+
+        # Each profile must have all 3 bar types
+        bar_types = ["bar_data_250vol_rot", "bar_data_250tick_rot", "bar_data_10sec_rot"]
+        for profile in ["MAX_PROFIT", "SAFEST", "MOST_CONSISTENT"]:
+            for bt in bar_types:
+                assert bt in data[profile], f"Missing {profile}/{bt}"
+                entry = data[profile][bt]
+                assert "trend_defense" in entry
+                assert entry["trend_defense"]["enabled"] is True
+                assert "survival_deltas" in entry
+                assert "worst_dd_reduction" in entry["survival_deltas"]
+                assert "metadata" in entry
+
+        # Must have baselines
+        assert "no_tds_baselines" in data
+        assert "calibration_method" in data
+
+    def test_check_pnl_guard_pass(self):
+        """PnL guard passes when impact is within -20% of baseline."""
+        # baseline=10000, guard_threshold=-2000
+        assert rc._check_pnl_guard(-1999, 10000) is True   # just passes
+        assert rc._check_pnl_guard(-2000, 10000) is True   # exactly at threshold passes
+        assert rc._check_pnl_guard(-2001, 10000) is False  # just fails
+
+    def test_check_pnl_guard_fail(self):
+        """PnL guard fails when impact exceeds -20% threshold."""
+        assert rc._check_pnl_guard(-5000, 10000) is False  # -50% fails
+        assert rc._check_pnl_guard(-30000, 3000) is False  # catastrophic fails
+
+    def test_check_over_trigger_flag(self):
+        """Over-trigger flag is True when n_td_flatten > 5% of baseline n_cycles."""
+        assert rc._check_over_trigger(26, 500) is True   # 26 > 25 (5% of 500)
+        assert rc._check_over_trigger(25, 500) is False  # exactly 25 = not over
+        assert rc._check_over_trigger(0, 500) is False   # none = fine
+
+    def test_determine_exp3_winners_prefers_guard_passing(self):
+        """_determine_exp3_winners selects guard-passing L1 detector over guard-failing one."""
+        # velocity: pnl_impact=-100 (passes guard on 10000 baseline)
+        # consecutive_adds: pnl_impact=-3000 (fails guard), but higher dd_reduction
+        exp1 = pd.DataFrame([
+            _make_exp_row(1, "velocity", self._PROFILE, self._SOURCE,
+                          worst_dd_reduction=100, max_level_pct_reduction=0,
+                          pnl_impact_ticks=-100, n_td_flatten_cycles=0, n_cycles=500),
+            _make_exp_row(1, "consecutive_adds", self._PROFILE, self._SOURCE,
+                          worst_dd_reduction=500, max_level_pct_reduction=0,
+                          pnl_impact_ticks=-3000, n_td_flatten_cycles=0, n_cycles=500),
+            _make_exp_row(1, "retracement", self._PROFILE, self._SOURCE,
+                          worst_dd_reduction=0, max_level_pct_reduction=0,
+                          pnl_impact_ticks=0, n_td_flatten_cycles=0, n_cycles=500),
+        ])
+        exp2 = pd.DataFrame([
+            _make_exp_row(2, "drawdown_sweep_100", self._PROFILE, self._SOURCE,
+                          worst_dd_reduction=200, max_level_pct_reduction=0,
+                          pnl_impact_ticks=-100, n_td_flatten_cycles=1, n_cycles=501,
+                          drawdown_budget_ticks=100),
+        ])
+        baselines = self._make_baselines()
+        winners = rc._determine_exp3_winners(exp1, exp2, baselines)
+        key = (self._PROFILE, self._SOURCE)
+        assert key in winners
+        # velocity (dd=100, pnl=-100) should win over consecutive_adds (dd=500, pnl=-3000)
+        assert winners[key]["best_l1"] == "velocity"
+
+    def test_select_best_fallback_when_all_fail_guard(self):
+        """When no config passes PnL guard, select least-bad by pnl_impact_ticks."""
+        # All options fail guard (baseline=1000, threshold=-200)
+        exp1 = [_make_exp_row(1, "velocity", self._PROFILE, self._SOURCE,
+                              worst_dd_reduction=500, max_level_pct_reduction=0,
+                              pnl_impact_ticks=-5000, n_td_flatten_cycles=5, n_cycles=500)]
+        exp2 = [_make_exp_row(2, "drawdown_sweep_80", self._PROFILE, self._SOURCE,
+                              worst_dd_reduction=300, max_level_pct_reduction=0,
+                              pnl_impact_ticks=-3000, n_td_flatten_cycles=5, n_cycles=500,
+                              drawdown_budget_ticks=80)]
+        exp3 = [_make_exp_row(3, "combined_velocity_dd80", self._PROFILE, self._SOURCE,
+                              worst_dd_reduction=400, max_level_pct_reduction=0,
+                              pnl_impact_ticks=-4000, n_td_flatten_cycles=5, n_cycles=505)]
+        baselines = self._make_baselines(pnl=1000.0)  # threshold = -200
+        e1, e2, e3 = self._make_dfs(exp1, exp2, exp3)
+        result = rc.select_best_configs(e1, e2, e3, baselines)
+        key = (self._PROFILE, self._SOURCE)
+        selected = result[key]["selected"]
+        # _no_guard_pass should be set (no config passed)
+        assert selected.get("_no_guard_pass", False) is True
+        # Least-bad by pnl_impact: exp2 has -3000 (closest to 0 of the 3 options)
+        assert selected["_pnl_guard_passed"] is False
