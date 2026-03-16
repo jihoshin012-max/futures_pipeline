@@ -365,6 +365,7 @@ class RotationalSimulator:
         self._initial_qty: int = int(mart.get("initial_qty", 1))
         self._max_levels: int = int(mart.get("max_levels", 4))
         self._max_contract_size: int = int(mart.get("max_contract_size", 8))
+        self._max_total_position: int = int(mart.get("max_total_position", 0))  # 0=unlimited
 
         instr = config.get("_instrument", {})
         self._tick_size: float = float(instr.get("tick_size", 0.25))
@@ -545,35 +546,46 @@ class RotationalSimulator:
 
         Level recorded in the trade row reflects the level AT WHICH the ADD occurs
         (before incrementing). On cap reset, qty resets to initial_qty and level -> 0.
+
+        MaxTotalPosition gate: if self._max_total_position > 0 and adding
+        proposed_qty would exceed the cap, the ADD is refused entirely.
+        No state is mutated (position unchanged, level unchanged).
         """
-        add_qty = self._initial_qty * (2 ** self._level)
-        level_at_add = self._level
-
-        if add_qty > self._max_contract_size:
-            # Cap reset: back to initial_qty and level 0
-            add_qty = self._initial_qty
-            self._level = 0
-            level_at_add = 0
+        # 1. Compute proposed qty and next level as local variables — no state mutation yet
+        proposed_qty = self._initial_qty * (2 ** self._level)
+        if proposed_qty > self._max_contract_size:
+            # Cap reset: qty resets to initial_qty and level resets to 0
+            proposed_qty = self._initial_qty
+            next_level = 0
+            level_at_add = 0  # level recorded in trade row is post-reset level
         else:
-            self._level += 1
+            next_level = self._level + 1
+            level_at_add = self._level  # level recorded is the level before incrementing
 
+        # 2. MaxTotalPosition gate — refuse entirely, no state change
+        if self._max_total_position > 0:
+            if self._position_qty + proposed_qty > self._max_total_position:
+                return  # skip: position unchanged, level unchanged
+
+        # 3. Commit state changes
+        self._level = next_level
         self._anchor = close
-        self._position_qty += add_qty
+        self._position_qty += proposed_qty
 
         trade = {
             "bar_idx": bar_idx,
             "datetime": dt,
             "action": "ADD",
             "direction": self._direction,
-            "qty": add_qty,
+            "qty": proposed_qty,
             "price": close,
             "level": level_at_add,
             "anchor": close,
-            "cost_ticks": self._cost_ticks * add_qty,
+            "cost_ticks": self._cost_ticks * proposed_qty,
             "cycle_id": self._cycle_id,
         }
         self._cycle_trades.append(trade)
-        logger.log_action(bar_idx, dt, "ADD", self._direction, add_qty, close,
+        logger.log_action(bar_idx, dt, "ADD", self._direction, proposed_qty, close,
                           level_at_add, close, self._cycle_id)
 
     # -----------------------------------------------------------------------

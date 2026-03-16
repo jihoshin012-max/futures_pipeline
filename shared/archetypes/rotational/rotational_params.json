@@ -29,6 +29,7 @@
     "initial_qty": 1,
     "max_levels": 4,
     "max_contract_size": 8,
+    "max_total_position": 0,
     "progression": "geometric"
   },
   "trend_defense": {
