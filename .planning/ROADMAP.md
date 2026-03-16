@@ -37,6 +37,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 6. Stage 02 Autoresearch | v1.0 | 3/3 | Complete | 2026-03-14 |
 | 7. Stage 03 Autoresearch | v1.0 | 3/3 | Complete | 2026-03-14 |
 | 2. Feature Evaluator + Screening | Rotational | 0/3 | Planning complete | - |
+| 02.1. Sizing Sweep Baseline | Rotational | 0/3 | Planning complete | - |
 | 3. TDS Build + Testing | Rotational | 0/0 | Not started | - |
 | 4. Combination Testing + Replication | Rotational | 0/0 | Not started | - |
 | 5. Assessment & Deployment | Rotational | 0/0 | Not started | - |
@@ -66,6 +67,18 @@ Plans:
 - [ ] 02-03-PLAN.md — Phase 1b cross-bar-type robustness classification and ranked advancement list
 
 > **Tooling checkpoint:** During planning, profile feature_compute vs simulator time per experiment. If feature compute >50% of wall clock, evaluate Kand (github.com/kand-ta/kand) before executing full sweep. See xtra/AI_Context_Architecture_Notes.md § Kand.
+
+### Phase 02.1: Sizing Sweep Baseline (INSERTED)
+
+**Goal:** Add MaxTotalPosition cap to simulator, run joint 3-parameter sweep (StepDist x MaxLevels x MaxTotalPosition) on P1a across all 3 bar types, identify 3 baseline profiles (MAX_PROFIT, SAFEST, MOST_CONSISTENT) as permanent pipeline infrastructure
+**Requirements**: ROT-SIZ-01, ROT-SIZ-02, ROT-SIZ-03, ROT-SIZ-04, ROT-SIZ-05
+**Depends on:** Phase 2
+**Plans:** 3 plans
+
+Plans:
+- [ ] 02.1-01-PLAN.md — Add MaxTotalPosition cap to simulator with TDD tests
+- [ ] 02.1-02-PLAN.md — Build sizing sweep harness with extended metrics and execute ~924 runs on P1a
+- [ ] 02.1-03-PLAN.md — Identify 3 profiles per bar type, create profile infrastructure, add --profile flag to engine
 
 ### Phase 3: TDS Build + Testing
 

@@ -12,6 +12,14 @@ Source: xtra/Rotational_Archetype_Spec.md
 - **ROT-SIM-06** ✅: Run C++ defaults baseline (StepDist=2.0, MaxLevels=4) on all 3 bar types P1a, produce raw baseline metrics — completed 01-02
 - **ROT-SIM-07** ✅: Execute fixed-step parameter sweep (StepDist 1.0-6.0, step 0.5) on P1a all 3 bar types, establish per-bar-type optimized baseline — completed 01-03
 
+## Phase 02.1: Sizing Sweep Baseline
+
+- **ROT-SIZ-01**: Add MaxTotalPosition cap to RotationalSimulator._add() — refuse add entirely when position + proposed_qty exceeds cap; 0=unlimited (backward compatible)
+- **ROT-SIZ-02**: Build run_sizing_sweep.py — joint 3-parameter sweep (StepDist x MaxLevels x MaxTotalPosition) with pre-run deduplication, extended metrics computation, TSV/JSON output
+- **ROT-SIZ-03**: Compute extended profile metrics (worst_cycle_dd, max_level_exposure_pct, tail_ratio, calmar_ratio, sortino_ratio, winning_session_pct, max_dd_duration_bars) from cycles DataFrame
+- **ROT-SIZ-04**: Identify 3 baseline profiles per bar type (MAX_PROFIT, SAFEST, MOST_CONSISTENT) and store as permanent pipeline infrastructure in profiles/ directory
+- **ROT-SIZ-05**: Add --profile flag to rotational_engine.py to load profile configs and override martingale/step_dist parameters
+
 ## Phase 2: Research Execution (future)
 
 - **ROT-RES-01**: Build rotational_feature_evaluator.py for Stage 02
