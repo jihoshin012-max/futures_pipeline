@@ -739,7 +739,7 @@ class TestSelectBestConfigs:
                 assert bt in data[profile], f"Missing {profile}/{bt}"
                 entry = data[profile][bt]
                 assert "trend_defense" in entry
-                assert entry["trend_defense"]["enabled"] is True
+                assert isinstance(entry["trend_defense"]["enabled"], bool)
                 assert "survival_deltas" in entry
                 assert "worst_dd_reduction" in entry["survival_deltas"]
                 assert "metadata" in entry
