@@ -504,6 +504,29 @@ subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Proje
 - resolution_commit: # TODO: fill in
 - generated_by: autoresearch driver
 
+## 2026-03-16 | SIZING_SWEEP_FINDING
+- stage: 02.1-sizing-sweep-baseline
+- finding: MARTINGALE IS NET NEGATIVE
+- detail: Geometric martingale (ML=4, C++ default 1→2→4→8) is 24-32% worse than ML=1 (flat adds)
+          on activity-sampled bars. ML=4 only ties ML=1 on 10sec because MTP caps prevent it from firing.
+          The strategy's edge is pure rotation, not position averaging.
+- evidence:
+    250vol: ML=4 best PF=1.49 vs ML=1 winner PF=2.20 (32% worse)
+    250tick: ML=4 best PF=1.39 vs ML=1 winner PF=1.84 (24% worse)
+    10sec: ML=4 ties ML=1 at PF=1.72 (MTP=4 prevents geometric adds)
+- winning_configs:
+    250vol: SD=7.0 ML=1 MTP=2 PF=2.20
+    250tick: SD=4.5 ML=1 MTP=1 PF=1.84 (pure reversal, zero adds)
+    10sec: SD=10.0 ML=1 MTP=4 PF=1.72
+- priority_changes:
+    deprioritized: H14 (adaptive martingale), H23 (conditional adds), H24 (intra-cycle de-escalation), H39 (cycle adverse velocity)
+    elevated: H1,H3,H8,H9,H10 (Dim-A triggers), H11 (TOD conditioning), H13 (selective flat), H33 (PriceSpeed), H2 (asymmetric thresholds)
+- new_concept: Multi-StepDist portfolio for Phase 4 (SD=4.5+7.0+10.0 across rotation scales)
+- decision: Martingale hypotheses still tested but deprioritized. If H14/H23 show improvement in Phase 3, that's genuinely surprising.
+- source: 966 P1a simulations, sizing_sweep_P1a.tsv
+- report: shared/archetypes/rotational/sizing_sweep_results/sizing_sweep_report.md § 6
+- human: Ji
+
 ## 2026-03-14 19:37:52 | PERIOD_CONFIG_CHANGED
 - file: _config/period_config.md
 - commit: 6c09c42

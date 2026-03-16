@@ -213,4 +213,59 @@ All 42 MTP=1 rows (14 StepDist values x 3 bar types). `max_level_exposure_pct=0`
 
 ---
 
+---
+
+## 6. FORMAL FINDING — MARTINGALE IS NET NEGATIVE
+
+**Date:** 2026-03-16
+**Source:** Phase 02.1 sizing sweep, 966 P1a simulations
+**Author:** Ji (human review of automated sweep)
+
+### Finding
+
+Geometric martingale (ML=4, the C++ default 1→2→4→8 pattern) is 24-32% worse than ML=1 (flat adds) on activity-sampled bars. ML=4 only ties ML=1 on 10sec bars because MaxTotalPosition caps prevent the martingale from ever firing. **The strategy's edge is pure rotation, not position averaging.**
+
+### Evidence
+
+| Bar Type | ML=4 Best PF | ML=1 Winner PF | Degradation |
+|----------|-------------|----------------|-------------|
+| 250vol | 1.49 (SD=5.5 ML=4 MTP=4) | 2.20 (SD=7.0 ML=1 MTP=2) | **32% worse** |
+| 250tick | 1.39 (SD=8.0 ML=4 MTP=4) | 1.84 (SD=4.5 ML=1 MTP=1) | **24% worse** |
+| 10sec | 1.72 (SD=10.0 ML=4 MTP=4) | 1.72 (SD=10.0 ML=1 MTP=4) | **0% — tie** (MTP=4 prevents geometric adds from firing, making ML=4 functionally identical to ML=1) |
+
+### Winning Configurations
+
+| Bar Type | StepDist | MaxLevels | MTP | Cycle PF | Profile |
+|----------|----------|-----------|-----|----------|---------|
+| 250vol | 7.0 | 1 | 2 | 2.20 | MAX_PROFIT & MOST_CONSISTENT |
+| 250tick | 4.5 | 1 | 1 | 1.84 | Pure reversal, zero adds |
+| 10sec | 10.0 | 1 | 4 | 1.72 | MAX_PROFIT & MOST_CONSISTENT |
+
+### Implication for Research Priorities
+
+**Deprioritize** (test for completeness, no longer high priority):
+- H14 (adaptive martingale progression)
+- H23 (conditional adds)
+- H24 (intra-cycle de-escalation)
+- H39 (cycle adverse velocity ratio)
+
+These manage a mechanism the data shows is harmful.
+
+**Elevate to top priority:**
+- Dimension A triggers (H1, H3, H8, H9, H10) — optimal rotation distance is where the edge lives
+- H11 (time-of-day conditioning) — find slow rotation-friendly periods
+- H13 (selective flat periods) — when NOT to rotate matters more than managing adds
+- H33 (PriceSpeed filter) — slow price = profitable rotation
+- H2 (asymmetric thresholds) — different reversal vs add distances
+
+### New Concept for Phase 4
+
+**Multi-StepDist portfolio** — run multiple rotation sizes simultaneously (e.g., SD=4.5 + SD=7.0 + SD=10.0) hedging each other across different rotation scales. Different bar types favor different StepDist values, suggesting no single rotation size is universally optimal.
+
+### Decision
+
+This finding does not eliminate martingale hypotheses from the research — they are still tested. It changes their priority ranking and sets expectations. If H14 or H23 show improvement in Phase 3, that's genuinely surprising and worth investigating. If they don't, we already know why.
+
+---
+
 *Report generated programmatically from sizing_sweep_P1a.tsv*
