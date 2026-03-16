@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-02-PLAN.md — TDS integrated into RotationalSimulator, H36/H39 dynamic features, td_flatten exit, 22 TDS tests pass
-last_updated: "2026-03-16T05:28:31.883Z"
+stopped_at: Completed 03.1-01-PLAN.md — TDS calibration harness with 3 experiment modes, 58 tests passing
+last_updated: "2026-03-16T14:32:42.400Z"
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 13
+  completed_plans: 12
   percent: 20
 ---
 
@@ -81,6 +81,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02.1-sizing-sweep-baseline P03 | 25 | 2 tasks | 7 files |
 | Phase 03-tds-build-testing P01 | 10 | 1 tasks | 3 files |
 | Phase 03-tds-build-testing P02 | 11 | 2 tasks | 2 files |
+| Phase 03.1-tds-profile-calibration P01 | 8 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,9 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 03-02]: Import guard for TrendDefenseSystem: _TDS_AVAILABLE flag prevents crashes if trend_defense.py absent
 - [Phase 03-02]: bar_duration_stats computed at run() time from actual bar timestamps (median first 1000 diffs)
 - [Phase 03-02]: Cycle tds_level_max patched onto logger._cycles[-1] after _reversal() to avoid method signature changes
+- [Phase 03.1-01]: Detector isolation via extreme never-fire thresholds: velocity=0.001sec, consecutive_adds=999, drawdown=999999, precursor=99 — these thresholds can never be reached in practice
+- [Phase 03.1-01]: TDS calibration uses hypothesis-driven experiments (not grid search): 4 isolated-detector runs + 6 drawdown-sweep runs + 1 combined run = 99 total
+- [Phase 03.1-01]: No-TDS baseline read from profile JSON (not re-run) — profiles/*.json contain exact no-TDS metrics from Phase 02.1; re-run not needed
 
 ### Pending Todos
 
@@ -128,6 +132,7 @@ None — milestone complete.
 
 - Phase 1 added: Rotational Simulator & Baseline (Phase B from spec)
 - Phase 02.1 inserted after Phase 2: sizing-sweep-baseline (URGENT)
+- Phase 03.1 inserted after Phase 3: TDS Profile Calibration (URGENT) — calibrate TDS detectors/thresholds against winning profiles before Phase 04 combination testing
 
 ### Blockers/Concerns
 
@@ -142,6 +147,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-16T05:22:16.289Z
-Stopped at: Completed 03-02-PLAN.md — TDS integrated into RotationalSimulator, H36/H39 dynamic features, td_flatten exit, 22 TDS tests pass
+Last session: 2026-03-16T14:32:42.397Z
+Stopped at: Completed 03.1-01-PLAN.md — TDS calibration harness with 3 experiment modes, 58 tests passing
 Resume file: None
