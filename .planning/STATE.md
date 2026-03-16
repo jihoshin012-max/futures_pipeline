@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-01-PLAN.md — TrendDefenseSystem class with 5 detectors, 3-level escalation, 14 passing unit tests
-last_updated: "2026-03-16T05:01:20.707Z"
+stopped_at: Completed 03-02-PLAN.md — TDS integrated into RotationalSimulator, H36/H39 dynamic features, td_flatten exit, 22 TDS tests pass
+last_updated: "2026-03-16T05:22:16.292Z"
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 20
 ---
 
@@ -80,6 +80,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02.1-sizing-sweep-baseline P03 | 5 | 1 tasks | 7 files |
 | Phase 02.1-sizing-sweep-baseline P03 | 25 | 2 tasks | 7 files |
 | Phase 03-tds-build-testing P01 | 10 | 1 tasks | 3 files |
+| Phase 03-tds-build-testing P02 | 11 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,9 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 03-01]: TDS timing thresholds stored in seconds, converted to bar counts via max(1, round(sec/median_bar_sec)) at init for cross-bar-type portability
 - [Phase 03-01]: consecutive_adds resets on qualifying retracement (>= retracement_reset_pct * step_dist in-favor) in addition to reversal — avoids premature Level 2 trigger on healthy cycles
 - [Phase 03-01]: can_reengage() is pure bar-count-based (cooldown_remaining <= 0) — avoids chicken-and-egg feature computation during cooldown
+- [Phase 03-02]: Import guard for TrendDefenseSystem: _TDS_AVAILABLE flag prevents crashes if trend_defense.py absent
+- [Phase 03-02]: bar_duration_stats computed at run() time from actual bar timestamps (median first 1000 diffs)
+- [Phase 03-02]: Cycle tds_level_max patched onto logger._cycles[-1] after _reversal() to avoid method signature changes
 
 ### Pending Todos
 
@@ -138,6 +142,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-16T05:01:20.704Z
-Stopped at: Completed 03-01-PLAN.md — TrendDefenseSystem class with 5 detectors, 3-level escalation, 14 passing unit tests
+Last session: 2026-03-16T05:22:16.289Z
+Stopped at: Completed 03-02-PLAN.md — TDS integrated into RotationalSimulator, H36/H39 dynamic features, td_flatten exit, 22 TDS tests pass
 Resume file: None
