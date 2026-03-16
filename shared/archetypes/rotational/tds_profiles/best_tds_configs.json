@@ -1,6 +1,14 @@
 {
   "calibration_method": "hypothesis_driven_3_experiments",
   "total_runs": 99,
+  "human_approved": true,
+  "approved_date": "2026-03-16",
+  "approved_disposition": {
+    "vol_tick_bars": "TDS effectively disabled — all detectors produce zero survival benefit; L3 over-triggers on all tested thresholds [30-100 ticks]",
+    "10sec_bars": "Velocity-only L1 (60sec threshold) — +575t worst_dd_reduction, +259t PnL for MAX_PROFIT/MOST_CONSISTENT; SAFEST shows no benefit",
+    "l3_drawdown_exit": "INCOMPATIBLE with rotational edge — do not use; L3 force-flatten converts ~3400 cycles vs ~360-700 baselines, all thresholds fail 20% PnL guard",
+    "status": "permanent_baseline_for_phase_04"
+  },
   "no_tds_baselines": {
     "MAX_PROFIT": {
       "bar_data_250vol_rot": {
@@ -128,6 +136,7 @@
   },
   "MAX_PROFIT": {
     "bar_data_10sec_rot": {
+      "tds_disposition": "velocity_only_l1",
       "trend_defense": {
         "enabled": true,
         "level_1": {
@@ -141,7 +150,8 @@
         },
         "level_3": {
           "drawdown_budget_ticks": 999999.0,
-          "cooldown_sec": 300.0
+          "cooldown_sec": 300.0,
+          "_note": "L3 disabled via never-trigger threshold — incompatible with rotational edge"
         },
         "precursor": {
           "precursor_min_signals": 99,
@@ -163,31 +173,15 @@
         "over_trigger": false,
         "pnl_guard_passed": true,
         "no_guard_pass": false,
-        "composite_score": 577.46
+        "composite_score": 577.46,
+        "human_approved": true
       }
     },
     "bar_data_250tick_rot": {
+      "tds_disposition": "disabled",
       "trend_defense": {
-        "enabled": true,
-        "level_1": {
-          "step_widen_factor": 1.5,
-          "max_levels_reduction": 1
-        },
-        "level_2": {
-          "velocity_threshold_sec": 0.001,
-          "consecutive_adds_threshold": 999,
-          "retracement_reset_pct": 0.3
-        },
-        "level_3": {
-          "drawdown_budget_ticks": 999999.0,
-          "cooldown_sec": 300.0
-        },
-        "precursor": {
-          "precursor_min_signals": 99,
-          "speed_threshold": 1.0,
-          "regime_accel_threshold": 1.0,
-          "adverse_speed_threshold": 1.0
-        }
+        "enabled": false,
+        "_note": "TDS disabled — all detectors produce zero survival benefit for vol/tick bar types"
       },
       "survival_deltas": {
         "worst_dd_reduction": 0.0,
@@ -197,36 +191,21 @@
         "n_td_flatten_cycles": 0,
         "l3_recovery_bars_avg": 0.0
       },
-      "experiment_source": "exp1_retracement",
+      "experiment_source": "disabled_by_calibration",
       "metadata": {
         "over_trigger": false,
         "pnl_guard_passed": true,
         "no_guard_pass": false,
-        "composite_score": 0.0
+        "composite_score": 0.0,
+        "human_approved": true,
+        "disposition_reason": "L3 over-triggers all tested thresholds [30-100 ticks]; no L1 detector shows benefit for tick bars"
       }
     },
     "bar_data_250vol_rot": {
+      "tds_disposition": "disabled",
       "trend_defense": {
-        "enabled": true,
-        "level_1": {
-          "step_widen_factor": 1.5,
-          "max_levels_reduction": 1
-        },
-        "level_2": {
-          "velocity_threshold_sec": 0.001,
-          "consecutive_adds_threshold": 999,
-          "retracement_reset_pct": 0.3
-        },
-        "level_3": {
-          "drawdown_budget_ticks": 999999.0,
-          "cooldown_sec": 300.0
-        },
-        "precursor": {
-          "precursor_min_signals": 99,
-          "speed_threshold": 1.0,
-          "regime_accel_threshold": 1.0,
-          "adverse_speed_threshold": 1.0
-        }
+        "enabled": false,
+        "_note": "TDS disabled — all detectors produce zero survival benefit for vol/tick bar types"
       },
       "survival_deltas": {
         "worst_dd_reduction": 0.0,
@@ -236,17 +215,20 @@
         "n_td_flatten_cycles": 0,
         "l3_recovery_bars_avg": 0.0
       },
-      "experiment_source": "exp1_retracement",
+      "experiment_source": "disabled_by_calibration",
       "metadata": {
         "over_trigger": false,
         "pnl_guard_passed": true,
         "no_guard_pass": false,
-        "composite_score": 0.0
+        "composite_score": 0.0,
+        "human_approved": true,
+        "disposition_reason": "L3 over-triggers all tested thresholds [30-100 ticks]; no L1 detector shows benefit for vol bars"
       }
     }
   },
   "MOST_CONSISTENT": {
     "bar_data_10sec_rot": {
+      "tds_disposition": "velocity_only_l1",
       "trend_defense": {
         "enabled": true,
         "level_1": {
@@ -260,7 +242,8 @@
         },
         "level_3": {
           "drawdown_budget_ticks": 999999.0,
-          "cooldown_sec": 300.0
+          "cooldown_sec": 300.0,
+          "_note": "L3 disabled via never-trigger threshold — incompatible with rotational edge"
         },
         "precursor": {
           "precursor_min_signals": 99,
@@ -282,31 +265,15 @@
         "over_trigger": false,
         "pnl_guard_passed": true,
         "no_guard_pass": false,
-        "composite_score": 577.46
+        "composite_score": 577.46,
+        "human_approved": true
       }
     },
     "bar_data_250tick_rot": {
+      "tds_disposition": "disabled",
       "trend_defense": {
-        "enabled": true,
-        "level_1": {
-          "step_widen_factor": 1.5,
-          "max_levels_reduction": 1
-        },
-        "level_2": {
-          "velocity_threshold_sec": 0.001,
-          "consecutive_adds_threshold": 999,
-          "retracement_reset_pct": 0.3
-        },
-        "level_3": {
-          "drawdown_budget_ticks": 999999.0,
-          "cooldown_sec": 300.0
-        },
-        "precursor": {
-          "precursor_min_signals": 99,
-          "speed_threshold": 1.0,
-          "regime_accel_threshold": 1.0,
-          "adverse_speed_threshold": 1.0
-        }
+        "enabled": false,
+        "_note": "TDS disabled — all detectors produce zero survival benefit for vol/tick bar types"
       },
       "survival_deltas": {
         "worst_dd_reduction": 0.0,
@@ -316,36 +283,21 @@
         "n_td_flatten_cycles": 0,
         "l3_recovery_bars_avg": 0.0
       },
-      "experiment_source": "exp1_retracement",
+      "experiment_source": "disabled_by_calibration",
       "metadata": {
         "over_trigger": false,
         "pnl_guard_passed": true,
         "no_guard_pass": false,
-        "composite_score": 0.0
+        "composite_score": 0.0,
+        "human_approved": true,
+        "disposition_reason": "L3 over-triggers all tested thresholds [30-100 ticks]; no L1 detector shows benefit for tick bars"
       }
     },
     "bar_data_250vol_rot": {
+      "tds_disposition": "disabled",
       "trend_defense": {
-        "enabled": true,
-        "level_1": {
-          "step_widen_factor": 1.5,
-          "max_levels_reduction": 1
-        },
-        "level_2": {
-          "velocity_threshold_sec": 0.001,
-          "consecutive_adds_threshold": 999,
-          "retracement_reset_pct": 0.3
-        },
-        "level_3": {
-          "drawdown_budget_ticks": 999999.0,
-          "cooldown_sec": 300.0
-        },
-        "precursor": {
-          "precursor_min_signals": 99,
-          "speed_threshold": 1.0,
-          "regime_accel_threshold": 1.0,
-          "adverse_speed_threshold": 1.0
-        }
+        "enabled": false,
+        "_note": "TDS disabled — all detectors produce zero survival benefit for vol/tick bar types"
       },
       "survival_deltas": {
         "worst_dd_reduction": 0.0,
@@ -355,38 +307,23 @@
         "n_td_flatten_cycles": 0,
         "l3_recovery_bars_avg": 0.0
       },
-      "experiment_source": "exp1_retracement",
+      "experiment_source": "disabled_by_calibration",
       "metadata": {
         "over_trigger": false,
         "pnl_guard_passed": true,
         "no_guard_pass": false,
-        "composite_score": 0.0
+        "composite_score": 0.0,
+        "human_approved": true,
+        "disposition_reason": "L3 over-triggers all tested thresholds [30-100 ticks]; no L1 detector shows benefit for vol bars"
       }
     }
   },
   "SAFEST": {
     "bar_data_10sec_rot": {
+      "tds_disposition": "disabled",
       "trend_defense": {
-        "enabled": true,
-        "level_1": {
-          "step_widen_factor": 1.5,
-          "max_levels_reduction": 1
-        },
-        "level_2": {
-          "velocity_threshold_sec": 0.001,
-          "consecutive_adds_threshold": 999,
-          "retracement_reset_pct": 0.3
-        },
-        "level_3": {
-          "drawdown_budget_ticks": 999999.0,
-          "cooldown_sec": 300.0
-        },
-        "precursor": {
-          "precursor_min_signals": 99,
-          "speed_threshold": 1.0,
-          "regime_accel_threshold": 1.0,
-          "adverse_speed_threshold": 1.0
-        }
+        "enabled": false,
+        "_note": "TDS disabled — velocity detector shows zero benefit for SAFEST/10sec (100 cycles, ML=1 MTP=1 — no multi-level exposure to defend)"
       },
       "survival_deltas": {
         "worst_dd_reduction": 0.0,
@@ -396,36 +333,21 @@
         "n_td_flatten_cycles": 0,
         "l3_recovery_bars_avg": 0.0
       },
-      "experiment_source": "exp1_retracement",
+      "experiment_source": "disabled_by_calibration",
       "metadata": {
         "over_trigger": false,
         "pnl_guard_passed": true,
         "no_guard_pass": false,
-        "composite_score": 0.0
+        "composite_score": 0.0,
+        "human_approved": true,
+        "disposition_reason": "SAFEST profile has ML=1 MTP=1 for 10sec — single-level structure provides no TDS leverage point"
       }
     },
     "bar_data_250tick_rot": {
+      "tds_disposition": "disabled",
       "trend_defense": {
-        "enabled": true,
-        "level_1": {
-          "step_widen_factor": 1.5,
-          "max_levels_reduction": 1
-        },
-        "level_2": {
-          "velocity_threshold_sec": 0.001,
-          "consecutive_adds_threshold": 999,
-          "retracement_reset_pct": 0.3
-        },
-        "level_3": {
-          "drawdown_budget_ticks": 999999.0,
-          "cooldown_sec": 300.0
-        },
-        "precursor": {
-          "precursor_min_signals": 99,
-          "speed_threshold": 1.0,
-          "regime_accel_threshold": 1.0,
-          "adverse_speed_threshold": 1.0
-        }
+        "enabled": false,
+        "_note": "TDS disabled — all detectors produce zero survival benefit for vol/tick bar types"
       },
       "survival_deltas": {
         "worst_dd_reduction": 0.0,
@@ -435,36 +357,21 @@
         "n_td_flatten_cycles": 0,
         "l3_recovery_bars_avg": 0.0
       },
-      "experiment_source": "exp1_retracement",
+      "experiment_source": "disabled_by_calibration",
       "metadata": {
         "over_trigger": false,
         "pnl_guard_passed": true,
         "no_guard_pass": false,
-        "composite_score": 0.0
+        "composite_score": 0.0,
+        "human_approved": true,
+        "disposition_reason": "L3 over-triggers all tested thresholds [30-100 ticks]; no L1 detector shows benefit for tick bars"
       }
     },
     "bar_data_250vol_rot": {
+      "tds_disposition": "disabled",
       "trend_defense": {
-        "enabled": true,
-        "level_1": {
-          "step_widen_factor": 1.5,
-          "max_levels_reduction": 1
-        },
-        "level_2": {
-          "velocity_threshold_sec": 0.001,
-          "consecutive_adds_threshold": 999,
-          "retracement_reset_pct": 0.3
-        },
-        "level_3": {
-          "drawdown_budget_ticks": 999999.0,
-          "cooldown_sec": 300.0
-        },
-        "precursor": {
-          "precursor_min_signals": 99,
-          "speed_threshold": 1.0,
-          "regime_accel_threshold": 1.0,
-          "adverse_speed_threshold": 1.0
-        }
+        "enabled": false,
+        "_note": "TDS disabled — all detectors produce zero survival benefit for vol/tick bar types"
       },
       "survival_deltas": {
         "worst_dd_reduction": 0.0,
@@ -474,12 +381,14 @@
         "n_td_flatten_cycles": 0,
         "l3_recovery_bars_avg": 0.0
       },
-      "experiment_source": "exp1_retracement",
+      "experiment_source": "disabled_by_calibration",
       "metadata": {
         "over_trigger": false,
         "pnl_guard_passed": true,
         "no_guard_pass": false,
-        "composite_score": 0.0
+        "composite_score": 0.0,
+        "human_approved": true,
+        "disposition_reason": "L3 over-triggers all tested thresholds [30-100 ticks]; no L1 detector shows benefit for vol bars"
       }
     }
   }
