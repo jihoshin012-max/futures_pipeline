@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02.1-sizing-sweep-baseline/02.1-02-PLAN.md
-last_updated: "2026-03-16T03:27:00.290Z"
+stopped_at: "Checkpoint: 02.1-03 Task 2 human-verify — awaiting review of sizing sweep report and profile selections"
+last_updated: "2026-03-16T03:32:47.171Z"
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 20
 ---
 
@@ -77,6 +77,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02-feature-evaluator-screening P03 | 1051216 | 2 tasks | 4 files |
 | Phase 02.1-sizing-sweep-baseline P01 | 11 | 2 tasks | 3 files |
 | Phase 02.1-sizing-sweep-baseline P02 | 132 | 2 tasks | 4 files |
+| Phase 02.1-sizing-sweep-baseline P03 | 5 | 1 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,9 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 02.1-01]: MaxTotalPosition guard uses compute-then-gate pattern: proposed_qty/next_level as locals before any state mutation, MTP=0 unlimited is backward compatible
 - [Phase 02.1-02]: Deduplication yields 322 unique combos per bar type (not ~308 as estimated): MTP=1 collapses all ML to ML=1 (14 combos), MTP=2 ML>=2 collapses to ML=2 representative (28 combos), all other combos kept (280)
 - [Phase 02.1-02]: compute_extended_metrics() uses _get_filtered_bars() to re-apply simulator's date/RTH filter for winning_session_pct — simulator does not expose filtered bars in SimulationResult contract
+- [Phase 02.1-03]: MAX_PROFIT and MOST_CONSISTENT converge on same configs for 250vol/10sec — calmar_ratio optimisation selects identically to PF maximisation for these bar types
+- [Phase 02.1-03]: SAFEST 250vol: SD=1.0, ML=4, MTP=16, PF=1.02 — lowest worst_cycle_dd=753t; 0% max_level_exposure_pct despite ML=4 at tight step_dist
+- [Phase 02.1-03]: Martingale beats pure reversal (MTP=1) on MAX_PROFIT for all bar types; 250tick best config is MTP=1 PF=1.84 (martingale does not improve 250tick)
 
 ### Pending Todos
 
@@ -126,6 +130,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-16T03:27:00.287Z
-Stopped at: Completed 02.1-sizing-sweep-baseline/02.1-02-PLAN.md
+Last session: 2026-03-16T03:32:47.168Z
+Stopped at: Checkpoint: 02.1-03 Task 2 human-verify — awaiting review of sizing sweep report and profile selections
 Resume file: None
