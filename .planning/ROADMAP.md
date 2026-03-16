@@ -39,7 +39,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 2. Feature Evaluator + Screening | Rotational | 0/3 | Planning complete | - |
 | 02.1. Sizing Sweep Baseline | 3/3 | Complete    | 2026-03-16 | - |
 | 3. TDS Build + Testing | Rotational | 0/2 | Planning complete | - |
-| 03.1. TDS Profile Calibration | Rotational | 0/2 | Planning complete | - |
+| 03.1. TDS Profile Calibration | 2/2 | Complete   | 2026-03-16 | - |
 | 4. Combination Testing + Replication | Rotational | 0/0 | Not started | - |
 | 5. Assessment & Deployment | Rotational | 0/0 | Not started | - |
 
@@ -97,7 +97,7 @@ Plans:
 **Goal:** Calibrate TDS detectors against the 3 baseline profiles (MAX_PROFIT, SAFEST, MOST_CONSISTENT) on all 3 bar types via 3 hypothesis-driven experiments (~99 runs total): (1) isolate each of 4 detectors individually to find the most impactful, (2) sweep drawdown budget threshold at 6 values, (3) combine best L1 detector + best L3 threshold and verify synergy. Select best TDS configuration per bar_type per profile maximizing survival improvement with PnL guard. Store calibrated configs as permanent pipeline infrastructure for Phase 04 consumption.
 **Requirements**: TDS-CAL-01, TDS-CAL-02, TDS-CAL-03, TDS-CAL-04
 **Depends on:** Phase 3
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 03.1-01-PLAN.md — Build TDS calibration harness with isolated-detector, drawdown-sweep, and combined config builders

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03.1-01-PLAN.md — TDS calibration harness with 3 experiment modes, 58 tests passing
-last_updated: "2026-03-16T14:32:42.400Z"
+stopped_at: "Completed 03.1-02-PLAN.md Task 1 — TDS experiments executed (99 runs), awaiting human review at checkpoint:human-verify (Task 2)"
+last_updated: "2026-03-16T14:56:56.548Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 20
 ---
 
@@ -82,6 +82,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 03-tds-build-testing P01 | 10 | 1 tasks | 3 files |
 | Phase 03-tds-build-testing P02 | 11 | 2 tasks | 2 files |
 | Phase 03.1-tds-profile-calibration P01 | 8 | 1 tasks | 3 files |
+| Phase 03.1-tds-profile-calibration P02 | 20 | 1 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,8 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 03.1-01]: Detector isolation via extreme never-fire thresholds: velocity=0.001sec, consecutive_adds=999, drawdown=999999, precursor=99 — these thresholds can never be reached in practice
 - [Phase 03.1-01]: TDS calibration uses hypothesis-driven experiments (not grid search): 4 isolated-detector runs + 6 drawdown-sweep runs + 1 combined run = 99 total
 - [Phase 03.1-01]: No-TDS baseline read from profile JSON (not re-run) — profiles/*.json contain exact no-TDS metrics from Phase 02.1; re-run not needed
+- [Phase 03.1-02]: L3 drawdown_budget over-triggers for all tested thresholds [30-100 ticks]: all 54 runs fail 20% PnL guard; L3 force-flatten converts ~3400 cycles vs ~360-700 baselines. Phase 04 should treat TDS as effectively disabled for vol/tick bar types.
+- [Phase 03.1-02]: Only velocity detector provides meaningful TDS benefit: +575 worst_dd_reduction for MAX_PROFIT/MOST_CONSISTENT / 10sec bars, pnl_impact=+259 (positive). All other L1 detectors produce zero dd_reduction for vol/tick bars.
 
 ### Pending Todos
 
@@ -147,6 +150,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-16T14:32:42.397Z
-Stopped at: Completed 03.1-01-PLAN.md — TDS calibration harness with 3 experiment modes, 58 tests passing
+Last session: 2026-03-16T14:56:56.544Z
+Stopped at: Completed 03.1-02-PLAN.md Task 1 — TDS experiments executed (99 runs), awaiting human review at checkpoint:human-verify (Task 2)
 Resume file: None
