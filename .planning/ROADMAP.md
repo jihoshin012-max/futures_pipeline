@@ -40,7 +40,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 02.1. Sizing Sweep Baseline | 3/3 | Complete    | 2026-03-16 | - |
 | 3. TDS Build + Testing | Rotational | 0/2 | Planning complete | - |
 | 03.1. TDS Profile Calibration | 2/2 | Complete    | 2026-03-16 | - |
-| 4. Combination Testing + Replication | Rotational | 0/0 | Not started | - |
+| 4. Combination Testing + Replication | Rotational | 0/3 | Planning complete | - |
 | 5. Assessment & Deployment | Rotational | 0/0 | Not started | - |
 
 ### Phase 1: Rotational Simulator & Baseline
@@ -108,7 +108,13 @@ Plans:
 **Goal:** Combine Phase 2 winners (robust signals prioritized) across dimensions: Dimension A winner x H2 on/off x Dimension C winners x Dimension D winners x H18/H19. Run on all 3 bar types — combinations must show consistent improvement to advance. Integrate best combination with best TDS configuration from Phase 3. Run P1b replication gate on final candidates — soft gate (flag_and_review), WEAK_REPLICATION surfaces for human review, not a hard block. Cross-bar-type analysis repeated on combinations. All research on P1a only; P1b strictly for replication check.
 **Requirements**: ROT-RES-05, ROT-RES-06, ROT-RES-07
 **Depends on:** Phase 2, Phase 3
-**Plans:** 0 plans
+**Plans:** 3 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Per-hypothesis parameter sweep (~1800 runs) to identify dimensional winners on P1a
+- [ ] 04-02-PLAN.md — Combine dimensional winners across dimensions, integrate TDS, identify final candidates
+- [ ] 04-03-PLAN.md — P1b replication gate on final candidates, generate Phase 4 report
+
 > **Tooling checkpoint:** Combination sweep multiplies experiment count significantly. If Phase 2 showed feature compute was a bottleneck, Kand adoption is blocking here. Also: if codebase has grown past ~15K LOC or cross-stage refactoring is needed, evaluate GitNexus indexing. See xtra/AI_Context_Architecture_Notes.md.
 
 ### Phase 5: Assessment & Deployment
