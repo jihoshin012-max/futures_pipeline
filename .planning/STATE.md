@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: "Checkpoint: 02.1-03 Task 2 human-verify — awaiting review of sizing sweep report and profile selections"
-last_updated: "2026-03-16T03:32:47.171Z"
+stopped_at: Completed 02.1-03-PLAN.md — Phase 02.1 sizing-sweep-baseline complete
+last_updated: "2026-03-16T04:14:52.086Z"
 progress:
   total_phases: 6
   completed_phases: 3
@@ -78,6 +78,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02.1-sizing-sweep-baseline P01 | 11 | 2 tasks | 3 files |
 | Phase 02.1-sizing-sweep-baseline P02 | 132 | 2 tasks | 4 files |
 | Phase 02.1-sizing-sweep-baseline P03 | 5 | 1 tasks | 7 files |
+| Phase 02.1-sizing-sweep-baseline P03 | 25 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,9 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 02.1-03]: MAX_PROFIT and MOST_CONSISTENT converge on same configs for 250vol/10sec — calmar_ratio optimisation selects identically to PF maximisation for these bar types
 - [Phase 02.1-03]: SAFEST 250vol: SD=1.0, ML=4, MTP=16, PF=1.02 — lowest worst_cycle_dd=753t; 0% max_level_exposure_pct despite ML=4 at tight step_dist
 - [Phase 02.1-03]: Martingale beats pure reversal (MTP=1) on MAX_PROFIT for all bar types; 250tick best config is MTP=1 PF=1.84 (martingale does not improve 250tick)
+- [Phase 02.1-03]: MAX_PROFIT and MOST_CONSISTENT select identical configs for 250vol/10sec — calmar_ratio optimisation converges with PF maximisation for these bar types
+- [Phase 02.1-03]: SAFEST 250vol: SD=1.0 ML=4 MTP=16 PF=1.02 — lowest worst_cycle_dd=753t; 0% max_level_exposure_pct despite ML=4 at tight step_dist
+- [Phase 02.1-03]: Martingale beats pure reversal (MTP=1) on MAX_PROFIT for all bar types; 250tick best config is MTP=1 PF=1.84 (martingale does not improve 250tick)
 
 ### Pending Todos
 
@@ -130,6 +134,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-16T03:32:47.168Z
-Stopped at: Checkpoint: 02.1-03 Task 2 human-verify — awaiting review of sizing sweep report and profile selections
+Last session: 2026-03-16T04:14:52.083Z
+Stopped at: Completed 02.1-03-PLAN.md — Phase 02.1 sizing-sweep-baseline complete
 Resume file: None

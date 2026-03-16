@@ -37,7 +37,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 6. Stage 02 Autoresearch | v1.0 | 3/3 | Complete | 2026-03-14 |
 | 7. Stage 03 Autoresearch | v1.0 | 3/3 | Complete | 2026-03-14 |
 | 2. Feature Evaluator + Screening | Rotational | 0/3 | Planning complete | - |
-| 02.1. Sizing Sweep Baseline | 2/3 | In Progress|  | - |
+| 02.1. Sizing Sweep Baseline | 3/3 | Complete   | 2026-03-16 | - |
 | 3. TDS Build + Testing | Rotational | 0/0 | Not started | - |
 | 4. Combination Testing + Replication | Rotational | 0/0 | Not started | - |
 | 5. Assessment & Deployment | Rotational | 0/0 | Not started | - |
@@ -73,7 +73,7 @@ Plans:
 **Goal:** Add MaxTotalPosition cap to simulator, run joint 3-parameter sweep (StepDist x MaxLevels x MaxTotalPosition) on P1a across all 3 bar types, identify 3 baseline profiles (MAX_PROFIT, SAFEST, MOST_CONSISTENT) as permanent pipeline infrastructure
 **Requirements**: ROT-SIZ-01, ROT-SIZ-02, ROT-SIZ-03, ROT-SIZ-04, ROT-SIZ-05
 **Depends on:** Phase 2
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 02.1-01-PLAN.md — Add MaxTotalPosition cap to simulator with TDD tests
