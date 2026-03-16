@@ -735,3 +735,183 @@ class TestDeterminismRealData:
         )
         # Verify retracement_depths lists are also identical
         assert list(run1.cycles["retracement_depths"]) == list(run2.cycles["retracement_depths"])
+
+
+# ---------------------------------------------------------------------------
+# Test: MaxTotalPosition Cap
+# ---------------------------------------------------------------------------
+
+class TestMaxTotalPosition:
+    """Tests for the MaxTotalPosition cap feature.
+
+    MaxTotalPosition (MTP) refuses ADD trades when adding would exceed the cap.
+    MTP=0 means unlimited (backward compatible with pre-feature behavior).
+    MTP=1 produces pure reversal (SEED->REVERSAL only, zero ADDs).
+    When an ADD is refused: position unchanged, level unchanged.
+    """
+
+    _REPO_ROOT = Path(__file__).resolve().parents[3]
+    _VOL_PATH = (
+        _REPO_ROOT
+        / "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P1.csv"
+    )
+
+    @classmethod
+    def _make_mtp_config(
+        cls,
+        max_total_position: int,
+        max_levels: int = 4,
+        step_dist: float = 2.0,
+        initial_qty: int = 1,
+    ) -> dict:
+        """Build config with max_total_position in martingale block."""
+        cfg = _make_config(
+            step_dist=step_dist,
+            initial_qty=initial_qty,
+            max_levels=max_levels,
+            max_contract_size=16,  # high enough not to be the limiting factor
+        )
+        cfg["martingale"]["max_total_position"] = max_total_position
+        return cfg
+
+    def test_mtp1_pure_reversal_no_add_trades(self):
+        """MTP=1: zero ADD trades — every cycle is SEED->REVERSAL only.
+
+        With MTP=1 and initial_qty=1, position after SEED is 1 = MTP.
+        Any ADD would produce position 2 > MTP=1, so ALL adds are refused.
+        """
+        cfg = self._make_mtp_config(max_total_position=1, max_levels=5, step_dist=2.0)
+
+        # Load real P1a vol bars
+        import sys as _sys
+        _sys.path.insert(0, str(self._REPO_ROOT))
+        from shared.data_loader import load_bars
+
+        vol_bars = load_bars(str(self._VOL_PATH))
+        sim = RotationalSimulator(config=cfg, bar_data=vol_bars)
+        result = sim.run()
+
+        assert result.bars_processed > 0, "Should process some bars"
+        adds = result.trades[result.trades["action"] == "ADD"]
+        assert len(adds) == 0, (
+            f"MTP=1 must produce zero ADD trades; got {len(adds)}"
+        )
+        # Verify cycles: adds_count=0 for every cycle
+        if not result.cycles.empty:
+            assert (result.cycles["adds_count"] == 0).all(), (
+                "MTP=1: all cycles must have adds_count=0"
+            )
+
+    def test_mtp0_identical_to_no_mtp_config(self):
+        """MTP=0 backward compat: results IDENTICAL to config without max_total_position key.
+
+        MTP=0 means unlimited — must not change any behavior vs the pre-feature baseline.
+        """
+        import sys as _sys
+        _sys.path.insert(0, str(self._REPO_ROOT))
+        from shared.data_loader import load_bars
+
+        vol_bars = load_bars(str(self._VOL_PATH))
+
+        # Config WITH max_total_position=0
+        cfg_with_mtp = self._make_mtp_config(
+            max_total_position=0, max_levels=4, step_dist=2.0
+        )
+
+        # Config WITHOUT max_total_position key (simulate pre-feature state)
+        cfg_without_mtp = _make_config(
+            step_dist=2.0,
+            max_levels=4,
+            max_contract_size=16,
+        )
+        # Ensure max_total_position key is NOT present
+        assert "max_total_position" not in cfg_without_mtp.get("martingale", {}), (
+            "Control config must not have max_total_position"
+        )
+
+        sim_with = RotationalSimulator(config=cfg_with_mtp, bar_data=vol_bars.copy())
+        run_with = sim_with.run()
+
+        sim_without = RotationalSimulator(config=cfg_without_mtp, bar_data=vol_bars.copy())
+        run_without = sim_without.run()
+
+        pd.testing.assert_frame_equal(
+            run_with.trades.reset_index(drop=True),
+            run_without.trades.reset_index(drop=True),
+            check_exact=True,
+            obj="MTP=0 vs no-MTP trades",
+        )
+        numeric_cols = [c for c in run_with.cycles.columns if c != "retracement_depths"]
+        pd.testing.assert_frame_equal(
+            run_with.cycles[numeric_cols].reset_index(drop=True),
+            run_without.cycles[numeric_cols].reset_index(drop=True),
+            check_exact=True,
+            obj="MTP=0 vs no-MTP cycles",
+        )
+
+    def test_mtp2_cap_mid_sequence_refuses_third_add(self):
+        """MTP=2: after SEED(pos=1), first ADD fires (pos=2=MTP), second ADD refused.
+
+        Synthetic bar sequence with controlled timing:
+        - Bar 0: SEED at 100.0 (Long, pos=1)
+        - Bar 1: 98.0 (down 2.0, ADD fires: pos=1+1=2=MTP, level->1)
+        - Bar 2: 96.0 (down 2.0 from anchor 98, second ADD attempted: pos would be 2+2=4>MTP=2, REFUSED)
+        - Bar 3: 94.0 (another 2.0 down, still refused since pos=2, proposed=2, 2+2=4>2)
+        """
+        cfg = self._make_mtp_config(max_total_position=2, max_levels=3, initial_qty=1)
+        prices = [100.0, 98.0, 96.0, 94.0, 92.0]
+        result = _run(cfg, prices)
+
+        trades = result.trades
+        adds = trades[trades["action"] == "ADD"]
+
+        # Only ONE add should fire (the first one brings pos from 1 to 2=MTP)
+        assert len(adds) == 1, (
+            f"MTP=2 with initial_qty=1: only first ADD (qty=1, pos->2) should fire; "
+            f"got {len(adds)} adds"
+        )
+        assert adds.iloc[0]["qty"] == 1  # initial_qty * 2^0 = 1
+
+    def test_mtp_cap_does_not_mutate_level(self):
+        """When ADD is refused due to MTP cap, self._level must remain unchanged.
+
+        After a REVERSAL that resets position to initial_qty, the next ADD attempt
+        should use the level that was current before the refusal (not level+1).
+
+        Sequence:
+        - Bar 0: SEED Long at 100.0 (pos=1, level=0)
+        - Bar 1: 98.0 (ADD fires, pos=2=MTP=2, level->1)
+        - Bar 2: 96.0 (ADD refused: pos=2, proposed=2, 2+2>2; level stays at 1)
+        - Bar 3: 100.0 (REVERSAL to Short: pos->1, level->0, anchor->100)
+        - Bar 4: 98.0 (SEED cycle over; we're now Short at 100, 100->98 = -2 against Short? No)
+
+        Let's re-sequence so the reversal fires cleanly:
+        - Bar 0: SEED Long at 100.0 (pos=1, level=0)
+        - Bar 1: 98.0 (down 2.0 against: ADD fires pos=2=MTP, level->1)
+        - Bar 2: 96.0 (down 2.0 against: ADD refused, pos stays 2, level stays 1)
+        - Bar 3: 104.0 (up from anchor=96 by 8.0 >= 2.0: REVERSAL to Short, pos->1, level->0)
+        - Bar 4: 106.0 (up 2.0 against Short: ADD fires; should use level=0 -> qty=1*2^0=1)
+
+        The key assertion: after the refused add at bar 2, the reversal at bar 3 resets level to 0.
+        Then the first ADD on the Short side should fire at level=0 with qty=1.
+        """
+        # MTP=4 to allow adds on the Short side to prove level continuity
+        cfg = self._make_mtp_config(max_total_position=2, max_levels=3, initial_qty=1)
+        prices = [100.0, 98.0, 96.0, 104.0, 106.0]
+        result = _run(cfg, prices)
+
+        trades = result.trades
+        adds = trades[trades["action"] == "ADD"]
+
+        # Should have exactly 2 adds:
+        # 1) Long-side: bar 1 at 98.0 (level=0 -> level=1, qty=1)
+        # 2) Short-side: bar 4 at 106.0 (level=0 -> level=1, qty=1) — after reversal reset
+        # Bar 2 add should be REFUSED (pos=2, proposed=2, exceeds MTP=2)
+        assert len(adds) == 2, (
+            f"Expected 2 adds (1 Long, 1 Short); got {len(adds)}: "
+            f"{adds[['action','direction','qty','level','price']].to_dict('records')}"
+        )
+
+        # Both adds should be at level=0 (level resets at reversal; short-side starts fresh)
+        assert adds.iloc[0]["level"] == 0, "First ADD (Long side): should be at level=0"
+        assert adds.iloc[1]["level"] == 0, "Second ADD (Short side): should be at level=0 after reversal reset"
