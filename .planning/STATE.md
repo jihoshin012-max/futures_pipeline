@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-feature-evaluator-screening/02-03-PLAN.md
-last_updated: "2026-03-16T00:02:36.648Z"
+stopped_at: Completed 02.1-sizing-sweep-baseline/02.1-01-PLAN.md
+last_updated: "2026-03-16T01:12:14.652Z"
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
   percent: 20
 ---
 
@@ -75,6 +75,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02-feature-evaluator-screening P01 | 30 | 3 tasks | 6 files |
 | Phase 02-feature-evaluator-screening P02 | 53 | 2 tasks | 5 files |
 | Phase 02-feature-evaluator-screening P03 | 1051216 | 2 tasks | 4 files |
+| Phase 02.1-sizing-sweep-baseline P01 | 11 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,7 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 02-02]: force_rth pre-filters vol/tick bars to RTH window via _apply_rth_filter() per spec Section 3.7 Pitfall 6 — ensures cross-bar-type comparison uses same time window
 - [Phase 02-feature-evaluator-screening]: H19 disposition: SKIPPED_REFERENCE_REQUIRED — defer to Phase 4 when multi-source reference available
 - [Phase 02-feature-evaluator-screening]: Strategic: sizing sweep (MaxLevels x MaxContractSize) required before Phase 3 TDS
+- [Phase 02.1-01]: MaxTotalPosition guard uses compute-then-gate pattern: proposed_qty/next_level as locals before any state mutation, MTP=0 unlimited is backward compatible
 
 ### Pending Todos
 
@@ -106,6 +108,7 @@ None — milestone complete.
 ### Roadmap Evolution
 
 - Phase 1 added: Rotational Simulator & Baseline (Phase B from spec)
+- Phase 02.1 inserted after Phase 2: sizing-sweep-baseline (URGENT)
 
 ### Blockers/Concerns
 
@@ -120,6 +123,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-15T23:56:36.931Z
-Stopped at: Completed 02-feature-evaluator-screening/02-03-PLAN.md
+Last session: 2026-03-16T01:12:14.649Z
+Stopped at: Completed 02.1-sizing-sweep-baseline/02.1-01-PLAN.md
 Resume file: None
