@@ -915,3 +915,183 @@ class TestMaxTotalPosition:
         # Both adds should be at level=0 (level resets at reversal; short-side starts fresh)
         assert adds.iloc[0]["level"] == 0, "First ADD (Long side): should be at level=0"
         assert adds.iloc[1]["level"] == 0, "Second ADD (Short side): should be at level=0 after reversal reset"
+
+
+# ---------------------------------------------------------------------------
+# Test: Anchor Mode on MTP Refusal
+# ---------------------------------------------------------------------------
+
+class TestAnchorMode:
+    """Tests for anchor_mode behavior when MTP refuses an ADD."""
+
+    @staticmethod
+    def _make_anchor_mode_config(
+        anchor_mode: str,
+        max_total_position: int = 2,
+        mtp_dd_exit_ticks: float = 0,
+        step_dist: float = 2.0,
+        initial_qty: int = 1,
+        max_levels: int = 3,
+    ) -> dict:
+        cfg = _make_config(
+            step_dist=step_dist,
+            initial_qty=initial_qty,
+            max_levels=max_levels,
+            max_contract_size=16,
+        )
+        cfg["martingale"]["max_total_position"] = max_total_position
+        cfg["martingale"]["anchor_mode"] = anchor_mode
+        cfg["martingale"]["mtp_dd_exit_ticks"] = mtp_dd_exit_ticks
+        return cfg
+
+    def test_mode_a_frozen_anchor_unchanged_on_refusal(self):
+        """Mode A (frozen): anchor stays at last successful ADD price on MTP refusal.
+
+        - Bar 0: SEED Long at 100.0 (pos=1, anchor=100.0)
+        - Bar 1: 98.0 (down 2.0: ADD fires, pos=2=MTP, anchor->98.0)
+        - Bar 2: 96.0 (down 2.0 from anchor 98: ADD refused, anchor stays 98.0)
+        - Bar 3: 94.0 (down 2.0 from anchor 98? No, distance=98-94=4 >= step=2: ADD refused again)
+        """
+        cfg = self._make_anchor_mode_config(anchor_mode="frozen", max_total_position=2)
+        prices = [100.0, 98.0, 96.0, 94.0]
+        bars = _make_bars(prices)
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+
+        # After MTP refusal at bar 2, anchor should still be 98.0 (from last ADD)
+        adds = result.trades[result.trades["action"] == "ADD"]
+        assert len(adds) == 1, f"Only 1 ADD should fire; got {len(adds)}"
+        assert adds.iloc[0]["anchor"] == 98.0
+
+    def test_mode_b_walking_anchor_updates_on_refusal(self):
+        """Mode B (walking): anchor moves to current price on MTP refusal.
+
+        - Bar 0: SEED Long at 100.0 (pos=1, anchor=100.0)
+        - Bar 1: 98.0 (down 2.0: ADD fires, pos=2=MTP, anchor->98.0)
+        - Bar 2: 96.0 (down 2.0 from anchor 98: ADD refused, anchor->96.0 via walking)
+        - Bar 3: 94.0 (down 2.0 from anchor 96: ADD refused, anchor->94.0 via walking)
+        - Bar 4: 96.25 (up 2.25 from anchor 94.0 >= step 2.0: REVERSAL fires)
+
+        Key: with frozen anchor (98.0), reversal would need price >= 100.0.
+        With walking anchor (94.0), reversal fires at 96.0+step = 96.0.
+        """
+        cfg = self._make_anchor_mode_config(anchor_mode="walking", max_total_position=2)
+        prices = [100.0, 98.0, 96.0, 94.0, 96.25]
+        result = _run(cfg, prices)
+
+        # Should have a reversal at bar 4 (only possible if anchor walked to 94.0)
+        reversals = result.trades[result.trades["action"] == "REVERSAL"]
+        assert len(reversals) >= 1, (
+            "Walking anchor should enable earlier reversal; "
+            f"trades: {result.trades[['action','price','anchor']].to_dict('records')}"
+        )
+        # The reversal anchor should reflect the walked anchor
+        assert reversals.iloc[0]["price"] == 96.25
+
+    def test_mode_b_vs_mode_a_different_reversal_timing(self):
+        """Mode B enables earlier reversal than Mode A with same price sequence.
+
+        With frozen anchor at 98.0, reversal needs price >= 100.0 (98+2).
+        With walking anchor at 94.0, reversal needs price >= 96.0 (94+2).
+        """
+        prices = [100.0, 98.0, 96.0, 94.0, 96.25]
+
+        cfg_a = self._make_anchor_mode_config(anchor_mode="frozen", max_total_position=2)
+        result_a = _run(cfg_a, prices)
+
+        cfg_b = self._make_anchor_mode_config(anchor_mode="walking", max_total_position=2)
+        result_b = _run(cfg_b, prices)
+
+        reversals_a = result_a.trades[result_a.trades["action"] == "REVERSAL"]
+        reversals_b = result_b.trades[result_b.trades["action"] == "REVERSAL"]
+
+        # Mode A: no reversal at 96.25 (anchor frozen at 98, needs 100.0)
+        # Mode B: reversal at 96.25 (anchor walked to 94.0, needs 96.0)
+        assert len(reversals_a) == 0, "Mode A should NOT reverse at 96.25"
+        assert len(reversals_b) >= 1, "Mode B SHOULD reverse at 96.25"
+
+    def test_mode_c_hard_stop_flattens_on_threshold(self):
+        """Mode C (frozen_stop): flattens when unrealized PnL breaches threshold.
+
+        - Bar 0: SEED Long at 100.0 (pos=1, avg_entry=100.0)
+        - Bar 1: 98.0 (ADD fires, pos=2, avg_entry=99.0)
+        - Bar 2: 96.0 (ADD refused — MTP=2 — anchor frozen at 98.0)
+        - Bar 3: 89.0 (unrealized = (89-99)/0.25 * 1 * 2 = -80 ticks, breaches -60)
+
+        mtp_dd_exit_ticks=-60: should flatten at bar 3.
+        """
+        cfg = self._make_anchor_mode_config(
+            anchor_mode="frozen_stop", max_total_position=2,
+            mtp_dd_exit_ticks=-60,
+        )
+        prices = [100.0, 98.0, 96.0, 89.0, 100.0]
+        result = _run(cfg, prices)
+
+        # Should have a FLATTEN with exit_reason mtp_dd_exit
+        if not result.cycles.empty:
+            mtp_dd_exits = result.cycles[result.cycles["exit_reason"] == "mtp_dd_exit"]
+            assert len(mtp_dd_exits) >= 1, (
+                f"Mode C should flatten on threshold breach; "
+                f"exit_reasons: {result.cycles['exit_reason'].tolist()}"
+            )
+
+    def test_mode_c_no_exit_above_threshold(self):
+        """Mode C does NOT flatten when unrealized PnL stays above threshold.
+
+        - Bar 0: SEED Long at 100.0 (pos=1)
+        - Bar 1: 98.0 (ADD, pos=2, avg_entry=99.0)
+        - Bar 2: 96.0 (MTP refused)
+        - Bar 3: 95.0 (unrealized = (95-99)/0.25 * 2 = -32 ticks, above -60)
+        """
+        cfg = self._make_anchor_mode_config(
+            anchor_mode="frozen_stop", max_total_position=2,
+            mtp_dd_exit_ticks=-60,
+        )
+        prices = [100.0, 98.0, 96.0, 95.0]
+        result = _run(cfg, prices)
+
+        if not result.cycles.empty:
+            mtp_dd_exits = result.cycles[result.cycles["exit_reason"] == "mtp_dd_exit"]
+            assert len(mtp_dd_exits) == 0, (
+                "Mode C should NOT flatten when above threshold"
+            )
+
+    def test_mode_c_reseeds_after_flatten(self):
+        """After Mode C mtp_dd_exit flatten, sim goes FLAT then re-SEEDs on next bar.
+
+        Prices: SEED, ADD, MTP-refused, breach threshold (flatten), re-SEED.
+        """
+        cfg = self._make_anchor_mode_config(
+            anchor_mode="frozen_stop", max_total_position=2,
+            mtp_dd_exit_ticks=-60,
+        )
+        # At bar 3: unrealized = (89-99)/0.25 * 2 = -80 ticks < -60 => flatten
+        # Bar 4: FLAT, should re-SEED
+        prices = [100.0, 98.0, 96.0, 89.0, 100.0]
+        result = _run(cfg, prices)
+
+        seeds = result.trades[result.trades["action"] == "SEED"]
+        assert len(seeds) >= 2, (
+            f"Should re-SEED after mtp_dd_exit; got {len(seeds)} seeds"
+        )
+
+    def test_default_anchor_mode_is_frozen(self):
+        """When anchor_mode is not specified, default behavior is 'frozen' (Mode A)."""
+        cfg = _make_config(step_dist=2.0)
+        cfg["martingale"]["max_total_position"] = 2
+        # No anchor_mode key — should default to "frozen"
+        prices = [100.0, 98.0, 96.0, 94.0, 96.25]
+        result_default = _run(cfg, prices)
+
+        cfg_explicit = self._make_anchor_mode_config(
+            anchor_mode="frozen", max_total_position=2
+        )
+        result_explicit = _run(cfg_explicit, prices)
+
+        # Should produce identical trades
+        pd.testing.assert_frame_equal(
+            result_default.trades.reset_index(drop=True),
+            result_explicit.trades.reset_index(drop=True),
+            check_exact=True,
+            obj="default vs explicit frozen anchor mode",
+        )

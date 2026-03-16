@@ -373,6 +373,8 @@ class RotationalSimulator:
         self._max_levels: int = int(mart.get("max_levels", 4))
         self._max_contract_size: int = int(mart.get("max_contract_size", 8))
         self._max_total_position: int = int(mart.get("max_total_position", 0))  # 0=unlimited
+        self._anchor_mode: str = mart.get("anchor_mode", "frozen")  # "frozen" (A) | "walking" (B) | "frozen_stop" (C)
+        self._mtp_dd_exit_ticks: float = float(mart.get("mtp_dd_exit_ticks", 0))  # Mode C only: negative threshold
 
         instr = config.get("_instrument", {})
         self._tick_size: float = float(instr.get("tick_size", 0.25))
@@ -591,9 +593,13 @@ class RotationalSimulator:
             next_level = self._level + 1
             level_at_add = self._level  # level recorded is the level before incrementing
 
-        # 2. MaxTotalPosition gate — refuse entirely, no state change
+        # 2. MaxTotalPosition gate — refuse add, anchor behavior depends on anchor_mode
         if self._max_total_position > 0:
             if self._position_qty + proposed_qty > self._max_total_position:
+                if self._anchor_mode == "walking":
+                    # Mode B: update anchor to current price on MTP refusal
+                    self._anchor = close
+                # Mode A ("frozen") and Mode C ("frozen_stop"): anchor stays frozen
                 return  # skip: position unchanged, level unchanged
 
         # 3. Commit state changes
@@ -766,6 +772,77 @@ class RotationalSimulator:
         # Enter TDS cooldown
         self._tds.state.forced_flat = True
 
+    def _check_mtp_dd_exit(
+        self,
+        bar_idx: int,
+        dt: object,
+        close: float,
+        logger: TradeLogger,
+        bars_df: "pd.DataFrame",
+    ) -> bool:
+        """Mode C: check if unrealized PnL breaches mtp_dd_exit_ticks threshold.
+
+        Returns True if position was flattened (caller should skip further processing).
+        Only active when anchor_mode='frozen_stop' and mtp_dd_exit_ticks < 0.
+        """
+        if self._anchor_mode != "frozen_stop" or self._mtp_dd_exit_ticks >= 0:
+            return False
+        if self._state != "POSITIONED" or self._position_qty == 0:
+            return False
+
+        # Unrealized PnL in ticks: (close - avg_entry) / tick_size * qty * direction_sign
+        direction_sign = 1.0 if self._direction == "Long" else -1.0
+        unrealized_ticks = (
+            (close - self._avg_entry_price) / self._tick_size
+        ) * direction_sign * self._position_qty
+
+        if unrealized_ticks <= self._mtp_dd_exit_ticks:
+            # Flatten and reset to FLAT
+            flatten_trade = {
+                "bar_idx": bar_idx,
+                "datetime": dt,
+                "action": "FLATTEN",
+                "direction": self._direction,
+                "qty": self._position_qty,
+                "price": close,
+                "level": self._level,
+                "anchor": self._anchor,
+                "cost_ticks": self._cost_ticks * self._position_qty,
+                "cycle_id": self._cycle_id,
+            }
+            self._cycle_trades.append(flatten_trade)
+            logger.log_action(
+                bar_idx, dt, "FLATTEN", self._direction, self._position_qty,
+                close, self._level, self._anchor, self._cycle_id,
+            )
+
+            logger.finalize_cycle(
+                cycle_id=self._cycle_id,
+                start_bar=self._cycle_start_bar,
+                end_bar=bar_idx,
+                direction=self._direction,
+                trades_in_cycle=list(self._cycle_trades),
+                bars_df=bars_df,
+                exit_price=close,
+                exit_reason="mtp_dd_exit",
+                trend_defense_level_max=self._tds_level_max,
+            )
+
+            # Reset to FLAT
+            self._state = "FLAT"
+            self._direction = None
+            self._level = 0
+            self._anchor = None
+            self._position_qty = 0
+            self._avg_entry_price = 0.0
+            self._cycle_trades = []
+            self._tds_level_max = 0
+            self._cycle_favorable_weighted = 0.0
+            self._cycle_adverse_weighted = 0.0
+            return True
+
+        return False
+
     # -----------------------------------------------------------------------
     # Main simulation loop
     # -----------------------------------------------------------------------
@@ -920,6 +997,10 @@ class RotationalSimulator:
                         self._add(bar_idx, dt, close, logger)
                         if self._tds is not None:
                             self._tds.on_add(price=close)
+
+            # Mode C: check drawdown exit after state machine (MTP refusal may have frozen anchor)
+            if self._state == "POSITIONED" and self._check_mtp_dd_exit(bar_idx, dt, close, logger, bars):
+                continue  # flattened — skip to next bar
 
             # End of bar: update TDS cycle metrics
             if self._tds is not None and self._state == "POSITIONED":

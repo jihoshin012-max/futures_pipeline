@@ -1,0 +1,17 @@
+{
+  "bar_data_250vol_rot": {
+    "anchor_mode": "frozen_stop",
+    "mtp_dd_exit_ticks": -40.0,
+    "composite": 0.4891228070175438
+  },
+  "bar_data_250tick_rot": {
+    "anchor_mode": "frozen_stop",
+    "mtp_dd_exit_ticks": -80.0,
+    "composite": 0.46416115453998796
+  },
+  "bar_data_10sec_rot": {
+    "anchor_mode": "frozen_stop",
+    "mtp_dd_exit_ticks": -60.0,
+    "composite": 0.5871833084947838
+  }
+}
