@@ -39,7 +39,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 2. Feature Evaluator + Screening | Rotational | 0/3 | Planning complete | - |
 | 02.1. Sizing Sweep Baseline | 3/3 | Complete    | 2026-03-16 | - |
 | 3. TDS Build + Testing | Rotational | 0/2 | Planning complete | - |
-| 03.1. TDS Profile Calibration | 2/2 | Complete   | 2026-03-16 | - |
+| 03.1. TDS Profile Calibration | 2/2 | Complete    | 2026-03-16 | - |
 | 4. Combination Testing + Replication | Rotational | 0/0 | Not started | - |
 | 5. Assessment & Deployment | Rotational | 0/0 | Not started | - |
 
