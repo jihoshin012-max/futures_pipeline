@@ -20,6 +20,13 @@ Source: xtra/Rotational_Archetype_Spec.md
 - **ROT-SIZ-04**: Identify 3 baseline profiles per bar type (MAX_PROFIT, SAFEST, MOST_CONSISTENT) and store as permanent pipeline infrastructure in profiles/ directory
 - **ROT-SIZ-05**: Add --profile flag to rotational_engine.py to load profile configs and override martingale/step_dist parameters
 
+## Phase 03.1: TDS Profile Calibration
+
+- **TDS-CAL-01**: Build `run_tds_sweep.py` — joint sweep of TDS threshold parameters (drawdown_budget_ticks, velocity_threshold_sec, consecutive_adds_threshold, cooldown_sec) across all 3 bar types, run against each of the 3 baseline profiles (MAX_PROFIT, SAFEST, MOST_CONSISTENT) on P1a data
+- **TDS-CAL-02**: Compute TDS survival metrics per run: worst_cycle_dd reduction vs baseline, max_level_exposure_pct reduction, tail_ratio change, l3_trigger_count, l3_recovery_bars_avg, pnl_impact_ticks (delta from profile baseline), n_td_flatten_cycles
+- **TDS-CAL-03**: Identify best TDS configuration per bar type per profile — select thresholds that maximize survival metric improvement (worst_cycle_dd reduction + max_level_exposure_pct reduction) while minimizing PnL degradation (guard: max -20%)
+- **TDS-CAL-04**: Store calibrated TDS configurations in `tds_profiles/` directory as permanent pipeline infrastructure — one JSON with all bar type + profile combinations, with no-TDS baseline for each as comparison anchor
+
 ## Phase 2: Research Execution (future)
 
 - **ROT-RES-01**: Build rotational_feature_evaluator.py for Stage 02

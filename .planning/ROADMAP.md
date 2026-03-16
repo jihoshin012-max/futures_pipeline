@@ -39,6 +39,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 2. Feature Evaluator + Screening | Rotational | 0/3 | Planning complete | - |
 | 02.1. Sizing Sweep Baseline | 3/3 | Complete    | 2026-03-16 | - |
 | 3. TDS Build + Testing | Rotational | 0/2 | Planning complete | - |
+| 03.1. TDS Profile Calibration | Rotational | 0/2 | Planning complete | - |
 | 4. Combination Testing + Replication | Rotational | 0/0 | Not started | - |
 | 5. Assessment & Deployment | Rotational | 0/0 | Not started | - |
 
@@ -90,6 +91,17 @@ Plans:
 Plans:
 - [ ] 03-01-PLAN.md — Build TrendDefenseSystem class with 5 detectors, 3-level escalation, and 14 unit tests (TDD)
 - [ ] 03-02-PLAN.md — Integrate TDS into RotationalSimulator, wire H36/H39 dynamic features, 8 integration tests
+
+### Phase 03.1: TDS Profile Calibration (INSERTED)
+
+**Goal:** Calibrate TDS threshold parameters against the 3 baseline profiles (MAX_PROFIT, SAFEST, MOST_CONSISTENT) on all 3 bar types via systematic grid search. Select best TDS configuration per bar_type per profile maximizing survival improvement with PnL guard. Store calibrated configs as permanent pipeline infrastructure for Phase 04 consumption.
+**Requirements**: TDS-CAL-01, TDS-CAL-02, TDS-CAL-03, TDS-CAL-04
+**Depends on:** Phase 3
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03.1-01-PLAN.md — Build TDS sweep harness, execute 2,880-run primary sweep on P1a
+- [ ] 03.1-02-PLAN.md — Select best TDS configs per profile per bar type, store calibrated profiles
 
 ### Phase 4: Combination Testing + Replication
 
