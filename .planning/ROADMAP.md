@@ -94,14 +94,14 @@ Plans:
 
 ### Phase 03.1: TDS Profile Calibration (INSERTED)
 
-**Goal:** Calibrate TDS threshold parameters against the 3 baseline profiles (MAX_PROFIT, SAFEST, MOST_CONSISTENT) on all 3 bar types via systematic grid search. Select best TDS configuration per bar_type per profile maximizing survival improvement with PnL guard. Store calibrated configs as permanent pipeline infrastructure for Phase 04 consumption.
+**Goal:** Calibrate TDS detectors against the 3 baseline profiles (MAX_PROFIT, SAFEST, MOST_CONSISTENT) on all 3 bar types via 3 hypothesis-driven experiments (~99 runs total): (1) isolate each of 4 detectors individually to find the most impactful, (2) sweep drawdown budget threshold at 6 values, (3) combine best L1 detector + best L3 threshold and verify synergy. Select best TDS configuration per bar_type per profile maximizing survival improvement with PnL guard. Store calibrated configs as permanent pipeline infrastructure for Phase 04 consumption.
 **Requirements**: TDS-CAL-01, TDS-CAL-02, TDS-CAL-03, TDS-CAL-04
 **Depends on:** Phase 3
 **Plans:** 2 plans
 
 Plans:
-- [ ] 03.1-01-PLAN.md — Build TDS sweep harness, execute 2,880-run primary sweep on P1a
-- [ ] 03.1-02-PLAN.md — Select best TDS configs per profile per bar type, store calibrated profiles
+- [ ] 03.1-01-PLAN.md — Build TDS calibration harness with isolated-detector, drawdown-sweep, and combined config builders
+- [ ] 03.1-02-PLAN.md — Execute 3 experiments (~99 runs), select best TDS configs per profile per bar type, store calibrated profiles
 
 ### Phase 4: Combination Testing + Replication
 
