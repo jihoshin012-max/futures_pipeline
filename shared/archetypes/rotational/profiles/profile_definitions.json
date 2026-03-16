@@ -1,0 +1,27 @@
+{
+  "MAX_PROFIT": {
+    "description": "Highest cycle PF regardless of risk",
+    "primary_metric": "cycle_pf",
+    "primary_sort": "desc",
+    "tiebreaker_metric": "total_pnl_ticks",
+    "tiebreaker_sort": "desc"
+  },
+  "SAFEST": {
+    "description": "Best survival metrics — minimise worst-case single-cycle loss",
+    "primary_metric": "worst_cycle_dd",
+    "primary_sort": "asc",
+    "secondary_metric": "max_level_exposure_pct",
+    "secondary_sort": "asc",
+    "tertiary_metric": "tail_ratio",
+    "tertiary_sort": "desc"
+  },
+  "MOST_CONSISTENT": {
+    "description": "Best risk-adjusted returns — maximise calmar and consistency",
+    "primary_metric": "calmar_ratio",
+    "primary_sort": "desc",
+    "secondary_metric": "winning_session_pct",
+    "secondary_sort": "desc",
+    "tertiary_metric": "max_dd_duration_bars",
+    "tertiary_sort": "asc"
+  }
+}

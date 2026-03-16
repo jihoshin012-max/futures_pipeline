@@ -475,7 +475,89 @@ def write_result(output_path: str, metrics: dict, config: dict) -> None:
 # Main entry point
 # ---------------------------------------------------------------------------
 
-def main(config_path: str, output_path: str) -> None:
+def load_profile_config(profile_name: str, bar_type: str | None) -> dict:
+    """Load a named profile JSON and return the config for the given bar type.
+
+    Args:
+        profile_name: Profile name (e.g., "max_profit", "safest", "most_consistent").
+        bar_type: Bar type key (e.g., "bar_data_250vol_rot"). If None, uses the first
+                  bar type in the profile's bar_types dict.
+
+    Returns:
+        Dict with keys: step_dist, max_levels, max_total_position, cycle_pf, ...
+        This dict is the winning config entry from the profile JSON.
+
+    Raises:
+        SystemExit if profile JSON not found or bar_type not in profile.
+    """
+    profiles_dir = Path(__file__).resolve().parent / "profiles"
+    profile_path = profiles_dir / f"{profile_name.lower()}.json"
+
+    if not profile_path.exists():
+        raise SystemExit(
+            f"Profile not found: {profile_path}\n"
+            f"Run 'python run_sizing_sweep.py --score-profiles' to generate profiles."
+        )
+
+    with open(profile_path, "r", encoding="utf-8") as f:
+        profile_data = json.load(f)
+
+    bar_types = profile_data.get("bar_types", {})
+    if not bar_types:
+        raise SystemExit(f"Profile '{profile_name}' has no bar_types entries.")
+
+    # Resolve bar_type
+    if bar_type is None:
+        bar_type = next(iter(bar_types))
+        print(f"  --bar-type not specified; using first bar type: {bar_type}")
+
+    if bar_type not in bar_types:
+        available = list(bar_types.keys())
+        raise SystemExit(
+            f"Bar type '{bar_type}' not in profile '{profile_name}'.\n"
+            f"Available bar types: {available}"
+        )
+
+    return bar_types[bar_type], bar_type
+
+
+def apply_profile_overrides(config: dict, profile_cfg: dict, profile_name: str, bar_type: str) -> None:
+    """Apply profile config overrides to the engine config in-place.
+
+    Overrides:
+        config["hypothesis"]["trigger_params"]["step_dist"]
+        config["martingale"]["max_levels"]
+        config["martingale"]["max_total_position"]
+        config["martingale"]["max_contract_size"] = 16 (fixed per sweep)
+
+    If bar_type is provided, also filters bar_data_primary to only that bar type.
+
+    Prints a summary of the applied overrides.
+    """
+    # Ensure hypothesis and martingale sections exist
+    if "hypothesis" not in config:
+        config["hypothesis"] = {}
+    if "trigger_params" not in config["hypothesis"]:
+        config["hypothesis"]["trigger_params"] = {}
+    if "martingale" not in config:
+        config["martingale"] = {}
+
+    step_dist = profile_cfg["step_dist"]
+    max_levels = profile_cfg["max_levels"]
+    max_total_position = profile_cfg["max_total_position"]
+
+    config["hypothesis"]["trigger_params"]["step_dist"] = step_dist
+    config["martingale"]["max_levels"] = max_levels
+    config["martingale"]["max_total_position"] = max_total_position
+    config["martingale"]["max_contract_size"] = 16  # fixed per sweep spec
+
+    print(
+        f"Loaded profile {profile_name} for {bar_type}: "
+        f"StepDist={step_dist}, ML={max_levels}, MTP={max_total_position}"
+    )
+
+
+def main(config_path: str, output_path: str, profile_name: str | None = None, bar_type: str | None = None) -> None:
     """Main rotational engine pipeline."""
     config = load_and_validate_config(config_path)
     check_holdout_flag(config)
@@ -487,6 +569,14 @@ def main(config_path: str, output_path: str) -> None:
 
     # Inject instrument constants into config for simulator use
     config["_instrument"] = instrument_info
+
+    # Apply profile overrides if --profile provided
+    if profile_name is not None:
+        profile_cfg, resolved_bar_type = load_profile_config(profile_name, bar_type)
+        apply_profile_overrides(config, profile_cfg, profile_name, resolved_bar_type)
+        # If --bar-type given, filter bar_data_primary to only that bar type
+        if bar_type is not None and bar_type in config.get("bar_data_primary", {}):
+            config["bar_data_primary"] = {bar_type: config["bar_data_primary"][bar_type]}
 
     primary_bars, reference_bars = load_bar_data(config)
 
@@ -543,5 +633,18 @@ if __name__ == "__main__":
     )
     parser.add_argument("--config", required=True, help="Path to rotational config JSON")
     parser.add_argument("--output", required=True, help="Path to write result.json")
+    parser.add_argument(
+        "--profile",
+        default=None,
+        help="Profile name to load (e.g., max_profit, safest, most_consistent). "
+             "Overrides martingale params in config with profile winning config.",
+    )
+    parser.add_argument(
+        "--bar-type",
+        default=None,
+        dest="bar_type",
+        help="Bar type for profile config (e.g., bar_data_250vol_rot). "
+             "Also filters bar_data_primary to only this bar type.",
+    )
     args = parser.parse_args()
-    main(args.config, args.output)
+    main(args.config, args.output, profile_name=args.profile, bar_type=args.bar_type)
