@@ -268,6 +268,189 @@ def _max_consecutive_losses(pnl: np.ndarray) -> int:
     return max_streak
 
 
+def compute_extended_metrics(
+    cycles: pd.DataFrame,
+    cost_ticks: float,
+    bars_df: pd.DataFrame,
+    max_levels: int,
+) -> dict:
+    """Compute extended metrics for sizing sweep scoring.
+
+    Calls compute_cycle_metrics() for base metrics, then adds 7 extended
+    metrics required for profile scoring in Plan 03.
+
+    Args:
+        cycles: Cycles DataFrame from RotationalSimulator.run().
+        cost_ticks: Per-action round-trip cost in ticks.
+        bars_df: Full filtered bar DataFrame (used for winning_session_pct).
+        max_levels: MaxLevels config value (used for max_level_exposure_pct).
+
+    Returns:
+        Merged dict: {**base_metrics, **extended_metrics}.
+        All values are scalars (no NaN except where mathematically undefined).
+    """
+    # Base metrics via existing function
+    base = compute_cycle_metrics(cycles, cost_ticks)
+
+    # Edge case: no cycles
+    if cycles.empty:
+        extended = {
+            "worst_cycle_dd": 0.0,
+            "max_level_exposure_pct": 0.0,
+            "tail_ratio": 0.0,
+            "calmar_ratio": 0.0,
+            "sortino_ratio": 0.0,
+            "winning_session_pct": 0.0,
+            "max_dd_duration_bars": 0,
+        }
+        return {**base, **extended}
+
+    pnl = cycles["net_pnl_ticks"].values
+
+    # 1. worst_cycle_dd: worst single-cycle loss (absolute value of min net_pnl)
+    worst_cycle_dd = float(abs(min(pnl))) if len(pnl) > 0 else 0.0
+
+    # 2. max_level_exposure_pct: % of cycles that hit the max level cap
+    if "max_level_reached" in cycles.columns and max_levels > 0:
+        max_level_exposure_pct = float(
+            (cycles["max_level_reached"] == max_levels).sum() / len(cycles) * 100
+        )
+    else:
+        max_level_exposure_pct = 0.0
+
+    # 3. tail_ratio: avg_winner / |avg_loser| — guard divide-by-zero
+    avg_winner = base.get("avg_winner_ticks", 0.0)
+    avg_loser = base.get("avg_loser_ticks", 0.0)
+    if avg_loser != 0.0:
+        tail_ratio = float(avg_winner / abs(avg_loser))
+    else:
+        tail_ratio = 0.0
+
+    # 4. calmar_ratio: total_pnl / max_drawdown — guard divide-by-zero
+    total_pnl = base.get("total_pnl_ticks", 0.0)
+    max_dd = base.get("max_drawdown_ticks", 0.0)
+    if max_dd != 0.0:
+        calmar_ratio = float(total_pnl / max_dd)
+    else:
+        calmar_ratio = 0.0
+
+    # 5. sortino_ratio: mean(pnl) / std(losing pnl) — guard std==0
+    losing_pnl = pnl[pnl < 0]
+    if len(losing_pnl) > 0 and float(np.std(losing_pnl)) > 0:
+        sortino_ratio = float(np.mean(pnl) / np.std(losing_pnl))
+    else:
+        sortino_ratio = 0.0
+
+    # 6. winning_session_pct: % of trading dates with positive total net PnL
+    winning_session_pct = _compute_winning_session_pct(cycles, bars_df)
+
+    # 7. max_dd_duration_bars: longest stretch (in bars) between cumPnL peak and recovery
+    max_dd_duration_bars = _compute_max_dd_duration_bars(cycles)
+
+    extended = {
+        "worst_cycle_dd": round(worst_cycle_dd, 2),
+        "max_level_exposure_pct": round(max_level_exposure_pct, 2),
+        "tail_ratio": round(tail_ratio, 4),
+        "calmar_ratio": round(calmar_ratio, 4),
+        "sortino_ratio": round(sortino_ratio, 4),
+        "winning_session_pct": round(winning_session_pct, 2),
+        "max_dd_duration_bars": int(max_dd_duration_bars),
+    }
+
+    return {**base, **extended}
+
+
+def _compute_winning_session_pct(cycles: pd.DataFrame, bars_df: pd.DataFrame) -> float:
+    """Compute % of trading dates where total net PnL > 0.
+
+    Maps each cycle to a trading date using the start_bar column in cycles.
+    Falls back to cycle index if start_bar not available or bars_df empty.
+    """
+    if cycles.empty:
+        return 0.0
+
+    # Check if start_bar column is available and bars_df has datetime
+    if (
+        "start_bar" in cycles.columns
+        and bars_df is not None
+        and not bars_df.empty
+        and "datetime" in bars_df.columns
+    ):
+        # Map start_bar -> trading date via bars_df
+        dates = []
+        for sb in cycles["start_bar"].values:
+            try:
+                sb_int = int(sb)
+                if 0 <= sb_int < len(bars_df):
+                    d = bars_df.iloc[sb_int]["datetime"]
+                    dates.append(pd.Timestamp(d).date())
+                else:
+                    dates.append(None)
+            except (ValueError, TypeError, IndexError):
+                dates.append(None)
+
+        cycles_copy = cycles.copy()
+        cycles_copy["_trade_date"] = dates
+
+        # Filter cycles where we got a valid date
+        valid = cycles_copy.dropna(subset=["_trade_date"])
+        if valid.empty:
+            return 0.0
+
+        daily_pnl = valid.groupby("_trade_date")["net_pnl_ticks"].sum()
+        winning_days = (daily_pnl > 0).sum()
+        total_days = len(daily_pnl)
+        return float(winning_days / total_days * 100) if total_days > 0 else 0.0
+    else:
+        # Fallback: no date information available, return 0
+        return 0.0
+
+
+def _compute_max_dd_duration_bars(cycles: pd.DataFrame) -> int:
+    """Compute max drawdown duration in bars.
+
+    From cumulative PnL series: find the longest stretch between a peak and
+    recovery to that peak level. If no recovery, duration extends to end of series.
+
+    Uses duration_bars column to estimate bar counts per cycle.
+    """
+    if cycles.empty or "duration_bars" not in cycles.columns:
+        return 0
+
+    pnl = cycles["net_pnl_ticks"].values
+    durations = cycles["duration_bars"].values
+
+    # Build cumulative PnL and bar index arrays
+    cum_pnl = np.cumsum(pnl)
+
+    # Compute cumulative bar count at each cycle end
+    cum_bars = np.cumsum(durations)
+
+    n = len(cum_pnl)
+    if n == 0:
+        return 0
+
+    max_duration = 0
+    peak_val = cum_pnl[0]
+    peak_bar = 0  # bar index at peak (using cumulative bars as proxy)
+
+    for i in range(n):
+        # Update peak
+        if cum_pnl[i] > peak_val:
+            peak_val = cum_pnl[i]
+            peak_bar = int(cum_bars[i])
+
+        # Current bar position
+        current_bar = int(cum_bars[i])
+
+        # Duration from peak to current (drawdown duration)
+        if cum_pnl[i] < peak_val:
+            duration = current_bar - peak_bar
+            max_duration = max(max_duration, duration)
+
+    return int(max_duration)
+
+
 # ---------------------------------------------------------------------------
 # Result writer
 # ---------------------------------------------------------------------------
