@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02.1-sizing-sweep-baseline/02.1-01-PLAN.md
-last_updated: "2026-03-16T01:12:14.652Z"
+stopped_at: Completed 02.1-sizing-sweep-baseline/02.1-02-PLAN.md
+last_updated: "2026-03-16T03:27:00.290Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 20
 ---
 
@@ -76,6 +76,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02-feature-evaluator-screening P02 | 53 | 2 tasks | 5 files |
 | Phase 02-feature-evaluator-screening P03 | 1051216 | 2 tasks | 4 files |
 | Phase 02.1-sizing-sweep-baseline P01 | 11 | 2 tasks | 3 files |
+| Phase 02.1-sizing-sweep-baseline P02 | 132 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,8 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 02-feature-evaluator-screening]: H19 disposition: SKIPPED_REFERENCE_REQUIRED — defer to Phase 4 when multi-source reference available
 - [Phase 02-feature-evaluator-screening]: Strategic: sizing sweep (MaxLevels x MaxContractSize) required before Phase 3 TDS
 - [Phase 02.1-01]: MaxTotalPosition guard uses compute-then-gate pattern: proposed_qty/next_level as locals before any state mutation, MTP=0 unlimited is backward compatible
+- [Phase 02.1-02]: Deduplication yields 322 unique combos per bar type (not ~308 as estimated): MTP=1 collapses all ML to ML=1 (14 combos), MTP=2 ML>=2 collapses to ML=2 representative (28 combos), all other combos kept (280)
+- [Phase 02.1-02]: compute_extended_metrics() uses _get_filtered_bars() to re-apply simulator's date/RTH filter for winning_session_pct — simulator does not expose filtered bars in SimulationResult contract
 
 ### Pending Todos
 
@@ -123,6 +126,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-16T01:12:14.649Z
-Stopped at: Completed 02.1-sizing-sweep-baseline/02.1-01-PLAN.md
+Last session: 2026-03-16T03:27:00.287Z
+Stopped at: Completed 02.1-sizing-sweep-baseline/02.1-02-PLAN.md
 Resume file: None
