@@ -25,6 +25,12 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
+try:
+    from trend_defense import TrendDefenseSystem  # noqa: F401
+    _TDS_AVAILABLE = True
+except ImportError:
+    _TDS_AVAILABLE = False
+
 # ---------------------------------------------------------------------------
 # P1 rotational date boundaries (frozen per spec)
 # ---------------------------------------------------------------------------
@@ -167,6 +173,7 @@ class TradeLogger:
         bars_df: pd.DataFrame,
         exit_price: float,
         exit_reason: str,
+        trend_defense_level_max: int = 0,
     ) -> None:
         """Compute and store a cycle record with all spec Section 6.4 fields.
 
@@ -294,7 +301,7 @@ class TradeLogger:
             "max_favorable_excursion_ticks": round(mfe_ticks, 4),
             "retracement_depths": retracement_depths,
             "time_at_max_level_bars": time_at_max_level_bars,
-            "trend_defense_level_max": 0,  # no TDS in baseline
+            "trend_defense_level_max": trend_defense_level_max,
             "exit_reason": exit_reason,
         })
 
@@ -385,6 +392,20 @@ class RotationalSimulator:
         self._cycle_start_bar: int = 0
         self._cycle_trades: list[dict] = []
 
+        # -- Running avg entry price (for TDS sim_state) --------------------
+        self._avg_entry_price: float = 0.0
+
+        # -- TDS integration state ------------------------------------------
+        self._tds = None  # TrendDefenseSystem or None
+        self._tds_level_max: int = 0  # max TDS level in current cycle
+
+        # -- Dynamic feature tracking (for H36/H39 computation) -------------
+        self._prev_close: Optional[float] = None   # previous bar close
+        self._prev_bar_ts: Optional[float] = None  # previous bar timestamp (epoch seconds)
+        # Cumulative weighted distances for H39 (adverse_velocity_ratio)
+        self._cycle_favorable_weighted: float = 0.0
+        self._cycle_adverse_weighted: float = 0.0
+
     # -----------------------------------------------------------------------
     # Bar filtering
     # -----------------------------------------------------------------------
@@ -454,8 +475,12 @@ class RotationalSimulator:
         self._level = 0
         self._anchor = close
         self._position_qty = self._initial_qty
+        self._avg_entry_price = close
         self._cycle_start_bar = bar_idx
         self._cycle_trades = []
+        # Reset dynamic feature tracking for new cycle
+        self._cycle_favorable_weighted = 0.0
+        self._cycle_adverse_weighted = 0.0
 
         trade = {
             "bar_idx": bar_idx,
@@ -517,8 +542,12 @@ class RotationalSimulator:
         self._level = 0
         self._anchor = close
         self._position_qty = self._initial_qty
+        self._avg_entry_price = close
         self._cycle_start_bar = bar_idx
         self._cycle_trades = []
+        # Reset dynamic feature tracking for new cycle
+        self._cycle_favorable_weighted = 0.0
+        self._cycle_adverse_weighted = 0.0
 
         trade = {
             "bar_idx": bar_idx,
@@ -570,7 +599,13 @@ class RotationalSimulator:
         # 3. Commit state changes
         self._level = next_level
         self._anchor = close
+        old_qty = self._position_qty
         self._position_qty += proposed_qty
+        # Update running avg entry price
+        if self._position_qty > 0:
+            self._avg_entry_price = (
+                self._avg_entry_price * old_qty + close * proposed_qty
+            ) / self._position_qty
 
         trade = {
             "bar_idx": bar_idx,
@@ -587,6 +622,149 @@ class RotationalSimulator:
         self._cycle_trades.append(trade)
         logger.log_action(bar_idx, dt, "ADD", self._direction, proposed_qty, close,
                           level_at_add, close, self._cycle_id)
+
+    # -----------------------------------------------------------------------
+    # TDS helper methods
+    # -----------------------------------------------------------------------
+
+    def _get_sim_state(self, bar_idx: int) -> dict:
+        """Return the sim_state dict expected by TrendDefenseSystem.evaluate()."""
+        return {
+            "direction": self._direction,
+            "level": self._level,
+            "anchor": self._anchor,
+            "position_qty": self._position_qty,
+            "cycle_start_bar": self._cycle_start_bar,
+            "bar_idx": bar_idx,
+            "avg_entry_price": self._avg_entry_price,
+            "step_dist_ticks": self._step_dist / self._tick_size,
+            "tick_size": self._tick_size,
+        }
+
+    def _compute_dynamic_features(self, bar_idx: int, row: "pd.Series") -> dict:
+        """Compute per-bar dynamic features H36 (adverse_speed) and H39 (adverse_velocity_ratio).
+
+        H36 adverse_speed: absolute adverse price delta per second since last bar.
+        H39 adverse_velocity_ratio: cumulative adverse weighted distance / cumulative
+            favorable weighted distance within current cycle.
+
+        Returns 0.0 for both when FLAT, no prior bar, or when the delta is zero.
+        """
+        result = {"adverse_speed": 0.0, "adverse_velocity_ratio": 0.0}
+
+        if self._state != "POSITIONED" or self._direction is None:
+            # Update prev for next bar
+            try:
+                self._prev_close = float(row["Last"])
+                ts = row["datetime"]
+                self._prev_bar_ts = ts.timestamp() if hasattr(ts, "timestamp") else None
+            except Exception:
+                pass
+            return result
+
+        try:
+            close = float(row["Last"])
+            ts = row["datetime"]
+            cur_ts = ts.timestamp() if hasattr(ts, "timestamp") else None
+        except Exception:
+            return result
+
+        # Compute bar duration in seconds
+        bar_dur_sec: float = 10.0  # default fallback
+        if cur_ts is not None and self._prev_bar_ts is not None:
+            delta_sec = cur_ts - self._prev_bar_ts
+            if delta_sec > 0:
+                bar_dur_sec = delta_sec
+
+        # Compute H36: adverse price delta since last bar
+        if self._prev_close is not None:
+            price_delta = close - self._prev_close
+            if self._direction == "Long":
+                adverse_delta = -price_delta  # adverse for Long = price falling
+            else:
+                adverse_delta = price_delta   # adverse for Short = price rising
+
+            h36 = max(0.0, adverse_delta) / bar_dur_sec
+            result["adverse_speed"] = h36
+
+            # Accumulate for H39
+            if adverse_delta > 0:
+                self._cycle_adverse_weighted += adverse_delta * bar_dur_sec
+            else:
+                fav_delta = -adverse_delta
+                self._cycle_favorable_weighted += fav_delta * bar_dur_sec
+
+        # Compute H39: adverse_velocity_ratio
+        if self._cycle_favorable_weighted > 0:
+            result["adverse_velocity_ratio"] = (
+                self._cycle_adverse_weighted / self._cycle_favorable_weighted
+            )
+
+        # Update prev for next bar
+        self._prev_close = close
+        self._prev_bar_ts = cur_ts
+
+        return result
+
+    def _finalize_current_cycle_as_tds_exit(
+        self,
+        bar_idx: int,
+        dt: object,
+        close: float,
+        logger: TradeLogger,
+        bars_df: "pd.DataFrame",
+    ) -> None:
+        """Flatten current position due to TDS Level 3 forced exit.
+
+        Finalizes the cycle with exit_reason='td_flatten', resets simulator
+        state to FLAT, and sets TDS forced_flat=True to enter cooldown.
+        """
+        # Add FLATTEN trade to cycle
+        flatten_trade = {
+            "bar_idx": bar_idx,
+            "datetime": dt,
+            "action": "FLATTEN",
+            "direction": self._direction,
+            "qty": self._position_qty,
+            "price": close,
+            "level": self._level,
+            "anchor": self._anchor,
+            "cost_ticks": self._cost_ticks * self._position_qty,
+            "cycle_id": self._cycle_id,
+        }
+        self._cycle_trades.append(flatten_trade)
+        logger.log_action(
+            bar_idx, dt, "FLATTEN", self._direction, self._position_qty,
+            close, self._level, self._anchor, self._cycle_id,
+        )
+
+        # Finalize cycle record with td_flatten exit reason
+        logger.finalize_cycle(
+            cycle_id=self._cycle_id,
+            start_bar=self._cycle_start_bar,
+            end_bar=bar_idx,
+            direction=self._direction,
+            trades_in_cycle=list(self._cycle_trades),
+            bars_df=bars_df,
+            exit_price=close,
+            exit_reason="td_flatten",
+            trend_defense_level_max=self._tds_level_max,
+        )
+
+        # Reset simulator to FLAT
+        self._state = "FLAT"
+        self._direction = None
+        self._level = 0
+        self._anchor = None
+        self._position_qty = 0
+        self._avg_entry_price = 0.0
+        self._cycle_trades = []
+        self._tds_level_max = 0
+        self._cycle_favorable_weighted = 0.0
+        self._cycle_adverse_weighted = 0.0
+
+        # Enter TDS cooldown
+        self._tds.state.forced_flat = True
 
     # -----------------------------------------------------------------------
     # Main simulation loop
@@ -611,13 +789,99 @@ class RotationalSimulator:
         self._level = 0
         self._anchor = None
         self._position_qty = 0
+        self._avg_entry_price = 0.0
         self._cycle_id = 0
         self._cycle_start_bar = 0
         self._cycle_trades = []
+        self._prev_close = None
+        self._prev_bar_ts = None
+        self._cycle_favorable_weighted = 0.0
+        self._cycle_adverse_weighted = 0.0
+        self._tds_level_max = 0
+
+        # -- TDS initialization -------------------------------------------
+        tds_cfg = self._config.get("trend_defense", {})
+        if _TDS_AVAILABLE and tds_cfg.get("enabled", False):
+            # Compute bar duration stats from the actual bar DataFrame
+            bar_duration_stats = {"median_sec": 10.0}  # safe fallback
+            if "datetime" in bars.columns and len(bars) > 1:
+                ts_series = bars["datetime"]
+                if hasattr(ts_series.iloc[0], "timestamp"):
+                    diffs = [
+                        ts_series.iloc[i + 1].timestamp() - ts_series.iloc[i].timestamp()
+                        for i in range(min(len(bars) - 1, 1000))
+                        if ts_series.iloc[i + 1].timestamp() > ts_series.iloc[i].timestamp()
+                    ]
+                    if diffs:
+                        bar_duration_stats["median_sec"] = float(np.median(diffs))
+            self._tds = TrendDefenseSystem(tds_cfg, bar_duration_stats)
+        else:
+            self._tds = None
+
+        action_modifiers: dict = {
+            "step_widen_factor": 1.0,
+            "max_levels_reduction": 0,
+            "refuse_adds": False,
+            "force_flatten": False,
+            "reduced_reversal_threshold": None,
+        }
 
         for bar_idx, row in bars.iterrows():
             close = float(row["Last"])
             dt = row["datetime"]
+
+            # -- TDS evaluation (before state machine) ---------------------
+            if self._tds is not None:
+                # Handle cooldown period (forced_flat=True after Level 3)
+                if self._tds.state.forced_flat:
+                    self._tds.state.cooldown_remaining = max(
+                        0, self._tds.state.cooldown_remaining - 1
+                    )
+                    if self._tds.can_reengage({}):
+                        self._tds.state.forced_flat = False
+                        # Allow normal FLAT->SEED on next iteration
+                    else:
+                        # Still in cooldown: skip entire bar
+                        self._prev_close = close
+                        ts = row["datetime"]
+                        self._prev_bar_ts = ts.timestamp() if hasattr(ts, "timestamp") else None
+                        continue
+
+                if self._state == "POSITIONED":
+                    dyn_features = self._compute_dynamic_features(bar_idx, row)
+                    sim_state = self._get_sim_state(bar_idx)
+                    threat = self._tds.evaluate(row, dyn_features, sim_state)
+                    action_modifiers = self._tds.apply_response(sim_state, threat)
+                    self._tds_level_max = max(self._tds_level_max, threat)
+
+                    # Level 3 forced flatten: exit position immediately
+                    if action_modifiers.get("force_flatten", False):
+                        self._finalize_current_cycle_as_tds_exit(
+                            bar_idx, dt, close, logger, bars
+                        )
+                        # action_modifiers is reset since we're now FLAT
+                        action_modifiers = {
+                            "step_widen_factor": 1.0,
+                            "max_levels_reduction": 0,
+                            "refuse_adds": False,
+                            "force_flatten": False,
+                            "reduced_reversal_threshold": None,
+                        }
+                        continue  # skip state machine for this bar
+                else:
+                    # FLAT state: update prev tracking but don't compute H36/H39
+                    self._prev_close = close
+                    ts_val = row["datetime"]
+                    self._prev_bar_ts = ts_val.timestamp() if hasattr(ts_val, "timestamp") else None
+                    # Reset action modifiers when flat
+                    action_modifiers = {
+                        "step_widen_factor": 1.0,
+                        "max_levels_reduction": 0,
+                        "refuse_adds": False,
+                        "force_flatten": False,
+                        "reduced_reversal_threshold": None,
+                    }
+            # No TDS: no dynamic feature computation needed
 
             if self._state == "FLAT":
                 self._seed(bar_idx, dt, close, logger)
@@ -625,17 +889,41 @@ class RotationalSimulator:
             elif self._state == "POSITIONED":
                 distance = close - self._anchor  # signed (positive = price moved up)
 
+                # Apply TDS step widening when active
+                effective_step = self._step_dist * action_modifiers.get("step_widen_factor", 1.0)
+
                 if self._direction == "Long":
-                    in_favor = distance >= self._step_dist
-                    against = (-distance) >= self._step_dist
+                    in_favor = distance >= effective_step
+                    against = (-distance) >= effective_step
                 else:  # Short
-                    in_favor = (-distance) >= self._step_dist
-                    against = distance >= self._step_dist
+                    in_favor = (-distance) >= effective_step
+                    against = distance >= effective_step
 
                 if in_favor:
+                    # On reversal: notify TDS and reset cycle-level max
+                    if self._tds is not None:
+                        self._tds.on_reversal()
+                    tds_level_for_cycle = self._tds_level_max
+                    self._tds_level_max = 0
+
                     self._reversal(bar_idx, dt, close, logger, bars)
+
+                    # Patch the cycle record just finalized to include correct tds level max
+                    if logger._cycles:
+                        logger._cycles[-1]["trend_defense_level_max"] = tds_level_for_cycle
+
                 elif against:
-                    self._add(bar_idx, dt, close, logger)
+                    # Check TDS refuse_adds
+                    if action_modifiers.get("refuse_adds", False):
+                        pass  # skip add
+                    else:
+                        self._add(bar_idx, dt, close, logger)
+                        if self._tds is not None:
+                            self._tds.on_add(price=close)
+
+            # End of bar: update TDS cycle metrics
+            if self._tds is not None and self._state == "POSITIONED":
+                self._tds.update_cycle_metrics(row, self._get_sim_state(bar_idx))
 
         # Finalize any open cycle at end of data
         if self._state == "POSITIONED" and self._cycle_trades:
@@ -654,6 +942,7 @@ class RotationalSimulator:
                     bars_df=bars,
                     exit_price=last_close,
                     exit_reason="end_of_data",
+                    trend_defense_level_max=self._tds_level_max,
                 )
 
         return SimulationResult(
