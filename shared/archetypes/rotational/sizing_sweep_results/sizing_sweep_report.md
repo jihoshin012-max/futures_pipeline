@@ -233,6 +233,35 @@ Geometric martingale (ML=4, the C++ default 1→2→4→8 pattern) is 24-32% wor
 | 250tick | 1.39 (SD=8.0 ML=4 MTP=4) | 1.84 (SD=4.5 ML=1 MTP=1) | **24% worse** |
 | 10sec | 1.72 (SD=10.0 ML=4 MTP=4) | 1.72 (SD=10.0 ML=1 MTP=4) | **0% — tie** (MTP=4 prevents geometric adds from firing, making ML=4 functionally identical to ML=1) |
 
+### Cost Drag: The Hidden Multiplier
+
+All PF numbers are net of costs (cost_ticks=3 per NQ round-trip from instruments.md, applied per action scaled by qty). The geometric martingale creates a **compounding cost penalty** because each pyramid level doubles the qty — and both the ADD and the eventual FLATTEN pay cost proportional to qty.
+
+**Maximum cost per cycle by config (assuming full pyramid reached):**
+
+| Config | Actions/cycle | Max cost/cycle | vs MTP=1 baseline |
+|--------|--------------|----------------|-------------------|
+| ML=1 MTP=1 (pure reversal) | 3 (SEED+FLATTEN+REVERSAL, all qty=1) | **9 ticks** | 1.0x |
+| ML=1 MTP=2 | 4 (SEED+ADD(1)+FLATTEN(2)+REVERSAL) | **15 ticks** | 1.7x |
+| ML=4 MTP=4 | 5 (SEED+ADD(1)+ADD(2)+FLATTEN(4)+REVERSAL) | **27 ticks** | 3.0x |
+| ML=4 MTP=8 | 6 (SEED+ADD(1)+ADD(2)+ADD(4)+FLATTEN(8)+REVERSAL) | **51 ticks** | 5.7x |
+| ML=4 MTP=16 | 7 (SEED+ADD(1)+ADD(2)+ADD(4)+ADD(8)+FLATTEN(16)+REVERSAL) | **99 ticks** | 11.0x |
+
+**Total cost burden for the actual comparison configs:**
+
+| Comparison | Config | n_cycles | Max cost/cycle | Worst-case total cost |
+|-----------|--------|----------|----------------|----------------------|
+| 250vol ML=4 best | SD=5.5 ML=4 MTP=4 | 1,142 | 27t | 30,834t |
+| 250vol ML=1 winner | SD=7.0 ML=1 MTP=2 | 624 | 15t | 9,360t |
+| **Cost ratio** | | | | **3.3x** |
+| 250tick ML=4 best | SD=8.0 ML=4 MTP=4 | 738 | 27t | 19,926t |
+| 250tick ML=1 winner | SD=4.5 ML=1 MTP=1 | 360 | 9t | 3,240t |
+| **Cost ratio** | | | | **6.1x** |
+
+**Extreme case:** SAFEST 250vol (SD=1.0 ML=4 MTP=16) runs 8,532 cycles at up to 99 ticks each = up to 844,668 ticks in transaction costs, against only 3,106 ticks net PnL. Small StepDist + deep pyramid = cost-dominated regime.
+
+**Why this matters:** The 24-32% PF gap between ML=4 and ML=1 is not solely from increased directional risk — a significant component is pure cost drag. Geometric position sizing creates geometric cost scaling. The FLATTEN action alone costs `cost_ticks × total_position_qty`, so unwinding a 4-contract pyramid costs 4× unwinding a 1-contract reversal. This cost penalty is structural and cannot be optimized away by better entry timing.
+
 ### Winning Configurations
 
 | Bar Type | StepDist | MaxLevels | MTP | Cycle PF | Profile |

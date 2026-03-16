@@ -518,6 +518,14 @@ subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Proje
     250vol: SD=7.0 ML=1 MTP=2 PF=2.20
     250tick: SD=4.5 ML=1 MTP=1 PF=1.84 (pure reversal, zero adds)
     10sec: SD=10.0 ML=1 MTP=4 PF=1.72
+- cost_drag_analysis:
+    All PF numbers are net of costs (cost_ticks=3/NQ from instruments.md, per action, scaled by qty).
+    Geometric martingale creates compounding cost penalty — both ADD and FLATTEN scale with qty.
+    ML=1 MTP=1: 9 ticks/cycle (baseline) | ML=4 MTP=4: 27 ticks/cycle (3x) | ML=4 MTP=16: 99 ticks/cycle (11x)
+    Total cost burden: 250vol ML=4 pays 3.3x more total cost than ML=1 winner; 250tick ML=4 pays 6.1x more.
+    Extreme: SAFEST 250vol (SD=1.0 ML=4 MTP=16) = 8532 cycles × up to 99t = ~845k ticks cost vs 3106t net PnL.
+    The 24-32% PF gap is not solely directional risk — significant component is structural cost drag.
+    FLATTEN alone costs cost_ticks × total_position_qty; unwinding 4-contract pyramid = 4× cost of 1-contract reversal.
 - priority_changes:
     deprioritized: H14 (adaptive martingale), H23 (conditional adds), H24 (intra-cycle de-escalation), H39 (cycle adverse velocity)
     elevated: H1,H3,H8,H9,H10 (Dim-A triggers), H11 (TOD conditioning), H13 (selective flat), H33 (PriceSpeed), H2 (asymmetric thresholds)
