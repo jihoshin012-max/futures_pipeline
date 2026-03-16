@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02.1-03-PLAN.md — Phase 02.1 sizing-sweep-baseline complete
-last_updated: "2026-03-16T04:21:50.838Z"
+stopped_at: Completed 03-01-PLAN.md — TrendDefenseSystem class with 5 detectors, 3-level escalation, 14 passing unit tests
+last_updated: "2026-03-16T05:01:20.707Z"
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 11
+  completed_plans: 10
   percent: 20
 ---
 
@@ -79,6 +79,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02.1-sizing-sweep-baseline P02 | 132 | 2 tasks | 4 files |
 | Phase 02.1-sizing-sweep-baseline P03 | 5 | 1 tasks | 7 files |
 | Phase 02.1-sizing-sweep-baseline P03 | 25 | 2 tasks | 7 files |
+| Phase 03-tds-build-testing P01 | 10 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,9 @@ See PROJECT.md Key Decisions table (updated 2026-03-14 after v1.0).
 - [Phase 02.1-03]: MAX_PROFIT and MOST_CONSISTENT select identical configs for 250vol/10sec — calmar_ratio optimisation converges with PF maximisation for these bar types
 - [Phase 02.1-03]: SAFEST 250vol: SD=1.0 ML=4 MTP=16 PF=1.02 — lowest worst_cycle_dd=753t; 0% max_level_exposure_pct despite ML=4 at tight step_dist
 - [Phase 02.1-03]: Martingale beats pure reversal (MTP=1) on MAX_PROFIT for all bar types; 250tick best config is MTP=1 PF=1.84 (martingale does not improve 250tick)
+- [Phase 03-01]: TDS timing thresholds stored in seconds, converted to bar counts via max(1, round(sec/median_bar_sec)) at init for cross-bar-type portability
+- [Phase 03-01]: consecutive_adds resets on qualifying retracement (>= retracement_reset_pct * step_dist in-favor) in addition to reversal — avoids premature Level 2 trigger on healthy cycles
+- [Phase 03-01]: can_reengage() is pure bar-count-based (cooldown_remaining <= 0) — avoids chicken-and-egg feature computation during cooldown
 
 ### Pending Todos
 
@@ -134,6 +138,6 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 
 ## Session Continuity
 
-Last session: 2026-03-16T04:14:52.083Z
-Stopped at: Completed 02.1-03-PLAN.md — Phase 02.1 sizing-sweep-baseline complete
+Last session: 2026-03-16T05:01:20.704Z
+Stopped at: Completed 03-01-PLAN.md — TrendDefenseSystem class with 5 detectors, 3-level escalation, 14 passing unit tests
 Resume file: None
