@@ -38,7 +38,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 7. Stage 03 Autoresearch | v1.0 | 3/3 | Complete | 2026-03-14 |
 | 2. Feature Evaluator + Screening | Rotational | 0/3 | Planning complete | - |
 | 02.1. Sizing Sweep Baseline | 3/3 | Complete    | 2026-03-16 | - |
-| 3. TDS Build + Testing | Rotational | 0/0 | Not started | - |
+| 3. TDS Build + Testing | Rotational | 0/2 | Planning complete | - |
 | 4. Combination Testing + Replication | Rotational | 0/0 | Not started | - |
 | 5. Assessment & Deployment | Rotational | 0/0 | Not started | - |
 
@@ -85,7 +85,11 @@ Plans:
 **Goal:** Build trend_defense.py with 5 detectors and 3-level escalation (Section 4 of spec). Include hypothesis feed-ins (H33, H36, H38, H39, H40 into TDS detectors). Test TDS levels 1, 2, 3 independently against baseline on all 3 bar types. TDS velocity thresholds and cooldown periods may need bar-type-specific tuning (10-sec has ~5x more bars per unit time). Measure on survival metrics: worst-cycle DD, max-level exposure %, tail ratio, drawdown budget hit count.
 **Requirements**: ROT-RES-04
 **Depends on:** Phase 1
-**Plans:** 0 plans
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Build TrendDefenseSystem class with 5 detectors, 3-level escalation, and 14 unit tests (TDD)
+- [ ] 03-02-PLAN.md — Integrate TDS into RotationalSimulator, wire H36/H39 dynamic features, 8 integration tests
 
 ### Phase 4: Combination Testing + Replication
 
