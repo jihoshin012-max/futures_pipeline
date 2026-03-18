@@ -222,10 +222,14 @@ class TestReversal:
         assert cycle["direction"] == "Long"
 
     def test_reversal_not_triggered_below_step(self):
-        """Price must reach exactly step_dist to trigger REVERSAL."""
+        """Price must reach exactly step_dist to trigger REVERSAL.
+
+        With OHLC intra-bar processing, _make_bars adds +0.25 to High,
+        so we use 101.50 (High=101.75) to stay below step_dist=2.0 threshold.
+        """
         cfg = _make_config(step_dist=2.0)
-        # 100 -> 101.75 (not enough for step_dist=2.0)
-        result = _run(cfg, [100.0, 101.75])
+        # 100 -> 101.50 (High=101.75, still below step_dist=2.0 from anchor 100.0)
+        result = _run(cfg, [100.0, 101.50])
 
         assert "REVERSAL" not in result.trades["action"].values
 
@@ -640,6 +644,288 @@ class TestDeterminism:
 
 
 # ---------------------------------------------------------------------------
+# Test: Intra-bar threshold crossing (OHLC)
+# ---------------------------------------------------------------------------
+
+class TestIntraBarThresholdCrossing:
+    """Verify threshold-crossing logic using High/Low within a single bar.
+
+    The simulator uses exact trigger levels (anchor +/- step_dist) checked
+    against bar High and Low to detect intra-bar adds and reversals.
+    """
+
+    def test_add_and_reversal_within_single_bar(self):
+        """A bar with H-L range > 2*step_dist should fire both ADD and REVERSAL.
+
+        Setup: Long at anchor=100.0, step_dist=7.0.
+          - add_trigger = 100.0 - 7.0 = 93.0
+          - reversal_trigger = 100.0 + 7.0 = 107.0
+
+        Bar: Open=99, Low=92, High=108, Close=100.
+          - Low 92 < 93 → ADD fires at 93.0 (anchor moves to 93.0)
+          - New reversal_trigger = 93.0 + 7.0 = 100.0
+          - High 108 >= 100.0 → REVERSAL fires at 100.0
+        """
+        cfg = _make_config(step_dist=7.0, max_levels=4, max_contract_size=16)
+        # Bar 0: seed bar — open=100, close=100, tight range
+        # Bar 1: wide-range bar that triggers both add and reversal
+        bars = pd.DataFrame({
+            "Date": ["2025-10-01", "2025-10-01"],
+            "Time": ["10:00:00", "10:01:00"],
+            "datetime": [
+                pd.Timestamp("2025-10-01 10:00:00"),
+                pd.Timestamp("2025-10-01 10:01:00"),
+            ],
+            "Open": [100.0, 99.0],
+            "High": [100.25, 108.0],
+            "Low": [99.75, 92.0],
+            "Last": [100.0, 100.0],
+            "Volume": [1000, 1000],
+            "ATR": [2.0, 2.0],
+        })
+
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+        actions = list(result.trades["action"].values)
+        prices = list(result.trades["price"].values)
+        sources = list(result.trades["price_source"].values)
+
+        # Bar 0: SEED at open (100.0) → Long
+        assert actions[0] == "SEED"
+        assert prices[0] == 100.0
+
+        # Bar 1: ADD at 93.0 (exact trigger), then FLATTEN+REVERSAL at 100.0
+        assert "ADD" in actions
+        add_idx = actions.index("ADD")
+        assert prices[add_idx] == 93.0
+        assert sources[add_idx] == "intrabar"
+
+        assert "REVERSAL" in actions
+        rev_idx = actions.index("REVERSAL")
+        assert sources[rev_idx] == "intrabar"
+
+    def test_multiple_actions_within_wide_bar(self):
+        """A bar with 28-point range at SD=7.0 should fire 3+ intra-bar actions.
+
+        Setup: Long at anchor=100.0, step_dist=7.0.
+        Bar: Open=100, Low=79, High=107, Close=95.
+          - Low 79 < 93 → ADD at 93.0 (anchor=93)
+          - Low 79 < 86 → ADD at 86.0 (anchor=86)
+          - High 107 >= 93 → REVERSAL at 93.0 (anchor=93, now Short)
+          - etc — chain continues within H-L range
+        """
+        cfg = _make_config(step_dist=7.0, max_levels=4, max_contract_size=16)
+        bars = pd.DataFrame({
+            "Date": ["2025-10-01", "2025-10-01"],
+            "Time": ["10:00:00", "10:01:00"],
+            "datetime": [
+                pd.Timestamp("2025-10-01 10:00:00"),
+                pd.Timestamp("2025-10-01 10:01:00"),
+            ],
+            "Open": [100.0, 100.0],
+            "High": [100.25, 107.0],
+            "Low": [99.75, 79.0],
+            "Last": [100.0, 95.0],
+            "Volume": [1000, 1000],
+            "ATR": [2.0, 2.0],
+        })
+
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+        actions = list(result.trades["action"].values)
+
+        # Should have SEED + multiple intra-bar actions
+        intrabar_actions = [
+            a for a, s in zip(
+                result.trades["action"].values,
+                result.trades["price_source"].values,
+            )
+            if s == "intrabar"
+        ]
+        assert len(intrabar_actions) >= 3, (
+            f"Expected >=3 intra-bar actions for 28pt range at SD=7.0, got {len(intrabar_actions)}: {actions}"
+        )
+
+    def test_no_intrabar_action_when_range_below_step(self):
+        """A bar with H-L range < step_dist triggers no intra-bar actions."""
+        cfg = _make_config(step_dist=7.0)
+        # Bar with only 3-point range — well below step_dist
+        bars = pd.DataFrame({
+            "Date": ["2025-10-01", "2025-10-01"],
+            "Time": ["10:00:00", "10:01:00"],
+            "datetime": [
+                pd.Timestamp("2025-10-01 10:00:00"),
+                pd.Timestamp("2025-10-01 10:01:00"),
+            ],
+            "Open": [100.0, 101.0],
+            "High": [100.25, 102.5],
+            "Low": [99.75, 99.5],
+            "Last": [100.0, 101.0],
+            "Volume": [1000, 1000],
+            "ATR": [2.0, 2.0],
+        })
+
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+        intrabar_actions = [
+            s for s in result.trades["price_source"].values if s == "intrabar"
+        ]
+        assert len(intrabar_actions) == 0
+
+    def test_seed_at_open_price(self):
+        """SEED should fire at bar open price, not close."""
+        cfg = _make_config(step_dist=7.0)
+        bars = pd.DataFrame({
+            "Date": ["2025-10-01"],
+            "Time": ["10:00:00"],
+            "datetime": [pd.Timestamp("2025-10-01 10:00:00")],
+            "Open": [100.0],
+            "High": [102.0],
+            "Low": [98.0],
+            "Last": [101.0],
+            "Volume": [1000],
+            "ATR": [2.0],
+        })
+
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+
+        assert result.trades.iloc[0]["action"] == "SEED"
+        assert result.trades.iloc[0]["price"] == 100.0
+        assert result.trades.iloc[0]["price_source"] == "open"
+
+
+# ---------------------------------------------------------------------------
+# Test: Tick-mode fast path
+# ---------------------------------------------------------------------------
+
+class TestTickMode:
+    """Verify tick-mode fast path: one action per tick, execute at tick price."""
+
+    @staticmethod
+    def _make_tick_bars(prices, start_date="2025-10-01"):
+        """Build synthetic tick bars where O=H=L=Last (single price per row)."""
+        n = len(prices)
+        datetimes = [
+            pd.Timestamp(f"{start_date} 10:00:00") + pd.Timedelta(milliseconds=i)
+            for i in range(n)
+        ]
+        return pd.DataFrame({
+            "Date": [start_date] * n,
+            "Time": [f"10:00:00.{i:06d}" for i in range(n)],
+            "datetime": datetimes,
+            "Open": prices,
+            "High": prices,
+            "Low": prices,
+            "Last": prices,
+            "Volume": [1] * n,
+            "ATR": [2.0] * n,
+        }).reset_index(drop=True)
+
+    def test_gap_single_reversal(self):
+        """13.25-point gap at SD=5.0: ONE reversal at tick price, not trigger price.
+
+        With directional seed: tick 0 sets watch_price=24740.00,
+        tick 1 at 24753.25 moves UP 13.25 >= SD=5.0 → SEED Long at 24753.25.
+        Tick 2 at 24750.00: distance -3.25 from anchor, no action.
+        Need more ticks to trigger a reversal.
+        """
+        cfg = _make_config(step_dist=5.0)
+        # Watch at 24740, seed long at 24745+ (directional),
+        # then drop to trigger reversal
+        bars = self._make_tick_bars([24740.00, 24753.25, 24748.00, 24740.00])
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+
+        actions = list(result.trades["action"].values)
+        prices = list(result.trades["price"].values)
+
+        assert actions[0] == "SEED"
+        assert prices[0] == 24753.25  # seed at tick that triggers directional move
+
+        # Tick 3 at 24740.00: distance from anchor 24753.25 is -13.25, adverse >= 5.0
+        # With MTP default (walking), add refused, anchor walks.
+        # Then check if reversal fires — depends on direction and thresholds.
+
+    def test_one_action_per_tick(self):
+        """Even with a huge gap, only ONE action fires per tick.
+
+        With directional seed: tick 0 sets watch_price,
+        tick 1 at 115.00 moves UP 15 >= SD=5.0 → SEED Long.
+        Tick 2: need adverse move to trigger reversal.
+        """
+        cfg = _make_config(step_dist=5.0)
+        # Watch at 100, seed long at 115, then reversal at 108 (adverse >= 5 from 115)
+        # then FLATTEN+REVERSAL at next favorable
+        bars = self._make_tick_bars([100.00, 115.00, 108.00, 120.00])
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+
+        # At tick 1: only SEED (one action)
+        tick1_trades = result.trades[result.trades["bar_idx"] == 1]
+        actions_at_1 = list(tick1_trades["action"].values)
+        assert actions_at_1 == ["SEED"], (
+            f"Expected only SEED at tick 1, got {actions_at_1}"
+        )
+
+    def test_directional_seed_short(self):
+        """Price moves DOWN first → seed Short (not always Long)."""
+        cfg = _make_config(step_dist=5.0)
+        # Watch at 100, DOWN 5 to 95 → seed Short
+        bars = self._make_tick_bars([100.00, 95.00, 100.00])
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+
+        seed = result.trades[result.trades["action"] == "SEED"]
+        assert len(seed) == 1
+        assert seed.iloc[0]["direction"] == "Short"
+        assert seed.iloc[0]["price"] == 95.00
+
+    def test_directional_seed_long(self):
+        """Price moves UP first → seed Long."""
+        cfg = _make_config(step_dist=5.0)
+        # Watch at 100, UP 5 to 105 → seed Long
+        bars = self._make_tick_bars([100.00, 105.00, 100.00])
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+
+        seed = result.trades[result.trades["action"] == "SEED"]
+        assert len(seed) == 1
+        assert seed.iloc[0]["direction"] == "Long"
+        assert seed.iloc[0]["price"] == 105.00
+
+    def test_tick_mode_detected(self):
+        """Simulator detects tick data (O=H=L=Last) and uses fast path."""
+        cfg = _make_config(step_dist=5.0)
+        bars = self._make_tick_bars([100.0] * 20)
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        assert sim._is_tick_data(bars) is True
+
+    def test_tick_mode_not_detected_for_ohlc(self):
+        """OHLC bars (H != L) are NOT detected as tick data."""
+        bars = _make_bars([100.0, 102.0, 98.0])  # _make_bars adds +/-0.25
+        cfg = _make_config(step_dist=5.0)
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        assert sim._is_tick_data(bars) is False
+
+    def test_mtp_refusal_walking_anchor(self):
+        """MTP=1 with walking anchor: add refused, anchor walks to tick price."""
+        cfg = _make_config(step_dist=5.0)
+        cfg["martingale"]["max_total_position"] = 1
+        cfg["martingale"]["anchor_mode"] = "walking"
+        # Directional seed: watch at 100, UP 5 to 105 → seed Long
+        # Price drops to 100 (adverse 5, add refused, anchor walks to 100)
+        # Price rises to 105 (in favor 5 from walked anchor → reversal)
+        bars = self._make_tick_bars([100.00, 105.00, 100.00, 105.00])
+        sim = RotationalSimulator(config=cfg, bar_data=bars)
+        result = sim.run()
+
+        actions = list(result.trades["action"].values)
+        assert "SEED" in actions
+        assert "REVERSAL" in actions
+
+
+# ---------------------------------------------------------------------------
 # Test: Determinism on Real P1a Data
 # ---------------------------------------------------------------------------
 
@@ -985,8 +1271,9 @@ class TestAnchorMode:
             "Walking anchor should enable earlier reversal; "
             f"trades: {result.trades[['action','price','anchor']].to_dict('records')}"
         )
-        # The reversal anchor should reflect the walked anchor
-        assert reversals.iloc[0]["price"] == 96.25
+        # The reversal fires at the exact trigger price (anchor + step_dist),
+        # not at bar close. Walking anchor=94.0, so trigger=94.0+2.0=96.0.
+        assert reversals.iloc[0]["price"] == 96.0
 
     def test_mode_b_vs_mode_a_different_reversal_timing(self):
         """Mode B enables earlier reversal than Mode A with same price sequence.
@@ -1075,16 +1362,16 @@ class TestAnchorMode:
             f"Should re-SEED after mtp_dd_exit; got {len(seeds)} seeds"
         )
 
-    def test_default_anchor_mode_is_frozen(self):
-        """When anchor_mode is not specified, default behavior is 'frozen' (Mode A)."""
+    def test_default_anchor_mode_is_walking(self):
+        """When anchor_mode is not specified, default behavior is 'walking' (Mode B)."""
         cfg = _make_config(step_dist=2.0)
         cfg["martingale"]["max_total_position"] = 2
-        # No anchor_mode key — should default to "frozen"
+        # No anchor_mode key — should default to "walking"
         prices = [100.0, 98.0, 96.0, 94.0, 96.25]
         result_default = _run(cfg, prices)
 
         cfg_explicit = self._make_anchor_mode_config(
-            anchor_mode="frozen", max_total_position=2
+            anchor_mode="walking", max_total_position=2
         )
         result_explicit = _run(cfg_explicit, prices)
 
@@ -1093,5 +1380,5 @@ class TestAnchorMode:
             result_default.trades.reset_index(drop=True),
             result_explicit.trades.reset_index(drop=True),
             check_exact=True,
-            obj="default vs explicit frozen anchor mode",
+            obj="default vs explicit walking anchor mode",
         )

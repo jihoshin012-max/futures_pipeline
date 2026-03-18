@@ -146,6 +146,7 @@ class TradeLogger:
         level: int,
         anchor: float,
         cycle_id: int,
+        price_source: str = "close",
     ) -> None:
         """Append a single trade action row."""
         self._trades.append({
@@ -159,6 +160,7 @@ class TradeLogger:
             "anchor": anchor,
             "cost_ticks": self._cost_ticks * qty,
             "cycle_id": cycle_id,
+            "price_source": price_source,
         })
 
     # -- Cycle finalization --------------------------------------------------
@@ -313,6 +315,7 @@ class TradeLogger:
             return pd.DataFrame(columns=[
                 "bar_idx", "datetime", "action", "direction", "qty",
                 "price", "level", "anchor", "cost_ticks", "cycle_id",
+                "price_source",
             ])
         return pd.DataFrame(self._trades)
 
@@ -373,7 +376,7 @@ class RotationalSimulator:
         self._max_levels: int = int(mart.get("max_levels", 4))
         self._max_contract_size: int = int(mart.get("max_contract_size", 8))
         self._max_total_position: int = int(mart.get("max_total_position", 0))  # 0=unlimited
-        self._anchor_mode: str = mart.get("anchor_mode", "frozen")  # "frozen" (A) | "walking" (B) | "frozen_stop" (C)
+        self._anchor_mode: str = mart.get("anchor_mode", "walking")  # "walking" (B) | "frozen" (A) | "frozen_stop" (C)
         self._mtp_dd_exit_ticks: float = float(mart.get("mtp_dd_exit_ticks", 0))  # Mode C only: negative threshold
 
         instr = config.get("_instrument", {})
@@ -469,6 +472,7 @@ class RotationalSimulator:
         dt: object,
         close: float,
         logger: TradeLogger,
+        price_source: str = "close",
     ) -> None:
         """Execute SEED: enter Long at initial_qty."""
         self._cycle_id += 1
@@ -495,9 +499,10 @@ class RotationalSimulator:
             "anchor": close,
             "cost_ticks": self._cost_ticks * self._initial_qty,
             "cycle_id": self._cycle_id,
+            "price_source": price_source,
         }
         self._cycle_trades.append(trade)
-        logger.log_action(bar_idx, dt, "SEED", "Long", self._initial_qty, close, 0, close, self._cycle_id)
+        logger.log_action(bar_idx, dt, "SEED", "Long", self._initial_qty, close, 0, close, self._cycle_id, price_source)
 
     def _reversal(
         self,
@@ -506,6 +511,7 @@ class RotationalSimulator:
         close: float,
         logger: TradeLogger,
         bars_df: pd.DataFrame,
+        price_source: str = "close",
     ) -> None:
         """Execute REVERSAL: finalize current cycle, flatten, enter opposite."""
         # 1. Add FLATTEN to current cycle's trades before finalizing
@@ -520,10 +526,11 @@ class RotationalSimulator:
             "anchor": self._anchor,
             "cost_ticks": self._cost_ticks * self._position_qty,
             "cycle_id": self._cycle_id,
+            "price_source": price_source,
         }
         self._cycle_trades.append(flatten_trade)
         logger.log_action(bar_idx, dt, "FLATTEN", self._direction, self._position_qty, close,
-                          self._level, self._anchor, self._cycle_id)
+                          self._level, self._anchor, self._cycle_id, price_source)
 
         # 2. Finalize current cycle
         logger.finalize_cycle(
@@ -562,9 +569,10 @@ class RotationalSimulator:
             "anchor": close,
             "cost_ticks": self._cost_ticks * self._initial_qty,
             "cycle_id": self._cycle_id,
+            "price_source": price_source,
         }
         self._cycle_trades.append(trade)
-        logger.log_action(bar_idx, dt, "REVERSAL", new_direction, self._initial_qty, close, 0, close, self._cycle_id)
+        logger.log_action(bar_idx, dt, "REVERSAL", new_direction, self._initial_qty, close, 0, close, self._cycle_id, price_source)
 
     def _add(
         self,
@@ -572,6 +580,7 @@ class RotationalSimulator:
         dt: object,
         close: float,
         logger: TradeLogger,
+        price_source: str = "close",
     ) -> None:
         """Execute ADD: add to position (with cap reset logic).
 
@@ -624,10 +633,11 @@ class RotationalSimulator:
             "anchor": close,
             "cost_ticks": self._cost_ticks * proposed_qty,
             "cycle_id": self._cycle_id,
+            "price_source": price_source,
         }
         self._cycle_trades.append(trade)
         logger.log_action(bar_idx, dt, "ADD", self._direction, proposed_qty, close,
-                          level_at_add, close, self._cycle_id)
+                          level_at_add, close, self._cycle_id, price_source)
 
     # -----------------------------------------------------------------------
     # TDS helper methods
@@ -719,6 +729,7 @@ class RotationalSimulator:
         close: float,
         logger: TradeLogger,
         bars_df: "pd.DataFrame",
+        price_source: str = "close",
     ) -> None:
         """Flatten current position due to TDS Level 3 forced exit.
 
@@ -737,11 +748,12 @@ class RotationalSimulator:
             "anchor": self._anchor,
             "cost_ticks": self._cost_ticks * self._position_qty,
             "cycle_id": self._cycle_id,
+            "price_source": price_source,
         }
         self._cycle_trades.append(flatten_trade)
         logger.log_action(
             bar_idx, dt, "FLATTEN", self._direction, self._position_qty,
-            close, self._level, self._anchor, self._cycle_id,
+            close, self._level, self._anchor, self._cycle_id, price_source,
         )
 
         # Finalize cycle record with td_flatten exit reason
@@ -779,6 +791,7 @@ class RotationalSimulator:
         close: float,
         logger: TradeLogger,
         bars_df: "pd.DataFrame",
+        price_source: str = "close",
     ) -> bool:
         """Mode C: check if unrealized PnL breaches mtp_dd_exit_ticks threshold.
 
@@ -809,11 +822,12 @@ class RotationalSimulator:
                 "anchor": self._anchor,
                 "cost_ticks": self._cost_ticks * self._position_qty,
                 "cycle_id": self._cycle_id,
+                "price_source": price_source,
             }
             self._cycle_trades.append(flatten_trade)
             logger.log_action(
                 bar_idx, dt, "FLATTEN", self._direction, self._position_qty,
-                close, self._level, self._anchor, self._cycle_id,
+                close, self._level, self._anchor, self._cycle_id, price_source,
             )
 
             logger.finalize_cycle(
@@ -844,16 +858,329 @@ class RotationalSimulator:
         return False
 
     # -----------------------------------------------------------------------
+    # Tick-mode fast path
+    # -----------------------------------------------------------------------
+
+    def _is_tick_data(self, bars: pd.DataFrame) -> bool:
+        """Detect tick data: O=H=L=Last on all rows (single price per row)."""
+        if len(bars) < 2:
+            return False
+        sample = bars.head(min(100, len(bars)))
+        return bool(
+            (sample["Open"] == sample["Last"]).all()
+            and (sample["High"] == sample["Last"]).all()
+            and (sample["Low"] == sample["Last"]).all()
+        )
+
+    def _run_tick_fast(self, bars: pd.DataFrame) -> SimulationResult:
+        """Tick-mode fast path: one price per row, one action per tick max.
+
+        Operates on numpy arrays directly for speed (~10-50x faster than iterrows).
+        No OHLC threshold-crossing loop — each tick is one price evaluation.
+        Executes at tick price (with gap slippage), not at trigger price.
+        One action per tick maximum, matching C++ behavior.
+        """
+        prices = bars["Last"].values.astype(np.float64)
+        n = len(prices)
+
+        # Asymmetric step support: separate reversal and add distances
+        trigger_params = self._config.get("hypothesis", {}).get("trigger_params", {})
+        step_rev = float(trigger_params.get("step_dist_reversal", self._step_dist))
+        step_add = float(trigger_params.get("step_dist_add", self._step_dist))
+        step = self._step_dist  # used for directional seed watch distance
+        mtp = self._max_total_position
+        max_cs = self._max_contract_size
+        max_levels = self._max_levels
+        init_qty = self._initial_qty
+        cost_ticks = self._cost_ticks
+        tick_size = self._tick_size
+        walking = self._anchor_mode == "walking"
+
+        # Pre-extract datetimes for trade records (only accessed on actions)
+        dts = bars["datetime"].values
+
+        # State variables
+        state = -1  # -1=WATCHING, 0=FLAT_RESEEDING, 1=LONG, 2=SHORT
+        watch_price = 0.0  # price recorded when entering WATCHING state
+        anchor = 0.0
+        level = 0
+        position_qty = 0
+        avg_entry = 0.0
+        cycle_id = 0
+        cycle_start = 0
+
+        # Accumulate trade and cycle records as lists (fast append)
+        trade_records = []
+        cycle_records = []
+        cycle_trades = []
+
+        for i in range(n):
+            price = prices[i]
+
+            if state == -1:
+                # WATCHING: wait for first StepDist directional move
+                if watch_price == 0.0:
+                    watch_price = price
+                    continue
+                up_dist = price - watch_price
+                down_dist = watch_price - price
+                if up_dist >= step:
+                    # First move is UP -> seed Long
+                    cycle_id += 1
+                    state = 1
+                    anchor = price
+                    level = 0
+                    position_qty = init_qty
+                    avg_entry = price
+                    cycle_start = i
+                    trade = {
+                        "bar_idx": i, "datetime": dts[i], "action": "SEED",
+                        "direction": "Long", "qty": init_qty, "price": price,
+                        "level": 0, "anchor": price,
+                        "cost_ticks": cost_ticks * init_qty,
+                        "cycle_id": cycle_id, "price_source": "tick",
+                    }
+                    trade_records.append(trade)
+                    cycle_trades = [trade]
+                elif down_dist >= step:
+                    # First move is DOWN -> seed Short
+                    cycle_id += 1
+                    state = 2
+                    anchor = price
+                    level = 0
+                    position_qty = init_qty
+                    avg_entry = price
+                    cycle_start = i
+                    trade = {
+                        "bar_idx": i, "datetime": dts[i], "action": "SEED",
+                        "direction": "Short", "qty": init_qty, "price": price,
+                        "level": 0, "anchor": price,
+                        "cost_ticks": cost_ticks * init_qty,
+                        "cycle_id": cycle_id, "price_source": "tick",
+                    }
+                    trade_records.append(trade)
+                    cycle_trades = [trade]
+                continue
+
+            if state == 0:
+                # FLAT after a cycle ended (e.g., end_of_data or TDS exit)
+                # Re-enter WATCHING state
+                state = -1
+                watch_price = price
+                continue
+
+            # POSITIONED: check thresholds (asymmetric step support)
+            distance = price - anchor
+            if state == 1:  # Long
+                in_favor = distance >= step_rev
+                against = (-distance) >= step_add
+            else:  # Short
+                in_favor = (-distance) >= step_rev
+                against = distance >= step_add
+
+            if in_favor:
+                # REVERSAL: flatten current + enter opposite at tick price
+                direction = "Long" if state == 1 else "Short"
+                new_direction = "Short" if state == 1 else "Long"
+
+                # FLATTEN trade (belongs to current cycle)
+                flatten_trade = {
+                    "bar_idx": i, "datetime": dts[i], "action": "FLATTEN",
+                    "direction": direction, "qty": position_qty, "price": price,
+                    "level": level, "anchor": anchor,
+                    "cost_ticks": cost_ticks * position_qty,
+                    "cycle_id": cycle_id, "price_source": "tick",
+                }
+                trade_records.append(flatten_trade)
+                cycle_trades.append(flatten_trade)
+
+                # Finalize cycle
+                entry_trades = [t for t in cycle_trades if t["action"] in ("SEED", "REVERSAL", "ADD")]
+                total_qty = sum(t["qty"] for t in entry_trades)
+                if total_qty > 0:
+                    wavg = sum(t["price"] * t["qty"] for t in entry_trades) / total_qty
+                else:
+                    wavg = price
+                if direction == "Long":
+                    gross = (price - wavg) / tick_size * total_qty
+                else:
+                    gross = (wavg - price) / tick_size * total_qty
+                total_cost = sum(t["cost_ticks"] for t in cycle_trades)
+                net = gross - total_cost
+                adds = [t for t in entry_trades if t["action"] == "ADD"]
+                max_pos = 0
+                rq = 0
+                for t in cycle_trades:
+                    if t["action"] == "FLATTEN":
+                        rq = 0
+                    elif t["action"] in ("SEED", "REVERSAL", "ADD"):
+                        rq += t["qty"]
+                        max_pos = max(max_pos, rq)
+                max_level = max((t["level"] for t in entry_trades), default=0)
+
+                cycle_records.append({
+                    "cycle_id": cycle_id,
+                    "start_bar": cycle_start,
+                    "end_bar": i,
+                    "direction": direction,
+                    "duration_bars": i - cycle_start + 1,
+                    "entry_price": round(entry_trades[0]["price"], 4) if entry_trades else price,
+                    "exit_price": round(price, 4),
+                    "avg_entry_price": round(wavg, 4),
+                    "adds_count": len(adds),
+                    "max_level_reached": max_level,
+                    "max_position_qty": max_pos,
+                    "gross_pnl_ticks": round(gross, 4),
+                    "net_pnl_ticks": round(net, 4),
+                    "max_adverse_excursion_ticks": 0.0,
+                    "max_favorable_excursion_ticks": 0.0,
+                    "retracement_depths": [],
+                    "time_at_max_level_bars": 0,
+                    "trend_defense_level_max": 0,
+                    "exit_reason": "reversal",
+                })
+
+                # Enter new cycle in opposite direction
+                cycle_id += 1
+                state = 2 if direction == "Long" else 1
+                anchor = price
+                level = 0
+                position_qty = init_qty
+                avg_entry = price
+                cycle_start = i
+                rev_trade = {
+                    "bar_idx": i, "datetime": dts[i], "action": "REVERSAL",
+                    "direction": new_direction, "qty": init_qty, "price": price,
+                    "level": 0, "anchor": price,
+                    "cost_ticks": cost_ticks * init_qty,
+                    "cycle_id": cycle_id, "price_source": "tick",
+                }
+                trade_records.append(rev_trade)
+                cycle_trades = [rev_trade]
+
+            elif against:
+                # ADD (or MTP refusal)
+                proposed_qty = init_qty * (2 ** level)
+                if proposed_qty > max_cs or level >= max_levels:
+                    # Cap reset: qty resets to initial, level resets to 0
+                    proposed_qty = init_qty
+                    next_level = 0
+                    level_at_add = 0
+                else:
+                    next_level = level + 1
+                    level_at_add = level
+
+                if mtp > 0 and position_qty + proposed_qty > mtp:
+                    # MTP refusal
+                    if walking:
+                        anchor = price  # Mode B: walk anchor to tick price
+                    continue  # no action this tick
+
+                # Commit ADD
+                level = next_level
+                anchor = price
+                old_qty = position_qty
+                position_qty += proposed_qty
+                if position_qty > 0:
+                    avg_entry = (avg_entry * old_qty + price * proposed_qty) / position_qty
+
+                direction = "Long" if state == 1 else "Short"
+                add_trade = {
+                    "bar_idx": i, "datetime": dts[i], "action": "ADD",
+                    "direction": direction, "qty": proposed_qty, "price": price,
+                    "level": level_at_add, "anchor": price,
+                    "cost_ticks": cost_ticks * proposed_qty,
+                    "cycle_id": cycle_id, "price_source": "tick",
+                }
+                trade_records.append(add_trade)
+                cycle_trades.append(add_trade)
+
+        # Finalize any open cycle at end of data
+        if state in (1, 2) and cycle_trades:
+            last_price = prices[-1]
+            direction = "Long" if state == 1 else "Short"
+            entry_trades = [t for t in cycle_trades if t["action"] in ("SEED", "REVERSAL", "ADD")]
+            total_qty = sum(t["qty"] for t in entry_trades)
+            wavg = sum(t["price"] * t["qty"] for t in entry_trades) / total_qty if total_qty else last_price
+            if direction == "Long":
+                gross = (last_price - wavg) / tick_size * total_qty
+            else:
+                gross = (wavg - last_price) / tick_size * total_qty
+            total_cost = sum(t["cost_ticks"] for t in cycle_trades)
+            net = gross - total_cost
+            adds = [t for t in entry_trades if t["action"] == "ADD"]
+            max_pos = 0
+            rq = 0
+            for t in cycle_trades:
+                if t["action"] == "FLATTEN":
+                    rq = 0
+                elif t["action"] in ("SEED", "REVERSAL", "ADD"):
+                    rq += t["qty"]
+                    max_pos = max(max_pos, rq)
+            max_level = max((t["level"] for t in entry_trades), default=0)
+
+            cycle_records.append({
+                "cycle_id": cycle_id,
+                "start_bar": cycle_start,
+                "end_bar": n - 1,
+                "direction": direction,
+                "duration_bars": n - 1 - cycle_start + 1,
+                "entry_price": round(entry_trades[0]["price"], 4) if entry_trades else last_price,
+                "exit_price": round(last_price, 4),
+                "avg_entry_price": round(wavg, 4),
+                "adds_count": len(adds),
+                "max_level_reached": max_level,
+                "max_position_qty": max_pos,
+                "gross_pnl_ticks": round(gross, 4),
+                "net_pnl_ticks": round(net, 4),
+                "max_adverse_excursion_ticks": 0.0,
+                "max_favorable_excursion_ticks": 0.0,
+                "retracement_depths": [],
+                "time_at_max_level_bars": 0,
+                "trend_defense_level_max": 0,
+                "exit_reason": "end_of_data",
+            })
+
+        trades_df = pd.DataFrame(trade_records) if trade_records else pd.DataFrame(columns=[
+            "bar_idx", "datetime", "action", "direction", "qty",
+            "price", "level", "anchor", "cost_ticks", "cycle_id", "price_source",
+        ])
+        cycles_df = pd.DataFrame(cycle_records) if cycle_records else pd.DataFrame(columns=[
+            "cycle_id", "start_bar", "end_bar", "direction", "duration_bars",
+            "entry_price", "exit_price", "avg_entry_price", "adds_count",
+            "max_level_reached", "max_position_qty", "gross_pnl_ticks",
+            "net_pnl_ticks", "max_adverse_excursion_ticks",
+            "max_favorable_excursion_ticks", "retracement_depths",
+            "time_at_max_level_bars", "trend_defense_level_max", "exit_reason",
+        ])
+
+        return SimulationResult(
+            trades=trades_df,
+            cycles=cycles_df,
+            bars_processed=n,
+        )
+
+    # -----------------------------------------------------------------------
     # Main simulation loop
     # -----------------------------------------------------------------------
 
     def run(self) -> SimulationResult:
         """Execute the full simulation over all (filtered) bars.
 
+        Auto-detects tick data (O=H=L=Last) and uses optimized tick-mode
+        fast path when TDS is disabled. Falls back to OHLC threshold-crossing
+        loop for aggregated bar data.
+
         Returns:
             SimulationResult with trades, cycles, and bars_processed.
         """
         bars = self._filter_bars(self._bar_data)
+
+        # Tick-mode fast path: skip feature computation and OHLC logic
+        tds_cfg = self._config.get("trend_defense", {})
+        tds_enabled = _TDS_AVAILABLE and tds_cfg.get("enabled", False)
+        if self._is_tick_data(bars) and not tds_enabled:
+            return self._run_tick_fast(bars)
 
         feature_computer = FeatureComputer(self._config)
         bars = feature_computer.compute_static_features(bars)
@@ -906,8 +1233,12 @@ class RotationalSimulator:
         for bar_idx, row in bars.iterrows():
             close = float(row["Last"])
             dt = row["datetime"]
+            open_price = float(row["Open"])
+            high = float(row["High"])
+            low = float(row["Low"])
 
-            # -- TDS evaluation (before state machine) ---------------------
+            # -- TDS evaluation (bar-level, once per bar, using close) ---------
+            tds_flattened = False
             if self._tds is not None:
                 # Handle cooldown period (forced_flat=True after Level 3)
                 if self._tds.state.forced_flat:
@@ -931,12 +1262,11 @@ class RotationalSimulator:
                     action_modifiers = self._tds.apply_response(sim_state, threat)
                     self._tds_level_max = max(self._tds_level_max, threat)
 
-                    # Level 3 forced flatten: exit position immediately
+                    # Level 3 forced flatten: exit position immediately at close
                     if action_modifiers.get("force_flatten", False):
                         self._finalize_current_cycle_as_tds_exit(
                             bar_idx, dt, close, logger, bars
                         )
-                        # action_modifiers is reset since we're now FLAT
                         action_modifiers = {
                             "step_widen_factor": 1.0,
                             "max_levels_reduction": 0,
@@ -944,7 +1274,7 @@ class RotationalSimulator:
                             "force_flatten": False,
                             "reduced_reversal_threshold": None,
                         }
-                        continue  # skip state machine for this bar
+                        tds_flattened = True
                 else:
                     # FLAT state: update prev tracking but don't compute H36/H39
                     self._prev_close = close
@@ -958,49 +1288,102 @@ class RotationalSimulator:
                         "force_flatten": False,
                         "reduced_reversal_threshold": None,
                     }
-            # No TDS: no dynamic feature computation needed
 
+            if tds_flattened:
+                continue  # skip intra-bar processing for this bar
+
+            # -- FLAT: seed at open price --------------------------------------
             if self._state == "FLAT":
-                self._seed(bar_idx, dt, close, logger)
+                self._seed(bar_idx, dt, open_price, logger, "open")
 
-            elif self._state == "POSITIONED":
-                distance = close - self._anchor  # signed (positive = price moved up)
-
-                # Apply TDS step widening when active
+            # -- POSITIONED: threshold-crossing loop within bar ----------------
+            # Deterministic trigger levels are computed from anchor + step_dist.
+            # High/Low tell us with certainty whether each threshold was crossed.
+            # Loop until no more triggers fire within this bar's H-L range.
+            if self._state == "POSITIONED":
                 effective_step = self._step_dist * action_modifiers.get("step_widen_factor", 1.0)
+                # Safety limit: max actions per bar = floor(bar_range / step) + 2
+                bar_range = high - low
+                max_actions = int(bar_range / effective_step) + 2 if effective_step > 0 else 1
+                actions_this_bar = 0
 
-                if self._direction == "Long":
-                    in_favor = distance >= effective_step
-                    against = (-distance) >= effective_step
-                else:  # Short
-                    in_favor = (-distance) >= effective_step
-                    against = distance >= effective_step
+                while actions_this_bar <= max_actions:
+                    # Recompute effective step (may change after TDS interactions)
+                    effective_step = self._step_dist * action_modifiers.get("step_widen_factor", 1.0)
 
-                if in_favor:
-                    # On reversal: notify TDS and reset cycle-level max
-                    if self._tds is not None:
-                        self._tds.on_reversal()
-                    tds_level_for_cycle = self._tds_level_max
-                    self._tds_level_max = 0
+                    if self._direction == "Long":
+                        reversal_trigger = self._anchor + effective_step
+                        add_trigger = self._anchor - effective_step
+                        reversal_hit = high >= reversal_trigger
+                        add_hit = low <= add_trigger
+                    else:  # Short
+                        reversal_trigger = self._anchor - effective_step
+                        add_trigger = self._anchor + effective_step
+                        reversal_hit = low <= reversal_trigger
+                        add_hit = high >= add_trigger
 
-                    self._reversal(bar_idx, dt, close, logger, bars)
+                    if not reversal_hit and not add_hit:
+                        break  # no triggers within this bar
 
-                    # Patch the cycle record just finalized to include correct tds level max
-                    if logger._cycles:
-                        logger._cycles[-1]["trend_defense_level_max"] = tds_level_for_cycle
-
-                elif against:
-                    # Check TDS refuse_adds
-                    if action_modifiers.get("refuse_adds", False):
-                        pass  # skip add
+                    # Determine which fires first when both hit
+                    if reversal_hit and add_hit:
+                        # Use Open proximity to determine sequence
+                        rev_dist = abs(open_price - reversal_trigger)
+                        add_dist = abs(open_price - add_trigger)
+                        reversal_first = rev_dist <= add_dist
+                    elif reversal_hit:
+                        reversal_first = True
                     else:
-                        self._add(bar_idx, dt, close, logger)
-                        if self._tds is not None:
-                            self._tds.on_add(price=close)
+                        reversal_first = False
 
-            # Mode C: check drawdown exit after state machine (MTP refusal may have frozen anchor)
-            if self._state == "POSITIONED" and self._check_mtp_dd_exit(bar_idx, dt, close, logger, bars):
-                continue  # flattened — skip to next bar
+                    if reversal_first:
+                        # Execute reversal at the exact trigger price
+                        if self._tds is not None:
+                            self._tds.on_reversal()
+                        tds_level_for_cycle = self._tds_level_max
+                        self._tds_level_max = 0
+
+                        self._reversal(bar_idx, dt, reversal_trigger, logger, bars, "intrabar")
+
+                        if logger._cycles:
+                            logger._cycles[-1]["trend_defense_level_max"] = tds_level_for_cycle
+                    else:
+                        # Execute add at the exact trigger price
+                        if action_modifiers.get("refuse_adds", False):
+                            break  # TDS blocks adds — no further triggers to check
+                        pos_before = self._position_qty
+                        anchor_before = self._anchor
+                        self._add(bar_idx, dt, add_trigger, logger, "intrabar")
+                        if self._tds is not None and self._position_qty != pos_before:
+                            self._tds.on_add(price=add_trigger)
+                        # If add was refused and no state changed, break to avoid
+                        # infinite loop (Mode A/C: frozen anchor, same trigger repeats).
+                        # Mode B: anchor walks on refusal, so anchor_before != self._anchor.
+                        if self._position_qty == pos_before and self._anchor == anchor_before:
+                            break
+
+                    actions_this_bar += 1
+
+                    # Mode C: check drawdown exit after each action
+                    if self._state == "POSITIONED" and self._check_mtp_dd_exit(
+                        bar_idx, dt, add_trigger if not reversal_first else reversal_trigger,
+                        logger, bars, "intrabar"
+                    ):
+                        break
+
+                    # If we went FLAT (shouldn't happen mid-loop, but guard)
+                    if self._state != "POSITIONED":
+                        break
+
+                # Post-loop: Mode C dd_exit check at bar's most adverse price.
+                # The threshold loop only checks at trigger prices; the actual
+                # bar extreme may breach the dd threshold even if no trigger fired.
+                if self._state == "POSITIONED":
+                    adverse_price = low if self._direction == "Long" else high
+                    if self._check_mtp_dd_exit(
+                        bar_idx, dt, adverse_price, logger, bars, "intrabar"
+                    ):
+                        pass  # flattened — state is now FLAT
 
             # End of bar: update TDS cycle metrics
             if self._tds is not None and self._state == "POSITIONED":

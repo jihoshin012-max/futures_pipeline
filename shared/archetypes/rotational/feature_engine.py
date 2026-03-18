@@ -301,6 +301,10 @@ def compute_hypothesis_features(
             else:
                 df["band_atr_state"] = np.nan
 
+        elif filter_id == "SPEEDREAD":
+            # SpeedRead composite filter — exact replication of SpeedRead.cpp
+            df = _compute_speedread_features(df, fp)
+
         elif filter_id in ("H4", "H5", "H6", "H7", "H11", "H12", "H16"):
             # These filters use existing CSV columns (ZZ, imbalance, time, trades, etc.)
             # No additional computed features needed for initial screening
@@ -314,6 +318,117 @@ def compute_hypothesis_features(
     # H9 also handles structural mods that need speed features
     # (structural_mods like H33/H36 computed features when in structural context)
     # ------------------------------------------------------------------
+
+    return df
+
+
+def _compute_speedread_features(
+    df: pd.DataFrame,
+    params: dict,
+) -> pd.DataFrame:
+    """Compute SpeedRead composite features — exact replication of SpeedRead.cpp.
+
+    Produces 3 columns: speed_price_velocity, speed_volume_rate, speed_composite.
+    All entry-time safe (use only completed bars).
+
+    Args:
+        df: Bar DataFrame with Last, High, Low, Volume columns.
+        params: dict with keys: lookback, vol_avg_len, price_weight, vol_weight,
+                smoothing_bars, atr_length. All optional with defaults.
+    """
+    lookback = int(params.get("lookback", 10))
+    vol_avg_len = int(params.get("vol_avg_len", 50))
+    price_weight = float(params.get("price_weight", 70))
+    vol_weight = float(params.get("vol_weight", 30))
+    smoothing_bars = int(params.get("smoothing_bars", 3))
+    atr_length = int(params.get("atr_length", 20))
+
+    close = df["Last"].values.astype(float)
+    high = df["High"].values.astype(float)
+    low = df["Low"].values.astype(float)
+    volume = df["Volume"].values.astype(float)
+    n = len(df)
+
+    # Step 1: Price Velocity
+    # True Range for ATR (computed from scratch, NOT col 35)
+    prev_close = np.empty(n)
+    prev_close[0] = close[0]
+    prev_close[1:] = close[:-1]
+    tr = np.maximum(
+        high - low,
+        np.maximum(np.abs(high - prev_close), np.abs(low - prev_close)),
+    )
+
+    # Rolling ATR (mean of TR over atr_length bars)
+    atr = np.full(n, np.nan)
+    tr_cumsum = np.cumsum(tr)
+    for i in range(atr_length - 1, n):
+        if i == atr_length - 1:
+            atr[i] = tr_cumsum[i] / atr_length
+        else:
+            atr[i] = (tr_cumsum[i] - tr_cumsum[i - atr_length]) / atr_length
+
+    # Price travel: sum of abs(close[i-j] - close[i-j-1]) for j in range(lookback)
+    abs_changes = np.abs(np.diff(close, prepend=close[0]))
+    price_travel = np.full(n, np.nan)
+    change_cumsum = np.cumsum(abs_changes)
+    for i in range(lookback, n):
+        price_travel[i] = change_cumsum[i] - change_cumsum[i - lookback]
+
+    price_vel_raw = np.where(
+        (atr > 0) & ~np.isnan(atr) & ~np.isnan(price_travel),
+        price_travel / (atr * lookback),
+        np.nan,
+    )
+    price_scaled = 50.0 * (1.0 + np.tanh((price_vel_raw - 1.0) * 1.5))
+
+    # Step 2: Volume Rate
+    # avg_vol: mean of volume[i-1-j] for j in range(vol_avg_len) — EXCLUDES current bar
+    avg_vol = np.full(n, np.nan)
+    vol_cumsum = np.cumsum(volume)
+    for i in range(vol_avg_len + 1, n):
+        # Bars i-1 back to i-vol_avg_len: sum = vol_cumsum[i-1] - vol_cumsum[i-1-vol_avg_len]
+        avg_vol[i] = (vol_cumsum[i - 1] - vol_cumsum[i - 1 - vol_avg_len]) / vol_avg_len
+
+    # recent_vol: mean of volume[i-j] for j in range(min(lookback, 5)) — INCLUDES current bar
+    recent_bars = min(lookback, 5)
+    recent_vol = np.full(n, np.nan)
+    for i in range(recent_bars - 1, n):
+        recent_vol[i] = (vol_cumsum[i] - (vol_cumsum[i - recent_bars] if i >= recent_bars else 0)) / recent_bars
+
+    vol_rate_raw = np.where(
+        (avg_vol > 0) & ~np.isnan(avg_vol) & ~np.isnan(recent_vol),
+        recent_vol / avg_vol,
+        np.nan,
+    )
+    vol_scaled = 50.0 * (1.0 + np.tanh((vol_rate_raw - 1.0) * 1.5))
+
+    # Step 3: Composite (raw)
+    total_weight = price_weight + vol_weight
+    composite_raw = np.where(
+        ~np.isnan(price_scaled) & ~np.isnan(vol_scaled),
+        (price_scaled * price_weight + vol_scaled * vol_weight) / total_weight,
+        np.nan,
+    )
+
+    # Step 4: Smoothing — SMA of composite_raw
+    composite = np.full(n, np.nan)
+    if smoothing_bars <= 1:
+        composite = composite_raw.copy()
+    else:
+        raw_cumsum = np.nancumsum(composite_raw)
+        # Track valid count for proper averaging
+        valid = (~np.isnan(composite_raw)).astype(float)
+        valid_cumsum = np.cumsum(valid)
+        for i in range(n):
+            start = max(0, i - smoothing_bars + 1)
+            cnt = valid_cumsum[i] - (valid_cumsum[start - 1] if start > 0 else 0)
+            if cnt >= smoothing_bars:
+                composite[i] = (raw_cumsum[i] - (raw_cumsum[start - 1] if start > 0 else 0)) / cnt
+
+    df["speed_price_velocity"] = price_scaled
+    df["speed_volume_rate"] = vol_scaled
+    df["speed_composite"] = composite
 
     return df
 

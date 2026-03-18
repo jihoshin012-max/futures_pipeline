@@ -65,31 +65,68 @@ Cycle net_pnl = gross_pnl - (number_of_actions × cost_ticks × position_size_at
 No scoring adapter. Decision logic lives inside the simulator.
 `config.archetype.scoring_adapter = null` — engine skips scoring entirely.
 
+## Bar Resolution: Threshold-Crossing OHLC
+
+**Decision: threshold-crossing logic (2026-03-16)** — the simulator uses exact trigger
+levels (anchor +/- step_dist) checked against each bar's High and Low to detect intra-bar
+threshold crossings. Multiple actions can fire within a single bar.
+
+The close-only approach (evaluating only bar Close) was found to be fundamentally
+incompatible with the rotational strategy at higher MTP values. 42% of 250-vol P1a bars
+have H-L range >= 7.0 points. Close-only missed all intra-bar rotations, producing
+MTP=0 PF=0.58 when live C++ showed profitable trading (PF~1.7). The threshold-crossing
+fix resolved this: MTP=0 PF=1.74, position self-limits through intra-bar reversals.
+
+When both add and reversal triggers are crossed within the same bar, Open proximity
+determines which fires first. This is the only approximation — all other trigger
+detections are exact.
+
 ## Anchor Behavior on MTP Refusal
 
-**Decision: frozen anchor (Mode A)** — when MaxTotalPosition refuses an ADD, anchor
-stays at the last successful trade price. No state mutation occurs.
+**Decision: walking anchor (Mode B)** — when MaxTotalPosition refuses an ADD, anchor
+updates to the current trigger price. This keeps the reversal trigger reachable, preventing
+the "stuck" problem where frozen anchor leaves positions trapped indefinitely.
 
-**Tested 2026-03-16** via `run_anchor_mode_comparison.py` against MAX_PROFIT winning
-configs (250vol SD=7.0/MTP=2, 250tick SD=4.5/MTP=1, 10sec SD=10.0/MTP=4) on P1a:
+**Tested 2026-03-16** via anchor mode comparison on 250tick SD=5.5/ML=1/MTP=4 P1a
+using threshold-crossing simulator:
 
-| Mode | Behavior | Result |
-|------|----------|--------|
-| A (frozen) | Anchor stays at last trade price | **PF 1.72–2.20, positive PnL** |
-| B (walking) | Anchor updates to current price | PF 0.71–0.86, massive negative PnL |
-| C (frozen_stop) | Frozen anchor + hard stop exit | PF 0.70–0.83, massive negative PnL |
+| Mode | PF | Net PnL | Cycles | WorstDD | Stuck |
+|------|----|---------|--------|---------|-------|
+| A (frozen) | 10.48 | 173,646 | 13,408 | -16,758 | 26 |
+| **B (walking)** | **5.75** | **1,096,775** | **92,984** | **-8,274** | **0** |
+| C-20pt (frozen+stop) | 3.38 | 852,369 | 84,674 | -6,558 | 1 |
+| C-30pt (frozen+stop) | 3.67 | 806,453 | 77,603 | -6,558 | 11 |
+| C-40pt (frozen+stop) | 3.67 | 745,729 | 71,701 | -6,558 | 20 |
 
-**Why frozen wins:** The rotational strategy profits from patience — holding through
-adverse excursions until reversal. Walking the anchor (B) shortens effective cycle
-distance, exploding cycle count (360 → 11,858 for 250tick) and creating rapid-cycling
-that cannot overcome transaction costs. Hard stops (C) force-exit mid-drawdown then
-re-SEED, doubling cost burden on every exit.
+**Why walking wins:** Mode A's high PF (10.48) is misleading — it achieves selectivity by
+leaving capital stuck at MTP cap (26 stuck cycles, position frozen for 100+ bars). Mode B
+eliminates stuck cycles entirely (0) and generates 6.3x more total PnL. With threshold-
+crossing capturing intra-bar reversals, the cycle explosion from walking anchor no longer
+destroys profitability — each additional cycle carries positive expectation.
 
-**Implication for TDS:** L3 drawdown-budget force-flatten suffers the same failure mode
-as Mode C — it is fundamentally incompatible with the rotational strategy's edge at
-current MTP levels. TDS L1/L2 (step widening, add refusal) remain viable because they
-slow position growth without forcing exits.
+**Historical note:** The previous comparison (close-only simulator) showed frozen anchor
+winning because walking anchor caused 12x cycle explosion with rapid cycling that could
+not overcome transaction costs. The threshold-crossing fix resolved this by allowing
+intra-bar reversals, making walking anchor viable.
 
-**Any future MTP-related changes must respect this decision.** The `anchor_mode` config
-parameter exists in `rotational_simulator.py` for testing purposes but the production
-default is `"frozen"` and must not be changed without re-running this comparison.
+**The `anchor_mode` config parameter exists in `rotational_simulator.py` for testing
+purposes but the production default is `"walking"`.** Any changes require re-running
+this comparison with the threshold-crossing simulator.
+
+## Trend Defense System (TDS) Applicability
+
+**Decision (2026-03-17):** TDS applicability depends on MTP. Walking anchor + threshold-
+crossing fundamentally changed position dynamics:
+
+| Profile | MTP | TDS Status | Rationale |
+|---------|-----|------------|-----------|
+| MOST_CONSISTENT | 1 | **Disabled** | No adds fire. Position always 1 contract. Walking anchor keeps reversal reachable. Nothing to defend. |
+| SAFEST | 1 | **Disabled** | Same as above — pure reversal, no position growth. |
+| MAX_PROFIT | 8 | **Re-calibrate** | Position can grow to 8 contracts. TDS L1/L2 (step widening, add refusal) may still reduce drawdown during sustained adverse moves. |
+
+TDS was originally designed for Mode A (frozen anchor) where positions got trapped at
+MTP cap indefinitely. Mode B eliminates stuck cycles, but MAX_PROFIT (MTP=8) still
+accumulates position during multi-step adverse moves. TDS L1/L2 may help there.
+
+**TDS L3 (force flatten) remains incompatible** with the rotational strategy regardless
+of anchor mode — it forces exits mid-drawdown then re-SEEDs, doubling cost burden.

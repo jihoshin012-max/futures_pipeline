@@ -1,300 +1,84 @@
-# Sizing Sweep Report — Rotational Archetype (P1a)
+# Sizing Sweep Report — Mode B (Walking Anchor), Threshold-Crossing Simulator
+generated: 2026-03-17
+bar_type: 250tick (bar_data_250tick_rot)
+period: P1a
+anchor_mode: walking (Mode B)
+simulator: threshold-crossing OHLC (exact trigger levels against High/Low)
 
-**Generated from:** `sizing_sweep_P1a.tsv`
-**Period:** P1a (in-sample calibration data)
+## Summary
 
----
+322 unique parameter combinations swept on 250tick P1a data using the threshold-crossing
+simulator with Mode B (walking anchor). Cost model: 3 ticks ($15) per action round-turn.
 
-## 1. Summary
+**Key finding:** Walking anchor transforms the landscape. Mode A's high-PF/low-PnL
+selectivity is replaced by Mode B's moderate-PF/high-PnL active trading. MTP=1 (pure
+reversal) is now competitive with martingale configs because walking anchor eliminates
+the "stuck at MTP cap" problem entirely.
 
-| Metric | Value |
-|--------|-------|
-| Raw parameter combos | 420 (14 StepDist x 5 MaxLevels x 6 MTP) |
-| After deduplication | 322 unique combos per bar type |
-| Dedup savings | 98 combos eliminated (23%) |
-| Total simulation runs | 966 (322 x 3 bar types) |
-| Configs with PF >= 1.0 | 188 (19.5%) |
-| Configs with PF < 1.0 | 778 (80.5%) |
+## Profile Winners
 
-### Best Config per Bar Type (by Cycle PF)
+### MAX_PROFIT — SD=6.0, ML=1, MTP=8
+- PF: 6.60 | Net PnL: +1,074,653 ticks | Cycles: 78,487
+- WR: 93.9% | MaxDD: 16,866 | Calmar: 63.72 | WinSess: 97.3%
 
-| Bar Type | StepDist | MaxLevels | MTP | Cycle PF | Total PnL (ticks) |
-|----------|----------|-----------|-----|----------|-------------------|
-| 250vol | 7.0 | 1 | 2 | 2.2037 | 10537 |
-| 250tick | 4.5 | 1 | 1 | 1.8413 | 4489 |
-| 10sec | 10.0 | 1 | 4 | 1.7218 | 11363 |
+### SAFEST — SD=10.0, ML=1, MTP=1
+- PF: 3.39 | Net PnL: +391,659 ticks | Cycles: 21,394
+- WR: 76.3% | MaxDD: 2,132 | Calmar: 183.71 | WinSess: 94.6%
 
----
+### MOST_CONSISTENT — SD=5.0, ML=1, MTP=1
+- PF: 4.06 | Net PnL: +959,317 ticks | Cycles: 111,171
+- WR: 81.8% | MaxDD: 2,158 | Calmar: 444.54 | WinSess: 100.0%
 
-## 2. Profile Selections — Top 3 Candidates per Bar Type
+## MTP=1 (Pure Reversal) — Strong with Walking Anchor
 
-### 2.1 Profile: MAX_PROFIT
+| StepDist | PF | Net PnL | Cycles | MaxDD |
+|----------|---:|--------:|-------:|------:|
+| 5.0 | 4.06 | +959,317 | 111,171 | 2,158 |
+| 5.5 | 4.29 | +928,759 | 92,984 | 2,102 |
+| 6.0 | 6.36 | +1,067,405 | 78,487 | 33,090 |
+| 7.0 | 4.33 | +745,691 | 55,038 | 1,562 |
+| 8.0 | 4.13 | +620,827 | 44,153 | 1,718 |
 
-*Highest cycle PF regardless of risk*
+MTP=1 eliminates position growth risk entirely. With walking anchor, it generates
+comparable PnL to MTP=4/8 configs with dramatically lower drawdowns.
 
-**250vol:**
+## MTP=0 (Unlimited / V1 Equivalent)
 
-| Rank | StepDist | MaxLevels | MTP | cycle_pf | total_pnl_ticks | worst_cycle_dd | calmar_ratio | PF<1? |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 7.0 | 1 | 2 | 2.2037 | 10537 | 8569.0000 | 1.2297 | no |
-| 2 | 7.0 | 2 | 2 | 2.2037 | 10537 | 8569.0000 | 1.2297 | no |
-| 3 | 10.0 | 1 | 1 | 1.7522 | 3716.0000 | 4940.0000 | 0.7522 | no |
+Best: SD=7.0, PF=1.78, PnL=+481,873, MaxDD=378,876.
 
-**250tick:**
+MTP=0 is profitable but the unlimited position growth creates massive drawdowns.
+Walking anchor helps (vs close-only PF=0.58) but position still grows unconstrained
+during sustained adverse moves.
 
-| Rank | StepDist | MaxLevels | MTP | cycle_pf | total_pnl_ticks | worst_cycle_dd | calmar_ratio | PF<1? |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 4.5 | 1 | 1 | 1.8413 | 4489.0000 | 5336.0000 | 0.8413 | no |
-| 2 | 4.0 | 1 | 1 | 1.8376 | 4411.0000 | 5266.0000 | 0.8376 | no |
-| 3 | 4.5 | 1 | 2 | 1.7928 | 8265.0000 | 9644.0000 | 0.8570 | no |
+## Mode A vs Mode B Comparison
 
-**10sec:**
+| Config | Mode A PF | Mode B PF | Mode A PnL | Mode B PnL |
+|--------|----------:|----------:|-----------:|-----------:|
+| SD=5.0/ML=1/MTP=4 | 6.60 | 5.36 | 116,924 | **1,123,345** |
+| SD=5.5/ML=1/MTP=4 | 10.48 | 5.75 | 173,646 | **1,096,775** |
+| SD=6.0/ML=1/MTP=8 | 2.15 | 6.60 | 65,186 | **1,074,653** |
+| SD=7.0/ML=1/MTP=1 | 2.83 | 4.33 | 9,011 | **745,691** |
+| SD=7.0/ML=1/MTP=2 | 7.04 | 4.23 | 59,208 | **829,033** |
 
-| Rank | StepDist | MaxLevels | MTP | cycle_pf | total_pnl_ticks | worst_cycle_dd | calmar_ratio | PF<1? |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 10.0 | 1 | 4 | 1.7218 | 11363 | 13981 | 0.8127 | no |
-| 2 | 10.0 | 2 | 4 | 1.7218 | 11363 | 13981 | 0.8127 | no |
-| 3 | 10.0 | 3 | 4 | 1.7218 | 11363 | 13981 | 0.8127 | no |
+Mode B generates 6-80x more net PnL than Mode A across all configs tested. Mode A's
+higher PF at some configs comes from extreme selectivity (holding dead positions).
 
-### 2.2 Profile: SAFEST
+## Observations
 
-*Best survival metrics — minimise worst-case single-cycle loss*
+1. **ML=1 dominates everywhere** — higher max_levels never wins any profile
+2. **MTP=1 is now the MOST_CONSISTENT winner** — walking anchor makes pure reversal viable
+3. **SD=5.0-6.0 is the sweet spot** — consistent across MAX_PROFIT and MOST_CONSISTENT
+4. **SAFEST prefers SD=10.0/MTP=1** — wide steps, pure reversal, minimal exposure
+5. **All profiles are profitable** — 216 of 322 configs have PF >= 1.0 (67%)
 
-**250vol:**
+## Parameters
 
-| Rank | StepDist | MaxLevels | MTP | worst_cycle_dd | max_level_exposure_pct | tail_ratio | cycle_pf | PF<1? |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 1.0 | 4 | 16 | 753.0000 | 0.0000 | 0.5738 | 1.0209 | no |
-| 2 | 1.0 | 5 | 16 | 753.0000 | 0.0000 | 0.5738 | 1.0209 | no |
-| 3 | 1.0 | 2 | 16 | 753.0000 | 6.4700 | 0.5738 | 1.0209 | no |
+- StepDist: [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 7.0, 8.0, 10.0]
+- MaxLevels: [1, 2, 3, 4, 5]
+- MaxTotalPosition: [1, 2, 4, 8, 16, 0]
+- MaxContractSize: 16 (fixed)
+- InitialQty: 1 (fixed)
+- AnchorMode: walking (fixed)
+- CostTicks: 3 (NQ, from instruments.md)
 
-**250tick:**
-
-| Rank | StepDist | MaxLevels | MTP | worst_cycle_dd | max_level_exposure_pct | tail_ratio | cycle_pf | PF<1? |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 5.0 | 1 | 1 | 4656.0000 | 0.0000 | 0.0057 | 1.2154 | no |
-| 2 | 5.5 | 1 | 1 | 4740.0000 | 0.0000 | 0.0061 | 1.4867 | no |
-| 3 | 8.0 | 1 | 1 | 4812.0000 | 0.0000 | 0.0084 | 1.2891 | no |
-
-**10sec:**
-
-| Rank | StepDist | MaxLevels | MTP | worst_cycle_dd | max_level_exposure_pct | tail_ratio | cycle_pf | PF<1? |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 10.0 | 1 | 1 | 5455.0000 | 0.0000 | 0.0111 | 1.1021 | no |
-| 2 | 8.0 | 1 | 1 | 5481.0000 | 0.0000 | 0.0115 | 0.9057 | YES |
-| 3 | 4.5 | 1 | 1 | 5481.0000 | 0.0000 | 0.0060 | 0.9049 | YES |
-
-### 2.3 Profile: MOST_CONSISTENT
-
-*Best risk-adjusted returns — maximise calmar and consistency*
-
-**250vol:**
-
-| Rank | StepDist | MaxLevels | MTP | calmar_ratio | winning_session_pct | max_dd_duration_bars | cycle_pf | PF<1? |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 7.0 | 1 | 2 | 1.2297 | 94.4400 | 14206 | 2.2037 | no |
-| 2 | 7.0 | 2 | 2 | 1.2297 | 94.4400 | 14206 | 2.2037 | no |
-| 3 | 10.0 | 1 | 1 | 0.7522 | 93.3300 | 15185 | 1.7522 | no |
-
-**250tick:**
-
-| Rank | StepDist | MaxLevels | MTP | calmar_ratio | winning_session_pct | max_dd_duration_bars | cycle_pf | PF<1? |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 4.5 | 1 | 2 | 0.8570 | 93.3300 | 13791 | 1.7928 | no |
-| 2 | 4.5 | 2 | 2 | 0.8570 | 93.3300 | 13791 | 1.7928 | no |
-| 3 | 4.5 | 1 | 1 | 0.8413 | 92.8600 | 19998 | 1.8413 | no |
-
-**10sec:**
-
-| Rank | StepDist | MaxLevels | MTP | calmar_ratio | winning_session_pct | max_dd_duration_bars | cycle_pf | PF<1? |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 10.0 | 1 | 4 | 0.8127 | 86.6700 | 21735 | 1.7218 | no |
-| 2 | 10.0 | 2 | 4 | 0.8127 | 86.6700 | 21735 | 1.7218 | no |
-| 3 | 10.0 | 3 | 4 | 0.8127 | 86.6700 | 21735 | 1.7218 | no |
-
----
-
-## 3. Pure Reversal (MTP=1) vs Best Martingale
-
-Pure reversal means MaxTotalPosition=1: the position never adds, so martingale levels are irrelevant. These rows have `max_level_exposure_pct=0` (confirmed).
-
-| Bar Type | Best MTP=1 PF | Best MTP=1 SD | Best Martingale PF | Martingale SD/ML/MTP | Martingale Wins? |
-|----------|--------------|--------------|-------------------|---------------------|-----------------|
-| 250vol | 1.7522 | SD=10.0 | 2.2037 | SD=7.0 ML=1 MTP=2 | YES |
-| 250tick | 1.8413 | SD=4.5 | 1.7928 | SD=4.5 ML=1 MTP=2 | no |
-| 10sec | 1.1172 | SD=7.0 | 1.7218 | SD=10.0 ML=1 MTP=4 | YES |
-
----
-
-## 4. Notable Findings
-
-### PF >= 1.0 Configs by Bar Type
-
-| Bar Type | Total Configs | PF >= 1.0 | PF < 1.0 | Best PF |
-|----------|--------------|-----------|----------|---------|
-| 250vol | 322 | 69 | 253 | 2.2037 |
-| 250tick | 322 | 56 | 266 | 1.8413 |
-| 10sec | 322 | 63 | 259 | 1.7218 |
-
-### Cross-Bar-Type Profile Disagreement Analysis
-
-Do the three bar types select different StepDist optima for the same profile?
-
-| Profile | 250vol SD | 250tick SD | 10sec SD | All Agree? |
-|---------|-----------|------------|----------|-----------|
-| MAX_PROFIT | 7.0 | 4.5 | 10.0 | no |
-| SAFEST | 1.0 | 5.0 | 10.0 | no |
-| MOST_CONSISTENT | 7.0 | 4.5 | 10.0 | no |
-
----
-
-## 5. Pure Reversal (MTP=1) Full Results
-
-All 42 MTP=1 rows (14 StepDist values x 3 bar types). `max_level_exposure_pct=0` for all rows — confirmed no adds fired.
-
-### 250vol
-
-| StepDist | ML | MTP | Cycle PF | n_cycles | Total PnL (t) | calmar | worst_dd | win_sess% |
-|----------|----|-----|----------|----------|--------------|--------|----------|-----------|
-| 1.0 | 1 | 1 | 1.4822 | 592 | 2690 | 0.4905 | 5484 | 92.9 |
-| 1.5 | 1 | 1 | 1.0087 | 404 | 44 | 0.0087 | 5077 | 93.3 |
-| 2.0 | 1 | 1 | 1.4321 | 424 | 2312 | 0.4321 | 5350 | 92.9 |
-| 2.5 | 1 | 1 | 1.6213 | 444 | 3324 | 0.6213 | 5350 | 92.9 |
-| 3.0 | 1 | 1 | 0.9752 * | 276 | -124 | -0.0248 | 4990 | 93.3 |
-| 3.5 | 1 | 1 | 1.0429 | 264 | 214 | 0.0429 | 4990 | 93.3 |
-| 4.0 | 1 | 1 | 1.3317 | 278 | 1528 | 0.3317 | 4607 | 93.3 |
-| 4.5 | 1 | 1 | 1.3419 | 266 | 1706 | 0.3419 | 4990 | 93.3 |
-| 5.0 | 1 | 1 | 1.1287 | 208 | 642 | 0.1287 | 4990 | 92.9 |
-| 5.5 | 1 | 1 | 1.6565 | 276 | 3446 | 0.6565 | 5249 | 92.9 |
-| 6.0 | 1 | 1 | 1.2008 | 196 | 1010 | 0.2008 | 5030 | 92.9 |
-| 7.0 | 1 | 1 | 1.1925 | 176 | 940 | 0.1925 | 4883 | 92.9 |
-| 8.0 | 1 | 1 | 1.4219 | 178 | 1978 | 0.4219 | 4688 | 92.9 |
-| 10.0 | 1 | 1 | 1.7522 | 190 | 3716 | 0.7522 | 4940 | 93.3 |
-
-### 250tick
-
-| StepDist | ML | MTP | Cycle PF | n_cycles | Total PnL (t) | calmar | worst_dd | win_sess% |
-|----------|----|-----|----------|----------|--------------|--------|----------|-----------|
-| 1.0 | 1 | 1 | 1.4861 | 580 | 2605 | 0.4937 | 5277 | 92.9 |
-| 1.5 | 1 | 1 | 1.7368 | 588 | 4037 | 0.7368 | 5479 | 92.9 |
-| 2.0 | 1 | 1 | 1.6145 | 500 | 3367 | 0.6145 | 5479 | 92.9 |
-| 2.5 | 1 | 1 | 1.3148 | 388 | 1691 | 0.3148 | 5371 | 92.3 |
-| 3.0 | 1 | 1 | 1.2297 | 330 | 1273 | 0.2297 | 5541 | 92.9 |
-| 3.5 | 1 | 1 | 1.7204 | 418 | 3869 | 0.7204 | 5371 | 92.9 |
-| 4.0 | 1 | 1 | 1.8376 | 384 | 4411 | 0.8376 | 5266 | 92.9 |
-| 4.5 | 1 | 1 | 1.8413 | 360 | 4489 | 0.8413 | 5336 | 92.9 |
-| 5.0 | 1 | 1 | 1.2154 | 214 | 1003 | 0.2154 | 4656 | 92.9 |
-| 5.5 | 1 | 1 | 1.4867 | 244 | 2307 | 0.4867 | 4740 | 92.9 |
-| 6.0 | 1 | 1 | 1.2537 | 202 | 1235 | 0.2537 | 4868 | 92.9 |
-| 7.0 | 1 | 1 | 1.1935 | 172 | 931 | 0.1935 | 4812 | 92.9 |
-| 8.0 | 1 | 1 | 1.2891 | 154 | 1391 | 0.2891 | 4812 | 92.9 |
-| 10.0 | 1 | 1 | 1.3840 | 150 | 1939 | 0.3840 | 5050 | 92.9 |
-
-### 10sec
-
-| StepDist | ML | MTP | Cycle PF | n_cycles | Total PnL (t) | calmar | worst_dd | win_sess% |
-|----------|----|-----|----------|----------|--------------|--------|----------|-----------|
-| 1.0 | 1 | 1 | 0.8866 * | 200 | -627 | -0.1140 | 5502 | 88.9 |
-| 1.5 | 1 | 1 | 0.8904 * | 268 | -603 | -0.1096 | 5502 | 88.9 |
-| 2.0 | 1 | 1 | 0.8562 * | 162 | -791 | -0.1438 | 5502 | 88.9 |
-| 2.5 | 1 | 1 | 0.9686 * | 200 | -175 | -0.0314 | 5576 | 88.9 |
-| 3.0 | 1 | 1 | 0.9388 * | 176 | -341 | -0.0612 | 5576 | 88.9 |
-| 3.5 | 1 | 1 | 0.9605 * | 198 | -219 | -0.0395 | 5540 | 88.9 |
-| 4.0 | 1 | 1 | 0.9875 * | 192 | -69 | -0.0125 | 5540 | 88.9 |
-| 4.5 | 1 | 1 | 0.9049 * | 152 | -521 | -0.0951 | 5481 | 88.9 |
-| 5.0 | 1 | 1 | 0.8842 * | 138 | -637 | -0.1158 | 5502 | 88.9 |
-| 5.5 | 1 | 1 | 1.1121 | 158 | 617 | 0.1121 | 5502 | 88.9 |
-| 6.0 | 1 | 1 | 1.0314 | 142 | 173 | 0.0314 | 5502 | 88.9 |
-| 7.0 | 1 | 1 | 1.1172 | 140 | 645 | 0.1172 | 5502 | 88.9 |
-| 8.0 | 1 | 1 | 0.9057 * | 80 | -517 | -0.0943 | 5481 | 88.9 |
-| 10.0 | 1 | 1 | 1.1021 | 100 | 557 | 0.1021 | 5455 | 88.9 |
-
-*\* PF < 1.0*
-
----
-
----
-
-## 6. FORMAL FINDING — MARTINGALE IS NET NEGATIVE
-
-**Date:** 2026-03-16
-**Source:** Phase 02.1 sizing sweep, 966 P1a simulations
-**Author:** Ji (human review of automated sweep)
-
-### Finding
-
-Geometric martingale (ML=4, the C++ default 1→2→4→8 pattern) is 24-32% worse than ML=1 (flat adds) on activity-sampled bars. ML=4 only ties ML=1 on 10sec bars because MaxTotalPosition caps prevent the martingale from ever firing. **The strategy's edge is pure rotation, not position averaging.**
-
-### Evidence
-
-| Bar Type | ML=4 Best PF | ML=1 Winner PF | Degradation |
-|----------|-------------|----------------|-------------|
-| 250vol | 1.49 (SD=5.5 ML=4 MTP=4) | 2.20 (SD=7.0 ML=1 MTP=2) | **32% worse** |
-| 250tick | 1.39 (SD=8.0 ML=4 MTP=4) | 1.84 (SD=4.5 ML=1 MTP=1) | **24% worse** |
-| 10sec | 1.72 (SD=10.0 ML=4 MTP=4) | 1.72 (SD=10.0 ML=1 MTP=4) | **0% — tie** (MTP=4 prevents geometric adds from firing, making ML=4 functionally identical to ML=1) |
-
-### Cost Drag: The Hidden Multiplier
-
-All PF numbers are net of costs (cost_ticks=3 per NQ round-trip from instruments.md, applied per action scaled by qty). The geometric martingale creates a **compounding cost penalty** because each pyramid level doubles the qty — and both the ADD and the eventual FLATTEN pay cost proportional to qty.
-
-**Maximum cost per cycle by config (assuming full pyramid reached):**
-
-| Config | Actions/cycle | Max cost/cycle | vs MTP=1 baseline |
-|--------|--------------|----------------|-------------------|
-| ML=1 MTP=1 (pure reversal) | 3 (SEED+FLATTEN+REVERSAL, all qty=1) | **9 ticks** | 1.0x |
-| ML=1 MTP=2 | 4 (SEED+ADD(1)+FLATTEN(2)+REVERSAL) | **15 ticks** | 1.7x |
-| ML=4 MTP=4 | 5 (SEED+ADD(1)+ADD(2)+FLATTEN(4)+REVERSAL) | **27 ticks** | 3.0x |
-| ML=4 MTP=8 | 6 (SEED+ADD(1)+ADD(2)+ADD(4)+FLATTEN(8)+REVERSAL) | **51 ticks** | 5.7x |
-| ML=4 MTP=16 | 7 (SEED+ADD(1)+ADD(2)+ADD(4)+ADD(8)+FLATTEN(16)+REVERSAL) | **99 ticks** | 11.0x |
-
-**Total cost burden for the actual comparison configs:**
-
-| Comparison | Config | n_cycles | Max cost/cycle | Worst-case total cost |
-|-----------|--------|----------|----------------|----------------------|
-| 250vol ML=4 best | SD=5.5 ML=4 MTP=4 | 1,142 | 27t | 30,834t |
-| 250vol ML=1 winner | SD=7.0 ML=1 MTP=2 | 624 | 15t | 9,360t |
-| **Cost ratio** | | | | **3.3x** |
-| 250tick ML=4 best | SD=8.0 ML=4 MTP=4 | 738 | 27t | 19,926t |
-| 250tick ML=1 winner | SD=4.5 ML=1 MTP=1 | 360 | 9t | 3,240t |
-| **Cost ratio** | | | | **6.1x** |
-
-**Extreme case:** SAFEST 250vol (SD=1.0 ML=4 MTP=16) runs 8,532 cycles at up to 99 ticks each = up to 844,668 ticks in transaction costs, against only 3,106 ticks net PnL. Small StepDist + deep pyramid = cost-dominated regime.
-
-**Why this matters:** The 24-32% PF gap between ML=4 and ML=1 is not solely from increased directional risk — a significant component is pure cost drag. Geometric position sizing creates geometric cost scaling. The FLATTEN action alone costs `cost_ticks × total_position_qty`, so unwinding a 4-contract pyramid costs 4× unwinding a 1-contract reversal. This cost penalty is structural and cannot be optimized away by better entry timing.
-
-### Winning Configurations
-
-| Bar Type | StepDist | MaxLevels | MTP | Cycle PF | Profile |
-|----------|----------|-----------|-----|----------|---------|
-| 250vol | 7.0 | 1 | 2 | 2.20 | MAX_PROFIT & MOST_CONSISTENT |
-| 250tick | 4.5 | 1 | 1 | 1.84 | Pure reversal, zero adds |
-| 10sec | 10.0 | 1 | 4 | 1.72 | MAX_PROFIT & MOST_CONSISTENT |
-
-### Implication for Research Priorities
-
-**Deprioritize** (test for completeness, no longer high priority):
-- H14 (adaptive martingale progression)
-- H23 (conditional adds)
-- H24 (intra-cycle de-escalation)
-- H39 (cycle adverse velocity ratio)
-
-These manage a mechanism the data shows is harmful.
-
-**Elevate to top priority:**
-- Dimension A triggers (H1, H3, H8, H9, H10) — optimal rotation distance is where the edge lives
-- H11 (time-of-day conditioning) — find slow rotation-friendly periods
-- H13 (selective flat periods) — when NOT to rotate matters more than managing adds
-- H33 (PriceSpeed filter) — slow price = profitable rotation
-- H2 (asymmetric thresholds) — different reversal vs add distances
-
-### New Concept for Phase 4
-
-**Multi-StepDist portfolio** — run multiple rotation sizes simultaneously (e.g., SD=4.5 + SD=7.0 + SD=10.0) hedging each other across different rotation scales. Different bar types favor different StepDist values, suggesting no single rotation size is universally optimal.
-
-### Decision
-
-This finding does not eliminate martingale hypotheses from the research — they are still tested. It changes their priority ranking and sets expectations. If H14 or H23 show improvement in Phase 3, that's genuinely surprising and worth investigating. If they don't, we already know why.
-
----
-
-*Report generated programmatically from sizing_sweep_P1a.tsv*
+*Report generated from sizing_sweep_P1a.tsv*

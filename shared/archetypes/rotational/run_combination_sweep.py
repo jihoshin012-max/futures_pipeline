@@ -266,11 +266,41 @@ def _get_filtered_bars(bar_df: pd.DataFrame, source_id: str) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 
 
+def _build_all_experiments() -> list[dict]:
+    """Build a flat list of all experiments to run (excluding H19, H37-on-10sec).
+
+    Each entry: {hypothesis_id, params, profile_name, source_id, params_str}
+    Used for indexing with --start-idx / --limit.
+    """
+    experiments = []
+    for h_id, hypothesis in HYPOTHESIS_REGISTRY.items():
+        if hypothesis.get("requires_reference", False):
+            continue
+        param_grid = hypothesis.get("param_grid", [])
+        param_values = param_grid if param_grid else [{}]
+        for params in param_values:
+            for profile_name in _PROFILE_NAMES:
+                for source_id in _ALL_SOURCES:
+                    if hypothesis.get("exclude_10sec", False) and "10sec" in source_id:
+                        continue
+                    experiments.append({
+                        "hypothesis_id": h_id,
+                        "hypothesis": hypothesis,
+                        "params": params,
+                        "profile_name": profile_name,
+                        "source_id": source_id,
+                        "params_str": json.dumps(params, sort_keys=True),
+                    })
+    return experiments
+
+
 def run_param_sweep(
     profiles: dict,
     baselines: dict,
     dry_run: bool = False,
     limit: int = 0,
+    start_idx: int = 0,
+    incremental_output: str | None = None,
 ) -> list[dict]:
     """Run the full per-hypothesis parameter sweep on P1a data.
 
@@ -282,7 +312,9 @@ def run_param_sweep(
         profiles: Dict from load_all_profiles() — keyed by profile_name -> profile dict.
         baselines: Dict from load_param_sweep_baselines() — keyed by profile_name -> source_id -> metrics.
         dry_run: If True, print config summary without running simulation.
-        limit: If > 0, stop after this many experiments.
+        limit: If > 0, stop after this many experiments from start_idx.
+        start_idx: Start at this experiment index (for batching / resume).
+        incremental_output: If set, append each row to this TSV path as completed.
 
     Returns:
         List of result dicts with all _TSV_COLUMNS fields.
@@ -290,166 +322,178 @@ def run_param_sweep(
     # Load instrument info from registry (never hardcode)
     instrument_info = parse_instruments_md("NQ", str(_INSTRUMENTS_MD))
     cost_ticks = instrument_info["cost_ticks"]
-    print(f"  Instrument: tick_size={instrument_info['tick_size']}, cost_ticks={cost_ticks}")
+    print(f"  Instrument: tick_size={instrument_info['tick_size']}, cost_ticks={cost_ticks}", flush=True)
 
     # Load base config
     base_config = _get_base_config()
 
+    # Build full experiment list
+    all_experiments = _build_all_experiments()
+    total_experiments = len(all_experiments)
+    print(f"  Total experiments planned: {total_experiments}", flush=True)
+
+    if dry_run:
+        end_idx = min(start_idx + limit, total_experiments) if limit > 0 else total_experiments
+        for i, exp in enumerate(all_experiments[start_idx:end_idx], start=start_idx):
+            print(
+                f"  DRY RUN [{i+1}/{total_experiments}] {exp['hypothesis_id']} | "
+                f"{exp['profile_name']} | {exp['source_id']} | params={exp['params_str']}"
+            )
+        return []
+
     # Load bar data once per source_id
-    print("  Loading bar data...")
+    print("  Loading bar data...", flush=True)
     bar_data_dict: dict[str, pd.DataFrame] = {}
     for source_id, path in base_config.get("bar_data_primary", {}).items():
         full_path = _REPO_ROOT / path
         t0 = time.time()
         bar_data_dict[source_id] = load_bars(str(full_path))
-        print(f"    {source_id}: {len(bar_data_dict[source_id])} bars ({time.time() - t0:.1f}s)")
+        print(f"    {source_id}: {len(bar_data_dict[source_id])} bars ({time.time() - t0:.1f}s)", flush=True)
+
+    # Setup incremental output
+    incremental_file = None
+    if incremental_output:
+        out_path = Path(incremental_output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        write_header = not out_path.exists() or start_idx == 0
+        incremental_file = open(str(out_path), "a", encoding="utf-8", newline="")
+        if write_header:
+            incremental_file.write("\t".join(_TSV_COLUMNS) + "\n")
+            incremental_file.flush()
 
     results = []
-    n_total = 0
     n_run = 0
+    end_idx = total_experiments
 
-    # Count total experiments for progress display
-    total_experiments = 0
-    for h_id, hypothesis in HYPOTHESIS_REGISTRY.items():
-        if hypothesis.get("requires_reference", False):
+    # Slice experiments for this batch
+    exp_slice = all_experiments[start_idx:]
+    if limit > 0:
+        exp_slice = exp_slice[:limit]
+
+    for global_idx, exp in enumerate(exp_slice, start=start_idx):
+        h_id = exp["hypothesis_id"]
+        hypothesis = exp["hypothesis"]
+        params = exp["params"]
+        profile_name = exp["profile_name"]
+        source_id = exp["source_id"]
+        params_str = exp["params_str"]
+
+        profile = profiles[profile_name]
+        profile_bar_types = profile.get("bar_types", {})
+
+        if source_id not in profile_bar_types:
             continue
-        param_grid = hypothesis.get("param_grid", [])
-        param_values = param_grid if param_grid else [{}]
-        for source_id in _ALL_SOURCES:
-            if hypothesis.get("exclude_10sec", False) and "10sec" in source_id:
-                continue
-            total_experiments += len(param_values) * len(_PROFILE_NAMES)
 
-    print(f"  Total experiments planned: {total_experiments}")
+        profile_bt_data = profile_bar_types[source_id]
 
-    for h_id, hypothesis in HYPOTHESIS_REGISTRY.items():
-        # Skip H19 (requires_reference=True) — deferred to Plan 02
-        if hypothesis.get("requires_reference", False):
+        # Build experiment config
+        source_cfg = _prepare_source_config(base_config, source_id, instrument_info)
+        exp_config = build_experiment_config(source_cfg, hypothesis, params if params else None)
+        exp_config = inject_profile_martingale(exp_config, profile_bt_data)
+
+        # Get bar data
+        bars = bar_data_dict.get(source_id)
+        if bars is None:
+            row = _make_error_row(h_id, hypothesis, profile_name, source_id, params_str, "BAR_DATA_NOT_LOADED", 0.0)
+            results.append(row)
+            _write_incremental_row(incremental_file, row)
             continue
 
-        param_grid = hypothesis.get("param_grid", [])
-        # If param_grid is empty (e.g. H5, H11, H12), run with empty params (default only)
-        param_values = param_grid if param_grid else [{}]
+        # Get max_levels from injected config
+        max_levels = exp_config.get("martingale", {}).get("max_levels", 1)
 
-        for params in param_values:
-            for profile_name in _PROFILE_NAMES:
-                profile = profiles[profile_name]
-                profile_bar_types = profile.get("bar_types", {})
+        # Run simulator
+        t0 = time.time()
+        try:
+            simulator = RotationalSimulator(
+                config=exp_config,
+                bar_data=bars,
+                reference_data=None,
+            )
+            sim_result = simulator.run()
+        except Exception as e:
+            run_sec = time.time() - t0
+            row = _make_error_row(
+                h_id, hypothesis, profile_name, source_id, params_str,
+                f"ERROR: {type(e).__name__}: {e}", run_sec
+            )
+            results.append(row)
+            _write_incremental_row(incremental_file, row)
+            n_run += 1
+            continue
+        run_sec = time.time() - t0
 
-                for source_id in _ALL_SOURCES:
-                    # Skip H37 on 10sec (bar_formation_rate is constant)
-                    if hypothesis.get("exclude_10sec", False) and "10sec" in source_id:
-                        continue
+        # Compute extended metrics
+        filtered_bars = _get_filtered_bars(bars, source_id)
+        metrics = compute_extended_metrics(
+            sim_result.cycles,
+            cost_ticks,
+            filtered_bars,
+            max_levels,
+        )
 
-                    n_total += 1
-                    if limit > 0 and n_run >= limit:
-                        break
+        # Compute delta_pf vs profile baseline (NOT Phase 01 baselines)
+        baseline_pf = baselines.get(profile_name, {}).get(source_id, {}).get("cycle_pf", 0.0)
+        cycle_pf = metrics.get("cycle_pf", 0.0)
+        delta_pf = round(cycle_pf - baseline_pf, 4) if cycle_pf is not None else None
+        beats_baseline = bool(cycle_pf > baseline_pf) if cycle_pf is not None else False
 
-                    params_str = json.dumps(params, sort_keys=True)
+        row = {
+            "hypothesis_id": h_id,
+            "hypothesis_name": hypothesis["name"],
+            "dimension": hypothesis["dimension"],
+            "profile": profile_name,
+            "source_id": source_id,
+            "params_str": params_str,
+            "cycle_pf": metrics.get("cycle_pf"),
+            "delta_pf": delta_pf,
+            "beats_baseline": beats_baseline,
+            "n_cycles": metrics.get("n_cycles", 0),
+            "win_rate": metrics.get("win_rate"),
+            "total_pnl_ticks": metrics.get("total_pnl_ticks"),
+            "worst_cycle_dd": metrics.get("worst_cycle_dd"),
+            "max_drawdown_ticks": metrics.get("max_drawdown_ticks"),
+            "sharpe": metrics.get("sharpe"),
+            "max_level_exposure_pct": metrics.get("max_level_exposure_pct"),
+            "tail_ratio": metrics.get("tail_ratio"),
+            "calmar_ratio": metrics.get("calmar_ratio"),
+            "classification": "OK",
+            "run_sec": round(run_sec, 4),
+        }
+        results.append(row)
+        _write_incremental_row(incremental_file, row)
+        n_run += 1
 
-                    if dry_run:
-                        print(
-                            f"  DRY RUN [{n_total}] {h_id} | {profile_name} | {source_id} | params={params_str}"
-                        )
-                        continue
+        if n_run % 10 == 0:
+            print(
+                f"  [{global_idx + 1}/{total_experiments}] {h_id} | {profile_name} | {source_id} "
+                f"| delta_pf={delta_pf:+.4f} | {run_sec:.1f}s"
+                if delta_pf is not None
+                else f"  [{global_idx + 1}/{total_experiments}] {h_id} | {profile_name} | {source_id} | {run_sec:.1f}s",
+                flush=True
+            )
 
-                    # Get profile params for this bar type
-                    if source_id not in profile_bar_types:
-                        # Profile doesn't have data for this source — skip
-                        continue
-
-                    profile_bt_data = profile_bar_types[source_id]
-
-                    # Build experiment config
-                    source_cfg = _prepare_source_config(base_config, source_id, instrument_info)
-                    exp_config = build_experiment_config(source_cfg, hypothesis, params if params else None)
-                    exp_config = inject_profile_martingale(exp_config, profile_bt_data)
-
-                    # Get bar data
-                    bars = bar_data_dict.get(source_id)
-                    if bars is None:
-                        results.append(_make_error_row(
-                            h_id, hypothesis, profile_name, source_id, params_str,
-                            "BAR_DATA_NOT_LOADED", 0.0
-                        ))
-                        continue
-
-                    # Get max_levels from profile (after injection)
-                    max_levels = exp_config.get("martingale", {}).get("max_levels", 1)
-
-                    # Run simulator
-                    t0 = time.time()
-                    try:
-                        simulator = RotationalSimulator(
-                            config=exp_config,
-                            bar_data=bars,
-                            reference_data=None,
-                        )
-                        sim_result = simulator.run()
-                    except Exception as e:
-                        run_sec = time.time() - t0
-                        results.append(_make_error_row(
-                            h_id, hypothesis, profile_name, source_id, params_str,
-                            f"ERROR: {type(e).__name__}: {e}", run_sec
-                        ))
-                        n_run += 1
-                        continue
-                    run_sec = time.time() - t0
-
-                    # Compute extended metrics
-                    filtered_bars = _get_filtered_bars(bars, source_id)
-                    metrics = compute_extended_metrics(
-                        sim_result.cycles,
-                        cost_ticks,
-                        filtered_bars,
-                        max_levels,
-                    )
-
-                    # Compute delta_pf vs profile baseline (NOT Phase 01 baselines)
-                    baseline_pf = baselines.get(profile_name, {}).get(source_id, {}).get("cycle_pf", 0.0)
-                    cycle_pf = metrics.get("cycle_pf", 0.0)
-                    delta_pf = round(cycle_pf - baseline_pf, 4) if cycle_pf is not None else None
-                    beats_baseline = bool(cycle_pf > baseline_pf) if cycle_pf is not None else False
-
-                    row = {
-                        "hypothesis_id": h_id,
-                        "hypothesis_name": hypothesis["name"],
-                        "dimension": hypothesis["dimension"],
-                        "profile": profile_name,
-                        "source_id": source_id,
-                        "params_str": params_str,
-                        "cycle_pf": metrics.get("cycle_pf"),
-                        "delta_pf": delta_pf,
-                        "beats_baseline": beats_baseline,
-                        "n_cycles": metrics.get("n_cycles", 0),
-                        "win_rate": metrics.get("win_rate"),
-                        "total_pnl_ticks": metrics.get("total_pnl_ticks"),
-                        "worst_cycle_dd": metrics.get("worst_cycle_dd"),
-                        "max_drawdown_ticks": metrics.get("max_drawdown_ticks"),
-                        "sharpe": metrics.get("sharpe"),
-                        "max_level_exposure_pct": metrics.get("max_level_exposure_pct"),
-                        "tail_ratio": metrics.get("tail_ratio"),
-                        "calmar_ratio": metrics.get("calmar_ratio"),
-                        "classification": "OK",
-                        "run_sec": round(run_sec, 4),
-                    }
-                    results.append(row)
-                    n_run += 1
-
-                    if n_run % 50 == 0:
-                        print(f"  [{n_run}/{total_experiments}] {h_id} | {profile_name} | {source_id} "
-                              f"| delta_pf={delta_pf:+.4f}" if delta_pf is not None
-                              else f"  [{n_run}/{total_experiments}] {h_id} | {profile_name} | {source_id}")
-
-                # Inner break propagation
-                if limit > 0 and n_run >= limit:
-                    break
-            if limit > 0 and n_run >= limit:
-                break
-        if limit > 0 and n_run >= limit:
-            break
+    if incremental_file:
+        incremental_file.close()
 
     return results
+
+
+def _write_incremental_row(file_handle, row: dict) -> None:
+    """Write a single result row to an open incremental TSV file handle."""
+    if file_handle is None:
+        return
+    values = []
+    for col in _TSV_COLUMNS:
+        val = row.get(col)
+        if col == "beats_baseline":
+            values.append("" if val is None else str(bool(val)))
+        elif val is None:
+            values.append("")
+        else:
+            values.append(str(val))
+    file_handle.write("\t".join(values) + "\n")
+    file_handle.flush()
 
 
 def _make_error_row(
@@ -708,6 +752,12 @@ def main() -> None:
         help="Cap experiments at N (0 = no limit)",
     )
     parser.add_argument(
+        "--start-idx",
+        type=int,
+        default=0,
+        help="Start at this experiment index (for batching)",
+    )
+    parser.add_argument(
         "--output-dir",
         default=str(_OUTPUT_DIR),
         help="Output directory for results",
@@ -738,13 +788,20 @@ def main() -> None:
         for src, metrics in sources.items():
             print(f"  {profile_name}/{src}: cycle_pf={metrics['cycle_pf']}")
 
+    # Incremental output path for batched runs
+    incremental_tsv = str(Path(args.output_dir) / "phase4_param_sweep.tsv")
+
     print("\n[3/4] Running parameter sweep...")
+    if args.start_idx > 0:
+        print(f"  Resuming from experiment index {args.start_idx}")
     t_start = time.time()
     results = run_param_sweep(
         profiles=profiles,
         baselines=baselines,
         dry_run=args.dry_run,
         limit=args.limit,
+        start_idx=args.start_idx,
+        incremental_output=None if args.dry_run else incremental_tsv,
     )
     elapsed = time.time() - t_start
     print(f"\nCompleted {len(results)} experiments in {elapsed:.1f}s")
@@ -753,16 +810,31 @@ def main() -> None:
         print("(Dry run complete — no files written)")
         return
 
-    print("\n[4/4] Writing results and selecting dimensional winners...")
-    write_param_sweep_results(results, args.output_dir)
+    print("\n[4/4] Processing results and selecting dimensional winners...")
 
-    # Select dimensional winners
-    results_df = pd.DataFrame(results)
+    # TSV was already written incrementally; also write JSON
+    tsv_path = Path(args.output_dir) / "phase4_param_sweep.tsv"
+    if tsv_path.exists():
+        results_df = pd.read_csv(str(tsv_path), sep="\t")
+        print(f"  TSV rows: {len(results_df)} (includes all prior batches)")
+
+        # Also write JSON from the full TSV
+        json_path = Path(args.output_dir) / "phase4_param_sweep.json"
+        with open(str(json_path), "w", encoding="utf-8") as f:
+            json.dump(results_df.to_dict(orient="records"), f, indent=2, default=str)
+        print(f"  Written: {json_path}")
+    else:
+        # Fallback: write from in-memory results
+        write_param_sweep_results(results, args.output_dir)
+        results_df = pd.DataFrame(results)
+
+    # Select dimensional winners from full TSV
     winners = select_dimensional_winners(results_df, min_bar_types=2)
     write_dimensional_winners(winners, args.output_dir)
 
-    # Print summary
-    print_sweep_summary(results, winners)
+    # Print summary (use in-memory results if available, else load from TSV)
+    all_results = results if results else results_df.to_dict(orient="records")
+    print_sweep_summary(all_results, winners)
 
     print(f"\nDone. Total wall time: {elapsed:.1f}s")
 

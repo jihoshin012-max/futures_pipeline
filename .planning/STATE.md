@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03.1-02-PLAN.md — all tasks done including human review; Phase 03.1 complete
-last_updated: "2026-03-16T16:05:24.110Z"
+stopped_at: "Phase 04 paused — simulator fidelity overhaul complete. Tick-data era: asymmetric Rev=15/Add=40 is best tick-viable config (PF=1.04 @3t). Combination test pending."
+last_updated: "2026-03-17T23:00:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 5
@@ -20,16 +20,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** Every deployed strategy traces back to a statistically validated, internally replicated hypothesis with frozen parameters — no unaudited shortcuts from idea to live trading.
-**Current focus:** Phase 2 — Feature Evaluator + Phase 1 Screening
+**Current focus:** Phase 4 — Combination Testing (paused for simulator fidelity overhaul)
 
 ## Current Position
 
 Milestone: Rotational Archetype (active)
 Spec: xtra/Rotational_Archetype_Spec.md
-Phase 1: Simulator & Baseline — COMPLETE (3/3 plans)
-Next: Phase 2 — Feature Evaluator + Phase 1 Screening
+Phases 1-3.1: COMPLETE
+Phase 4: PAUSED — simulator fidelity issues discovered pre-execution, resolved via:
+  1. Threshold-crossing OHLC fix (replaced close-only evaluation)
+  2. Mode B walking anchor (replaces frozen anchor)
+  3. Tick-data onboarding (1-tick ground truth, 31.9M rows)
+  4. Tick-mode fast path (directional seed, asymmetric step support)
+  5. C++ calibration validated at regular replay speed
+  6. V1.1 parameter sweep on tick data — asymmetric Rev=15/Add=40 is best config
 
-Progress: [██░░░░░░░░] 20%
+All OHLC-based sweep results invalidated. Tick-level results are ground truth.
+
+Progress: [████░░░░░░] 40% (infrastructure rebuilt, parameter search in progress)
 
 ## Performance Metrics
 
@@ -153,5 +161,5 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 ## Session Continuity
 
 Last session: 2026-03-16T15:56:40.157Z
-Stopped at: Completed 03.1-02-PLAN.md — all tasks done including human review; Phase 03.1 complete
+Stopped at: Phase 4 paused — tick-data parameter search. Best config: asymmetric Rev=15/Add=40, PF=1.04 @3t cost. Combination test pending.
 Resume file: None
