@@ -15,7 +15,7 @@ which is generated from this registry.
 | bar_data_250vol_rot | price | 250-vol OHLCV+indicator bars for rotational archetype (35 cols). Different period boundaries than bar_data_volume (P1 starts 2025-09-21, P2 ends 2026-03-13) | P1, P2 | NQ_BarData_250vol_rot_*.csv | 02-features, 04-backtest |
 | bar_data_250tick_rot | price | 250-tick OHLCV+indicator bars for rotational archetype (35 cols). Same period boundaries as bar_data_250vol_rot | P1, P2 | NQ_BarData_250tick_rot_*.csv | 02-features, 04-backtest |
 | bar_data_10sec_rot | price | 10-sec time OHLCV+indicator bars for rotational archetype (35 cols). Same period boundaries and column format as bar_data_250vol_rot | P1, P2 | NQ_BarData_10sec_rot_*.csv | 02-features, 04-backtest |
-| bar_data_1tick_rot | price | 1-tick price bars for rotational archetype (O=H=L=Last per row). Ground truth resolution for tick-level simulation. Same column format as bar_data_250tick_rot. Uses tick-mode fast path in simulator (no OHLC threshold loop) | P1 | NQ_BarData_1tick_rot_*.csv | 04-backtest |
+| bar_data_1tick_rot | price | 1-tick price bars for rotational archetype (O=H=L=Last per row). Ground truth resolution for tick-level simulation. Same column format as bar_data_250tick_rot. Uses tick-mode fast path in simulator (no OHLC threshold loop). **WARNING: NQ_BarData_1tick_rot_P2_INVALID_SAME_AS_P1.csv is NOT actual P2 data — contains same date range as P1 (Sep 21 - Dec 19). Real P2 tick data not yet available.** | P1 | NQ_BarData_1tick_rot_P1.csv | 04-backtest |
 
 Note: Add one row per data source your archetype requires. source_id must be unique and
 match the schema file name in 01-data/references/{source_id}_schema.md.

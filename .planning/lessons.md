@@ -93,3 +93,29 @@ At 3-tick cost ($15/RT), only 2 configs out of ~100 tested are profitable on tic
 At 2-tick cost ($10/RT), ~5 configs become viable. At 1-tick cost ($5/RT), many more.
 The difference between a viable and unviable strategy is $5-10 per round turn, not
 the trigger mechanism or position management.
+
+### LESSON 11 — V2_js calibrated (MTP + walking anchor path validated)
+Python V2_js path (MTP=3, walking anchor) validated against C++ regular-speed replay:
+47 vs 49 cycles (+4.3%), Gross PF 0.68 vs 0.67 (-2.0%). All within 5% tolerance.
+Both V1.1 and V2_js simulator paths are now calibrated for tick data.
+
+### LESSON 12 — Fixed distances don't generalize across volatility regimes
+Rev=15/Add=40 was optimized on P1a (ATR=7.46). On P1b (ATR=9.49, +27%), gross PF
+dropped from 1.25 to 1.06 — breakeven at best. The 15-point reversal distance is 2.0x
+ATR in P1a but only 1.6x ATR in P1b. ATR-normalized distances (R=2.0x, A=4.0x) solve
+this by maintaining constant ATR ratios across regimes.
+
+### LESSON 13 — ATR-normalized asymmetric is the strongest tick-viable config
+R=2.0x A=4.0x produces PF=1.22 at 1-tick cost (+16,171 ticks) — better than any fixed-
+distance config. Avg reversal=14.7 pts, avg add=29.1 pts in P1a. The 1:2 ratio (reversal
+half of add distance) captures frequent rotations while keeping adds rare.
+
+### LESSON 14 — V2 MTP=2 walking beats MTP=1 at SD=25 on total PnL
+MTP=2 walking: +9,749 ticks, PF=1.10 at 1t. MTP=1: +5,933, PF=1.09. The extra add
+level generates more cycles without excessive cost because SD=25 keeps position growth
+rare. But 662 "stuck" events (pos=2 for 500+ ticks) are a concern for live trading.
+
+### LESSON 15 — User's actual cost is 1 tick ($5/RT)
+Cost model confirmed: $4-5 commission + exchange per round turn = ~1 tick at $5/tick.
+Slippage is already captured in tick-level execution prices. cost_ticks=1 is the
+correct setting for live P&L estimation.

@@ -896,6 +896,17 @@ class RotationalSimulator:
         tick_size = self._tick_size
         walking = self._anchor_mode == "walking"
 
+        # ATR-normalized mode: distances = multiple × ATR per tick
+        atr_rev_mult = float(trigger_params.get("atr_rev_mult", 0))
+        atr_add_mult = float(trigger_params.get("atr_add_mult", 0))
+        atr_normalized = atr_rev_mult > 0 and atr_add_mult > 0
+        atr_array = self._config.get("_tick_atr_array", None)
+
+        # Flatten-and-reseed cap: flatten when position reaches cap, re-enter via
+        # directional seed. Config key: martingale.flatten_reseed_cap (0 = disabled).
+        mart = self._config.get("martingale", {})
+        flatten_reseed_cap = int(mart.get("flatten_reseed_cap", 0))
+
         # Pre-extract datetimes for trade records (only accessed on actions)
         dts = bars["datetime"].values
 
@@ -922,9 +933,15 @@ class RotationalSimulator:
                 if watch_price == 0.0:
                     watch_price = price
                     continue
+                # Seed watch distance: use ATR-normalized reversal distance if enabled
+                seed_step = step
+                if atr_normalized and atr_array is not None and i < len(atr_array):
+                    cur_atr = atr_array[i]
+                    if not np.isnan(cur_atr) and cur_atr > 0:
+                        seed_step = atr_rev_mult * cur_atr
                 up_dist = price - watch_price
                 down_dist = watch_price - price
-                if up_dist >= step:
+                if up_dist >= seed_step:
                     # First move is UP -> seed Long
                     cycle_id += 1
                     state = 1
@@ -942,7 +959,7 @@ class RotationalSimulator:
                     }
                     trade_records.append(trade)
                     cycle_trades = [trade]
-                elif down_dist >= step:
+                elif down_dist >= seed_step:
                     # First move is DOWN -> seed Short
                     cycle_id += 1
                     state = 2
@@ -969,14 +986,22 @@ class RotationalSimulator:
                 watch_price = price
                 continue
 
-            # POSITIONED: check thresholds (asymmetric step support)
+            # POSITIONED: compute effective distances (ATR-normalized or fixed)
+            eff_rev = step_rev
+            eff_add = step_add
+            if atr_normalized and atr_array is not None and i < len(atr_array):
+                cur_atr = atr_array[i]
+                if not np.isnan(cur_atr) and cur_atr > 0:
+                    eff_rev = atr_rev_mult * cur_atr
+                    eff_add = atr_add_mult * cur_atr
+
             distance = price - anchor
             if state == 1:  # Long
-                in_favor = distance >= step_rev
-                against = (-distance) >= step_add
+                in_favor = distance >= eff_rev
+                against = (-distance) >= eff_add
             else:  # Short
-                in_favor = (-distance) >= step_rev
-                against = distance >= step_add
+                in_favor = (-distance) >= eff_rev
+                against = distance >= eff_add
 
             if in_favor:
                 # REVERSAL: flatten current + enter opposite at tick price
@@ -1059,6 +1084,56 @@ class RotationalSimulator:
                 cycle_trades = [rev_trade]
 
             elif against:
+                # Flatten-reseed cap: if position at cap, flatten all and re-enter WATCHING
+                if flatten_reseed_cap > 0 and position_qty >= flatten_reseed_cap:
+                    direction = "Long" if state == 1 else "Short"
+                    flatten_trade = {
+                        "bar_idx": i, "datetime": dts[i], "action": "FLATTEN",
+                        "direction": direction, "qty": position_qty, "price": price,
+                        "level": level, "anchor": anchor,
+                        "cost_ticks": cost_ticks * position_qty,
+                        "cycle_id": cycle_id, "price_source": "tick",
+                    }
+                    trade_records.append(flatten_trade)
+                    cycle_trades.append(flatten_trade)
+                    # Finalize cycle with exit_reason="flatten_reseed"
+                    entry_trades = [t for t in cycle_trades if t["action"] in ("SEED", "REVERSAL", "ADD")]
+                    total_qty = sum(t["qty"] for t in entry_trades)
+                    wavg = sum(t["price"] * t["qty"] for t in entry_trades) / total_qty if total_qty else price
+                    if direction == "Long":
+                        gross = (price - wavg) / tick_size * total_qty
+                    else:
+                        gross = (wavg - price) / tick_size * total_qty
+                    total_cost_cycle = sum(t["cost_ticks"] for t in cycle_trades)
+                    net = gross - total_cost_cycle
+                    adds_list = [t for t in entry_trades if t["action"] == "ADD"]
+                    max_pos = 0
+                    rq = 0
+                    for t in cycle_trades:
+                        if t["action"] == "FLATTEN":
+                            rq = 0
+                        elif t["action"] in ("SEED", "REVERSAL", "ADD"):
+                            rq += t["qty"]
+                            max_pos = max(max_pos, rq)
+                    max_level_r = max((t["level"] for t in entry_trades), default=0)
+                    cycle_records.append({
+                        "cycle_id": cycle_id, "start_bar": cycle_start, "end_bar": i,
+                        "direction": direction, "duration_bars": i - cycle_start + 1,
+                        "entry_price": round(entry_trades[0]["price"], 4) if entry_trades else price,
+                        "exit_price": round(price, 4), "avg_entry_price": round(wavg, 4),
+                        "adds_count": len(adds_list), "max_level_reached": max_level_r,
+                        "max_position_qty": max_pos,
+                        "gross_pnl_ticks": round(gross, 4), "net_pnl_ticks": round(net, 4),
+                        "max_adverse_excursion_ticks": 0.0, "max_favorable_excursion_ticks": 0.0,
+                        "retracement_depths": [], "time_at_max_level_bars": 0,
+                        "trend_defense_level_max": 0, "exit_reason": "flatten_reseed",
+                    })
+                    # Re-enter WATCHING state
+                    state = -1
+                    watch_price = price
+                    position_qty = 0
+                    continue
+
                 # ADD (or MTP refusal)
                 proposed_qty = init_qty * (2 ** level)
                 if proposed_qty > max_cs or level >= max_levels:
