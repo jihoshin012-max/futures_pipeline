@@ -8,7 +8,9 @@
   },
   "period": "P1a",
   "bar_data_primary": {
-    "bar_data_1tick_rot": "stages/01-data/data/bar_data/tick/NQ_BarData_1tick_rot_P1.csv",
+    "bar_data_1tick_rot_P1": "stages/01-data/data/bar_data/tick/NQ_BarData_1tick_rot_P1.csv",
+    "bar_data_1tick_rot_P2": "stages/01-data/data/bar_data/tick/NQ_BarData_1tick_rot_P2.csv",
+    "bar_data_1tick_rot_es_P1": "stages/01-data/data/bar_data/tick/ES_BarData_1tick_rot_P1.csv",
     "bar_data_250vol_rot": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_rot_P1.csv",
     "bar_data_250tick_rot": "stages/01-data/data/bar_data/tick/NQ_BarData_250tick_rot_P1.csv",
     "bar_data_10sec_rot": "stages/01-data/data/bar_data/time/NQ_BarData_10sec_rot_P1.csv"

@@ -1,0 +1,19 @@
+{
+  "threshold": 48.0,
+  "direction": "reverse",
+  "filter_rule": "composite < threshold -> SKIP, composite >= threshold -> TRADE",
+  "unfiltered": {
+    "cycles": 2525,
+    "gpf": 1.0393,
+    "npf_1t": 0.9988,
+    "net_pnl_1t": -230
+  },
+  "filtered": {
+    "cycles": 1584,
+    "retention": 0.6273,
+    "gpf": 1.1618,
+    "npf_1t": 1.1166,
+    "net_pnl_1t": 12653
+  },
+  "pass": true
+}

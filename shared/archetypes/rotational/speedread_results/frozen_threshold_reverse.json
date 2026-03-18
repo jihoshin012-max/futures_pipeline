@@ -1,0 +1,9 @@
+{
+  "threshold": 48.0,
+  "direction": "reverse",
+  "filter_rule": "composite < threshold -> SKIP, composite >= threshold -> TRADE",
+  "npf_1t_p1a": 1.3326,
+  "retention_p1a": 0.6307,
+  "gpf_p1a": 1.385,
+  "net_pnl_p1a": 20045
+}
