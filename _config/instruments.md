@@ -11,7 +11,7 @@ No pipeline script may hardcode tick size, dollar value, session times, or cost_
 - Tick size: 0.25 points
 - Tick value: $5.00
 - Session: RTH 09:30–16:15 ET | ETH 18:00–09:30 ET
-- Cost model (round trip): 3 ticks = $15.00
+- Cost model (round trip): 3 ticks = $15.00 (conservative default; user actual ~1 tick = $5/RT. P1b validation runs at cost_ticks=1)
 - Bar data prefix: NQ_BarData
 - Margin: check current at CME (varies)
 

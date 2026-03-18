@@ -1,6 +1,6 @@
 {
-  "_comment": "Rotational backtest params. Agent-editable in Stage 04. Consumed by rotational_engine.py.",
-  "version": "v1",
+  "_comment": "Rotational backtest params. Defaults match P1b candidate #1 (ATR R=2.0x/A=4.0x). Consumed by rotational_engine.py.",
+  "version": "v2-tick",
   "instrument": "NQ",
   "archetype": {
     "name": "rotational",
@@ -17,7 +17,9 @@
   "hypothesis": {
     "trigger_mechanism": "fixed",
     "trigger_params": {
-      "step_dist": 2.0
+      "step_dist": 15.0,
+      "atr_rev_mult": 2.0,
+      "atr_add_mult": 4.0
     },
     "symmetry": "symmetric",
     "symmetry_params": {},
@@ -28,10 +30,11 @@
   },
   "martingale": {
     "initial_qty": 1,
-    "max_levels": 4,
+    "max_levels": 1,
     "max_contract_size": 8,
     "max_total_position": 0,
     "anchor_mode": "walking",
+    "flatten_reseed_cap": 0,
     "progression": "geometric"
   },
   "trend_defense": {

@@ -1,4 +1,7 @@
 # archetype: rotational
+# WARNING: OHLC-era harness. Functional but superseded by tick-data harness
+# (run_tick_sweep.py). Do not use for parameter selection — OHLC results are
+# not trustworthy for absolute PF. See .planning/lessons.md for details.
 """Phase 1b cross-bar-type robustness classification.
 
 Reads RTH-filtered experiment results (phase1_results_rth.tsv) and applies

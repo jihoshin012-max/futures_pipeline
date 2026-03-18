@@ -54,10 +54,24 @@ def build_sweep_grid():
                 },
             ))
 
-    # --- GROUP B: V1.1 fixed asymmetric (MTP=0, ML=1) ---
+    # --- GROUP A2: ATR-normalized + V2 MTP cap (best ATR combo with position cap) ---
+    for mode in ["frozen", "walking"]:
+        grid.append((
+            f"ATR R=2.0x A=4.0x MTP=2 {mode[:4]}",
+            {
+                "hypothesis.trigger_params.step_dist": 15.0,
+                "hypothesis.trigger_params.atr_rev_mult": 2.0,
+                "hypothesis.trigger_params.atr_add_mult": 4.0,
+                "martingale.max_total_position": 2,
+                "martingale.anchor_mode": mode,
+                "martingale.flatten_reseed_cap": 0,
+            },
+        ))
+
+    # --- GROUP B: V1.1 fixed asymmetric (MTP=0, ML=1) [P1b-CONTAMINATED baseline] ---
     for rev, add in [(15, 40), (15, 35), (20, 40), (20, 50)]:
         grid.append((
-            f"Fixed R={rev} A={add}",
+            f"*Fixed R={rev} A={add}",  # * prefix = P1b-contaminated
             {
                 "hypothesis.trigger_params.step_dist": rev,
                 "hypothesis.trigger_params.step_dist_reversal": rev,
@@ -239,6 +253,8 @@ def main():
     print(f"\n{hdr}")
     print("=" * 110)
 
+    grid_lookup = {label: patch for label, patch in grid}
+
     results = []
     for idx, (label, patch) in enumerate(grid):
         cfg = apply_patch(base_config, patch)
@@ -265,6 +281,88 @@ def main():
         out.parent.mkdir(exist_ok=True)
         pd.DataFrame(results).to_csv(out, sep="\t", index=False)
         print(f"\nResults written: {out}")
+
+    # ================================================================
+    # POST-SWEEP DIAGNOSTICS on top 3 by NP@1t
+    # ================================================================
+    if len(results) >= 3:
+        ranked = sorted(results, key=lambda r: r["npf_1t"], reverse=True)
+        top3 = ranked[:3]
+        print(f"\n{'='*100}")
+        print("POST-SWEEP DIAGNOSTICS — Top 3 by Net PF @1t")
+        print(f"{'='*100}")
+
+        for r in top3:
+            label = r["label"]
+            patch = dict(grid_lookup[label])
+            cfg = apply_patch(base_config, patch)
+            tp = cfg.get("hypothesis", {}).get("trigger_params", {})
+            if tp.get("atr_rev_mult", 0) > 0:
+                cfg["_tick_atr_array"] = tick_atr
+
+            sim = RotationalSimulator(config=cfg, bar_data=tick_p1a, reference_data=None)
+            result_obj = sim.run()
+            cycles_df = result_obj.cycles
+            trades_df = result_obj.trades
+
+            # Merge entry info
+            et = trades_df[trades_df["action"].isin(["SEED", "REVERSAL"])]
+            ce = et.groupby("cycle_id").first().reset_index()
+            cycles_df = cycles_df.merge(
+                ce[["cycle_id", "datetime", "direction"]].rename(
+                    columns={"datetime": "entry_dt", "direction": "entry_dir"}
+                ),
+                on="cycle_id", how="left",
+            )
+            cycles_df["hour"] = pd.to_datetime(cycles_df["entry_dt"]).dt.hour
+            cycles_df["weekday"] = pd.to_datetime(cycles_df["entry_dt"]).dt.day_name()
+            cf = cycles_df[~cycles_df["hour"].isin(EXCLUDE_HOURS)]
+
+            # Per-cycle cost at 1t
+            valid_ids = set(cf["cycle_id"])
+            tf = trades_df[trades_df["cycle_id"].isin(valid_ids)]
+            cc1 = tf.groupby("cycle_id")["cost_ticks"].sum()
+            cf = cf.copy()
+            cf["c1"] = cf["cycle_id"].map(cc1).fillna(0)
+            cf["n1"] = cf["gross_pnl_ticks"] - cf["c1"]
+
+            print(f"\n--- {label} (NP@1t={r['npf_1t']:.3f}) ---")
+
+            # Diagnostic A: Direction decomposition
+            print(f"\n  Direction decomposition:")
+            print(f"  {'Dir':<6} {'Cyc':>5} {'GrPF':>6} {'NP@1':>6} {'WR':>5} {'AvgW':>6} {'AvgL':>6}")
+            for d in ["Long", "Short"]:
+                dc = cf[cf["entry_dir"] == d]
+                if len(dc) == 0:
+                    continue
+                dgw = dc[dc["gross_pnl_ticks"] > 0]["gross_pnl_ticks"].sum()
+                dgl = abs(dc[dc["gross_pnl_ticks"] <= 0]["gross_pnl_ticks"].sum())
+                dgpf = dgw / dgl if dgl > 0 else 0
+                dnw = dc[dc["n1"] > 0]["n1"].sum()
+                dnl = abs(dc[dc["n1"] <= 0]["n1"].sum())
+                dnpf = dnw / dnl if dnl > 0 else 0
+                dwr = (dc["gross_pnl_ticks"] > 0).sum() / len(dc)
+                dw = dc[dc["n1"] > 0]
+                dl = dc[dc["n1"] < 0]
+                daw = dw["n1"].mean() if len(dw) > 0 else 0
+                dal = dl["n1"].mean() if len(dl) > 0 else 0
+                gap = ""
+                if abs(dnpf - r["npf_1t"]) > 0.1:
+                    gap = " *** GAP"
+                print(f"  {d:<6} {len(dc):>5} {dgpf:>6.3f} {dnpf:>6.3f} {dwr:>5.1%} {daw:>+6.0f} {dal:>+6.0f}{gap}")
+
+            # Diagnostic B: Day-of-week decomposition
+            print(f"\n  Day-of-week decomposition:")
+            print(f"  {'Day':<10} {'Cyc':>5} {'GrPF':>6} {'Note':>10}")
+            for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]:
+                dc = cf[cf["weekday"] == day]
+                if len(dc) == 0:
+                    continue
+                dgw = dc[dc["gross_pnl_ticks"] > 0]["gross_pnl_ticks"].sum()
+                dgl = abs(dc[dc["gross_pnl_ticks"] <= 0]["gross_pnl_ticks"].sum())
+                dgpf = dgw / dgl if dgl > 0 else 0
+                flag = "GROSS<1" if dgpf < 1.0 else ""
+                print(f"  {day:<10} {len(dc):>5} {dgpf:>6.3f} {flag:>10}")
 
     print(f"\nTotal runtime: {time.time()-t0:.0f}s")
 

@@ -1,4 +1,7 @@
 # archetype: rotational
+# WARNING: OHLC-era harness. Functional but superseded by tick-data harness
+# (run_tick_sweep.py). Do not use for parameter selection — OHLC results are
+# not trustworthy for absolute PF. See .planning/lessons.md for details.
 """TDS hypothesis-driven calibration harness for 3 targeted experiments (~99 total runs).
 
 Purpose: NOT a blind grid search. Hypothesis-driven calibration:

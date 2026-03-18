@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: "Phase 04 paused — simulator fidelity overhaul complete. Tick-data era: asymmetric Rev=15/Add=40 is best tick-viable config (PF=1.04 @3t). Combination test pending."
-last_updated: "2026-03-17T23:00:00.000Z"
+stopped_at: "Phase 04 — tick-data sweep complete. 2 P1b candidates frozen. Awaiting P1b validation approval."
+last_updated: "2026-03-18T04:00:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 5
@@ -27,17 +27,16 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 Milestone: Rotational Archetype (active)
 Spec: xtra/Rotational_Archetype_Spec.md
 Phases 1-3.1: COMPLETE
-Phase 4: PAUSED — simulator fidelity issues discovered pre-execution, resolved via:
-  1. Threshold-crossing OHLC fix (replaced close-only evaluation)
-  2. Mode B walking anchor (replaces frozen anchor)
-  3. Tick-data onboarding (1-tick ground truth, 31.9M rows)
-  4. Tick-mode fast path (directional seed, asymmetric step support)
-  5. C++ calibration validated at regular replay speed
-  6. V1.1 parameter sweep on tick data — asymmetric Rev=15/Add=40 is best config
+Phase 4: Tick-data parameter search complete. P1b validation pending.
+  Simulator progression: close-only (invalid) -> OHLC threshold-crossing (over-optimistic) -> tick-level (ground truth)
+  C++ calibrated: V1.1 and V2_js regular-speed replay validated within 5%
+  43-config tick sweep completed, refinement tests completed
+  2 P1b candidates frozen:
+    #1: ATR R=2.0x/A=4.0x (V1.1, NP@1t=1.21, +15,798)
+    #2: FRC SD=25 cap=2 (V1.1, NP@1t=1.14, +15,015)
+  Next: P1b replication validation
 
-All OHLC-based sweep results invalidated. Tick-level results are ground truth.
-
-Progress: [████░░░░░░] 40% (infrastructure rebuilt, parameter search in progress)
+Progress: [██████░░░░] 60% (P1a complete, P1b validation next)
 
 ## Performance Metrics
 
@@ -161,5 +160,5 @@ None — all v1.0 blockers resolved. Tech debt tracked in v1.0-MILESTONE-AUDIT.m
 ## Session Continuity
 
 Last session: 2026-03-16T15:56:40.157Z
-Stopped at: Phase 4 paused — tick-data parameter search. Best config: asymmetric Rev=15/Add=40, PF=1.04 @3t cost. Combination test pending.
+Stopped at: Phase 4 — tick-data sweep complete. 2 P1b candidates frozen. Awaiting P1b validation.
 Resume file: None

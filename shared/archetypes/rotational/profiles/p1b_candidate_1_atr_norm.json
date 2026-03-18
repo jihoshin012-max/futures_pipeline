@@ -1,0 +1,48 @@
+{
+  "_comment": "P1b Candidate #1: ATR-normalized asymmetric R=2.0x/A=4.0x (V1.1 path)",
+  "era": "tick-data",
+  "validated_against_cpp": true,
+  "p1b_clean": true,
+  "simulator_path": "tick_fast (_run_tick_fast)",
+  "config": {
+    "hypothesis": {
+      "trigger_mechanism": "fixed",
+      "trigger_params": {
+        "step_dist": 15.0,
+        "atr_rev_mult": 2.0,
+        "atr_add_mult": 4.0
+      }
+    },
+    "martingale": {
+      "initial_qty": 1,
+      "max_levels": 1,
+      "max_contract_size": 8,
+      "max_total_position": 0,
+      "anchor_mode": "walking",
+      "flatten_reseed_cap": 0
+    },
+    "_instrument": {
+      "tick_size": 0.25,
+      "cost_ticks": 1
+    },
+    "trend_defense": {
+      "enabled": false
+    }
+  },
+  "atr_source": "250tick bars, 20-bar ATR, mapped to ticks via timestamp lookup",
+  "time_filter": "exclude hours 1, 19, 20 (ET)",
+  "directional_seed": true,
+  "p1a_results": {
+    "cycles": 2263,
+    "gross_pf": 1.311,
+    "net_pf_1t": 1.21,
+    "net_pf_2t": 1.12,
+    "net_pf_3t": 1.03,
+    "net_pnl_1t": 15798,
+    "win_rate": 0.792,
+    "max_position": 6,
+    "adds_per_cycle": 0.5,
+    "avg_reversal_dist": 14.7,
+    "avg_add_dist": 29.1
+  }
+}

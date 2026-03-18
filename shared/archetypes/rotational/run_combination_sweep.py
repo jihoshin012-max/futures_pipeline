@@ -1,4 +1,7 @@
 # archetype: rotational
+# WARNING: OHLC-era harness. Functional but superseded by tick-data harness
+# (run_tick_sweep.py). Do not use for parameter selection — OHLC results are
+# not trustworthy for absolute PF. See .planning/lessons.md for details.
 """Per-hypothesis parameter sweep harness for Phase 4 combination testing.
 
 Runs each hypothesis over its full param_grid with profile-specific martingale

@@ -14,7 +14,11 @@
       "Read(//c/Trades/**)",
       "Skill(gsd:quick)",
       "Skill(gsd:quick:*)",
-      "Read(//c/Projects/sierrachart/**)"
+      "Read(//c/Projects/sierrachart/**)",
+      "Skill(gsd:plan-phase)",
+      "Skill(gsd:plan-phase:*)",
+      "Skill(gsd:add-phase)",
+      "Skill(gsd:add-phase:*)"
     ],
     "additionalDirectories": [
       "C:\\Projects\\pipeline"

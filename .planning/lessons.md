@@ -119,3 +119,24 @@ rare. But 662 "stuck" events (pos=2 for 500+ ticks) are a concern for live tradi
 Cost model confirmed: $4-5 commission + exchange per round turn = ~1 tick at $5/tick.
 Slippage is already captured in tick-level execution prices. cost_ticks=1 is the
 correct setting for live P&L estimation.
+
+### LESSON 16 — Flatten-reseed cap hurts ATR-normalized configs
+Position cap (flatten all + re-seed when reaching N contracts) was tested at cap=2,3,4
+on ATR R=2.0x/A=4.0x. All values degraded PF. The cap forces exits at losses the
+strategy would have recovered from. With Add=4.0x ATR already limiting adds (0.5/cycle,
+max pos 6), the cap adds unnecessary cost without benefit.
+
+### LESSON 17 — ATR(20) is a sharp optimum
+Testing ATR periods [10, 14, 20, 30, 50] showed ATR(20) at NP@1t=1.21 while ATR(14)
+was 0.99 and ATR(30) was 1.01. This is a fragility signal — the strategy is sensitive
+to the ATR computation period, not just the multiplier ratio.
+
+### LESSON 18 — Hard stops always hurt on tick data
+ATR-normalized hard stops at 2.0x, 3.0x, 4.0x, 5.0x ATR all produced worse results
+than uncapped baseline. The tighter the stop, the worse the result. The strategy
+recovers from drawdowns better than any stop can predict.
+
+### LESSON 19 — Direction fade has zero effect
+Testing consecutive same-direction loss fading (N=2,3,4,5) produced identical results
+to baseline in all cases. The rotational state machine structurally alternates
+directions on each reversal, making consecutive same-direction losses impossible.

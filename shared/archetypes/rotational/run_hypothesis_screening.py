@@ -1,4 +1,7 @@
 # archetype: rotational
+# WARNING: OHLC-era harness. Functional but superseded by tick-data harness
+# (run_tick_sweep.py). Do not use for parameter selection — OHLC results are
+# not trustworthy for absolute PF. See .planning/lessons.md for details.
 """Hypothesis screening runner for the rotational archetype Phase 1 experiments.
 
 Runs all 122 Phase 1 independent screening experiments (41 hypotheses × 3 bar types,

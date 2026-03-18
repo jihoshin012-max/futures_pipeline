@@ -1,4 +1,7 @@
 # archetype: rotational
+# WARNING: OHLC-era harness. Functional but superseded by tick-data harness
+# (run_tick_sweep.py). Do not use for parameter selection — OHLC results are
+# not trustworthy for absolute PF. See .planning/lessons.md for details.
 """Parameter sweep runner for the rotational archetype.
 
 Sweeps StepDist values [1.0, 1.5, ..., 6.0] across all 3 bar types on P1a data.
