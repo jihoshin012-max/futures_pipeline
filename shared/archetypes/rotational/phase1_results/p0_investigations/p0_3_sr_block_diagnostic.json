@@ -1,0 +1,212 @@
+{
+  "Open": [
+    {
+      "quintile": "Q1(low)",
+      "sr_range": "34.2-42.9",
+      "cycles": 127,
+      "npf": 0.7726,
+      "ev_per_cycle": -18.5,
+      "capwalk_pct": 0.2992
+    },
+    {
+      "quintile": "Q2",
+      "sr_range": "43.3-47.8",
+      "cycles": 128,
+      "npf": 0.4502,
+      "ev_per_cycle": -64.5,
+      "capwalk_pct": 0.3828
+    },
+    {
+      "quintile": "Q3",
+      "sr_range": "48.0-52.1",
+      "cycles": 127,
+      "npf": 1.1295,
+      "ev_per_cycle": 7.3,
+      "capwalk_pct": 0.2913
+    },
+    {
+      "quintile": "Q4",
+      "sr_range": "52.2-57.1",
+      "cycles": 136,
+      "npf": 1.1944,
+      "ev_per_cycle": 10.8,
+      "capwalk_pct": 0.2426
+    },
+    {
+      "quintile": "Q5(high)",
+      "sr_range": "57.3-66.3",
+      "cycles": 117,
+      "npf": 0.9855,
+      "ev_per_cycle": -0.9,
+      "capwalk_pct": 0.265
+    }
+  ],
+  "Morning": [
+    {
+      "quintile": "Q1(low)",
+      "sr_range": "31.8-42.3",
+      "cycles": 208,
+      "npf": 0.9858,
+      "ev_per_cycle": -1.0,
+      "capwalk_pct": 0.2692
+    },
+    {
+      "quintile": "Q2",
+      "sr_range": "42.3-47.7",
+      "cycles": 199,
+      "npf": 0.8377,
+      "ev_per_cycle": -12.4,
+      "capwalk_pct": 0.3266
+    },
+    {
+      "quintile": "Q3",
+      "sr_range": "47.7-52.2",
+      "cycles": 204,
+      "npf": 0.8497,
+      "ev_per_cycle": -10.8,
+      "capwalk_pct": 0.2892
+    },
+    {
+      "quintile": "Q4",
+      "sr_range": "52.3-57.8",
+      "cycles": 202,
+      "npf": 1.2769,
+      "ev_per_cycle": 15.8,
+      "capwalk_pct": 0.2277
+    },
+    {
+      "quintile": "Q5(high)",
+      "sr_range": "57.8-70.5",
+      "cycles": 203,
+      "npf": 1.2997,
+      "ev_per_cycle": 17.1,
+      "capwalk_pct": 0.2365
+    }
+  ],
+  "Midday": [
+    {
+      "quintile": "Q1(low)",
+      "sr_range": "32.5-44.8",
+      "cycles": 178,
+      "npf": 0.7126,
+      "ev_per_cycle": -24.7,
+      "capwalk_pct": 0.3034
+    },
+    {
+      "quintile": "Q2",
+      "sr_range": "44.8-48.7",
+      "cycles": 180,
+      "npf": 1.2717,
+      "ev_per_cycle": 17.7,
+      "capwalk_pct": 0.2056
+    },
+    {
+      "quintile": "Q3",
+      "sr_range": "48.7-52.3",
+      "cycles": 179,
+      "npf": 1.9941,
+      "ev_per_cycle": 37.5,
+      "capwalk_pct": 0.2123
+    },
+    {
+      "quintile": "Q4",
+      "sr_range": "52.5-59.1",
+      "cycles": 176,
+      "npf": 0.9891,
+      "ev_per_cycle": -0.7,
+      "capwalk_pct": 0.3011
+    },
+    {
+      "quintile": "Q5(high)",
+      "sr_range": "59.2-75.5",
+      "cycles": 176,
+      "npf": 0.9445,
+      "ev_per_cycle": -3.8,
+      "capwalk_pct": 0.3466
+    }
+  ],
+  "Afternoon": [
+    {
+      "quintile": "Q1(low)",
+      "sr_range": "30.1-43.6",
+      "cycles": 102,
+      "npf": 1.0866,
+      "ev_per_cycle": 5.5,
+      "capwalk_pct": 0.3039
+    },
+    {
+      "quintile": "Q2",
+      "sr_range": "43.6-48.5",
+      "cycles": 97,
+      "npf": 0.572,
+      "ev_per_cycle": -43.9,
+      "capwalk_pct": 0.3505
+    },
+    {
+      "quintile": "Q3",
+      "sr_range": "48.5-52.7",
+      "cycles": 98,
+      "npf": 1.7682,
+      "ev_per_cycle": 32.5,
+      "capwalk_pct": 0.2143
+    },
+    {
+      "quintile": "Q4",
+      "sr_range": "52.9-58.1",
+      "cycles": 98,
+      "npf": 1.6966,
+      "ev_per_cycle": 31.5,
+      "capwalk_pct": 0.2041
+    },
+    {
+      "quintile": "Q5(high)",
+      "sr_range": "58.2-72.0",
+      "cycles": 98,
+      "npf": 1.5417,
+      "ev_per_cycle": 26.8,
+      "capwalk_pct": 0.2245
+    }
+  ],
+  "Close": [
+    {
+      "quintile": "Q1(low)",
+      "sr_range": "29.2-40.1",
+      "cycles": 70,
+      "npf": 0.7397,
+      "ev_per_cycle": -21.9,
+      "capwalk_pct": 0.2714
+    },
+    {
+      "quintile": "Q2",
+      "sr_range": "40.2-44.1",
+      "cycles": 70,
+      "npf": 1.0912,
+      "ev_per_cycle": 5.4,
+      "capwalk_pct": 0.1857
+    },
+    {
+      "quintile": "Q3",
+      "sr_range": "44.2-48.1",
+      "cycles": 66,
+      "npf": 1.4162,
+      "ev_per_cycle": 19.0,
+      "capwalk_pct": 0.197
+    },
+    {
+      "quintile": "Q4",
+      "sr_range": "48.1-55.1",
+      "cycles": 69,
+      "npf": 2.2143,
+      "ev_per_cycle": 39.4,
+      "capwalk_pct": 0.1449
+    },
+    {
+      "quintile": "Q5(high)",
+      "sr_range": "55.2-74.9",
+      "cycles": 66,
+      "npf": 1.1545,
+      "ev_per_cycle": 8.3,
+      "capwalk_pct": 0.2273
+    }
+  ]
+}

@@ -1,0 +1,249 @@
+{
+  "n_windows": 31,
+  "p1_rolling_npf": {
+    "mean": 1.2471,
+    "median": 1.2258,
+    "std": 0.0586,
+    "min": 1.1281,
+    "max": 1.3435,
+    "p5": 1.1649,
+    "p25": 1.2041,
+    "p75": 1.3019,
+    "p95": 1.3299
+  },
+  "p1_rolling_gpf": {
+    "mean": 1.3094,
+    "min": 1.1817,
+    "max": 1.4161
+  },
+  "p1_rolling_capwalk": {
+    "mean": 0.2579,
+    "min": 0.2461,
+    "max": 0.2765
+  },
+  "p2a_npf": 0.9577,
+  "p2a_gpf": 1.0058,
+  "p2a_npf_percentile": 0.0,
+  "p2a_gpf_percentile": 0.0,
+  "p1_windows_npf_below_1": 0,
+  "p1_windows_gpf_below_105": 0,
+  "rolling_series": [
+    {
+      "window": 0,
+      "dates": "2025-09-22 to 2025-10-29",
+      "npf": 1.3055,
+      "gpf": 1.3757,
+      "capwalk_rate": 0.2601
+    },
+    {
+      "window": 1,
+      "dates": "2025-09-23 to 2025-10-30",
+      "npf": 1.3167,
+      "gpf": 1.3877,
+      "capwalk_rate": 0.2578
+    },
+    {
+      "window": 2,
+      "dates": "2025-09-24 to 2025-10-31",
+      "npf": 1.2862,
+      "gpf": 1.3553,
+      "capwalk_rate": 0.262
+    },
+    {
+      "window": 3,
+      "dates": "2025-09-25 to 2025-11-03",
+      "npf": 1.3252,
+      "gpf": 1.3967,
+      "capwalk_rate": 0.256
+    },
+    {
+      "window": 4,
+      "dates": "2025-09-26 to 2025-11-04",
+      "npf": 1.3346,
+      "gpf": 1.4061,
+      "capwalk_rate": 0.2516
+    },
+    {
+      "window": 5,
+      "dates": "2025-09-29 to 2025-11-05",
+      "npf": 1.3435,
+      "gpf": 1.4161,
+      "capwalk_rate": 0.2553
+    },
+    {
+      "window": 6,
+      "dates": "2025-09-30 to 2025-11-06",
+      "npf": 1.3139,
+      "gpf": 1.3832,
+      "capwalk_rate": 0.2528
+    },
+    {
+      "window": 7,
+      "dates": "2025-10-01 to 2025-11-07",
+      "npf": 1.2899,
+      "gpf": 1.3561,
+      "capwalk_rate": 0.2476
+    },
+    {
+      "window": 8,
+      "dates": "2025-10-02 to 2025-11-10",
+      "npf": 1.3217,
+      "gpf": 1.3902,
+      "capwalk_rate": 0.2473
+    },
+    {
+      "window": 9,
+      "dates": "2025-10-03 to 2025-11-11",
+      "npf": 1.3138,
+      "gpf": 1.3815,
+      "capwalk_rate": 0.2467
+    },
+    {
+      "window": 10,
+      "dates": "2025-10-06 to 2025-11-12",
+      "npf": 1.2906,
+      "gpf": 1.3569,
+      "capwalk_rate": 0.2503
+    },
+    {
+      "window": 11,
+      "dates": "2025-10-07 to 2025-11-13",
+      "npf": 1.2983,
+      "gpf": 1.3643,
+      "capwalk_rate": 0.2461
+    },
+    {
+      "window": 12,
+      "dates": "2025-10-08 to 2025-11-14",
+      "npf": 1.2838,
+      "gpf": 1.3484,
+      "capwalk_rate": 0.247
+    },
+    {
+      "window": 13,
+      "dates": "2025-10-09 to 2025-11-17",
+      "npf": 1.2563,
+      "gpf": 1.3195,
+      "capwalk_rate": 0.2516
+    },
+    {
+      "window": 14,
+      "dates": "2025-10-10 to 2025-11-18",
+      "npf": 1.2459,
+      "gpf": 1.3064,
+      "capwalk_rate": 0.2478
+    },
+    {
+      "window": 15,
+      "dates": "2025-10-13 to 2025-11-19",
+      "npf": 1.2045,
+      "gpf": 1.2632,
+      "capwalk_rate": 0.2503
+    },
+    {
+      "window": 16,
+      "dates": "2025-10-14 to 2025-11-20",
+      "npf": 1.2193,
+      "gpf": 1.2771,
+      "capwalk_rate": 0.2572
+    },
+    {
+      "window": 17,
+      "dates": "2025-10-15 to 2025-11-21",
+      "npf": 1.1902,
+      "gpf": 1.2461,
+      "capwalk_rate": 0.2604
+    },
+    {
+      "window": 18,
+      "dates": "2025-10-16 to 2025-11-24",
+      "npf": 1.2104,
+      "gpf": 1.2676,
+      "capwalk_rate": 0.2604
+    },
+    {
+      "window": 19,
+      "dates": "2025-10-17 to 2025-11-25",
+      "npf": 1.2154,
+      "gpf": 1.2728,
+      "capwalk_rate": 0.2593
+    },
+    {
+      "window": 20,
+      "dates": "2025-10-20 to 2025-11-26",
+      "npf": 1.2258,
+      "gpf": 1.2836,
+      "capwalk_rate": 0.2563
+    },
+    {
+      "window": 21,
+      "dates": "2025-10-21 to 2025-11-28",
+      "npf": 1.2073,
+      "gpf": 1.2649,
+      "capwalk_rate": 0.263
+    },
+    {
+      "window": 22,
+      "dates": "2025-10-22 to 2025-12-02",
+      "npf": 1.2038,
+      "gpf": 1.2611,
+      "capwalk_rate": 0.2614
+    },
+    {
+      "window": 23,
+      "dates": "2025-10-23 to 2025-12-03",
+      "npf": 1.1947,
+      "gpf": 1.2517,
+      "capwalk_rate": 0.2633
+    },
+    {
+      "window": 24,
+      "dates": "2025-10-24 to 2025-12-04",
+      "npf": 1.1954,
+      "gpf": 1.2523,
+      "capwalk_rate": 0.2635
+    },
+    {
+      "window": 25,
+      "dates": "2025-10-27 to 2025-12-05",
+      "npf": 1.206,
+      "gpf": 1.2638,
+      "capwalk_rate": 0.2648
+    },
+    {
+      "window": 26,
+      "dates": "2025-10-28 to 2025-12-08",
+      "npf": 1.1967,
+      "gpf": 1.2542,
+      "capwalk_rate": 0.2671
+    },
+    {
+      "window": 27,
+      "dates": "2025-10-29 to 2025-12-09",
+      "npf": 1.2069,
+      "gpf": 1.2648,
+      "capwalk_rate": 0.2657
+    },
+    {
+      "window": 28,
+      "dates": "2025-10-30 to 2025-12-10",
+      "npf": 1.1756,
+      "gpf": 1.2319,
+      "capwalk_rate": 0.2704
+    },
+    {
+      "window": 29,
+      "dates": "2025-10-31 to 2025-12-11",
+      "npf": 1.1281,
+      "gpf": 1.1817,
+      "capwalk_rate": 0.2765
+    },
+    {
+      "window": 30,
+      "dates": "2025-11-03 to 2025-12-12",
+      "npf": 1.1542,
+      "gpf": 1.2094,
+      "capwalk_rate": 0.2743
+    }
+  ]
+}

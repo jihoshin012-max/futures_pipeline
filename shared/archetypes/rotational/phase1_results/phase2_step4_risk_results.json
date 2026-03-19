@@ -1,0 +1,133 @@
+{
+  "4a": [
+    {
+      "n_sigma": 1.5,
+      "stopped": 1265,
+      "npf": 3.4328,
+      "net_pnl": 89071.2,
+      "worst_day": -39.2,
+      "max_loss": -126.9
+    },
+    {
+      "n_sigma": 2.0,
+      "stopped": 1122,
+      "npf": 2.9764,
+      "net_pnl": 83457.8,
+      "worst_day": -60.9,
+      "max_loss": -169.2
+    },
+    {
+      "n_sigma": 2.5,
+      "stopped": 1012,
+      "npf": 2.6302,
+      "net_pnl": 77898.5,
+      "worst_day": -83.9,
+      "max_loss": -211.6
+    },
+    {
+      "n_sigma": 3.0,
+      "stopped": 908,
+      "npf": 2.3565,
+      "net_pnl": 72349.4,
+      "worst_day": -144.4,
+      "max_loss": -253.9
+    },
+    {
+      "n_sigma": null,
+      "stopped": 0,
+      "npf": 1.1997,
+      "net_pnl": 20919.0,
+      "worst_day": -2210.0,
+      "max_loss": -1385.0
+    }
+  ],
+  "4b": [
+    {
+      "max_daily": 100,
+      "sessions_stopped": 44,
+      "npf": 0.9256,
+      "net_pnl": -2802.0,
+      "worst_day": -1138.0,
+      "forfeited": 1286
+    },
+    {
+      "max_daily": 150,
+      "sessions_stopped": 42,
+      "npf": 0.9725,
+      "net_pnl": -1096.0,
+      "worst_day": -1138.0,
+      "forfeited": 1224
+    },
+    {
+      "max_daily": 200,
+      "sessions_stopped": 39,
+      "npf": 1.0118,
+      "net_pnl": 528.0,
+      "worst_day": -1138.0,
+      "forfeited": 1125
+    },
+    {
+      "max_daily": 250,
+      "sessions_stopped": 27,
+      "npf": 1.0776,
+      "net_pnl": 4378.0,
+      "worst_day": -1138.0,
+      "forfeited": 875
+    },
+    {
+      "max_daily": null,
+      "sessions_stopped": 0,
+      "npf": 1.1997,
+      "net_pnl": 20919.0,
+      "worst_day": -2210.0,
+      "forfeited": 0
+    }
+  ],
+  "4c": [
+    {
+      "max_cw": 2,
+      "stopped": 97,
+      "npf": 2.6142,
+      "net_pnl": 77607.0,
+      "worst_day": -221.0,
+      "max_loss": -532.0
+    },
+    {
+      "max_cw": 3,
+      "stopped": 50,
+      "npf": 1.8602,
+      "net_pnl": 58121.0,
+      "worst_day": -635.0,
+      "max_loss": -619.0
+    },
+    {
+      "max_cw": 4,
+      "stopped": 18,
+      "npf": 1.4425,
+      "net_pnl": 38555.0,
+      "worst_day": -1072.0,
+      "max_loss": -943.0
+    },
+    {
+      "max_cw": 5,
+      "stopped": 13,
+      "npf": 1.3804,
+      "net_pnl": 34635.0,
+      "worst_day": -1072.0,
+      "max_loss": -954.0
+    },
+    {
+      "max_cw": null,
+      "stopped": 0,
+      "npf": 1.1997,
+      "net_pnl": 20919.0,
+      "worst_day": -2210.0,
+      "max_loss": -1385.0
+    }
+  ],
+  "baseline": {
+    "npf": 1.1997,
+    "net_pnl": 20919.0,
+    "worst_day": -2210.0
+  }
+}

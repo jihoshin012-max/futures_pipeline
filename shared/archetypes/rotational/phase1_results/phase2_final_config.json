@@ -1,0 +1,126 @@
+{
+  "strategy": "rotational",
+  "version": "V1.4",
+  "phase": "Phase 2 Final Config",
+  "frozen_date": "2026-03-18",
+
+  "core_parameters": {
+    "step_dist": {
+      "source": "rolling_zigzag_P90",
+      "percentile": 90,
+      "floor_pts": 10.0,
+      "rolling_window": "200 swings",
+      "zigzag_source": "Sierra Chart Zig Zag Line Length (abs, HL-based, 5.25 pt reversal)",
+      "note": "Computed from completed RTH zigzag swing lengths"
+    },
+    "add_dist": {
+      "source": "rolling_zigzag_P75",
+      "percentile": 75,
+      "floor_pts": 10.0,
+      "rolling_window": "200 swings (same window as step_dist)",
+      "note": "AddDist < StepDist transfers ticks from loss to profit on adds"
+    },
+    "seed_dist": {
+      "value": 15.0,
+      "type": "fixed",
+      "note": "Decoupled from StepDist. 15 pts optimal from Step 3."
+    },
+    "max_levels": 1,
+    "position_cap": 2,
+    "cap_action": "walk",
+    "init_qty": 1,
+    "cost_ticks": 1,
+    "tick_size": 0.25
+  },
+
+  "session": {
+    "session_start": "10:00 ET",
+    "seed_start_tod": 36000,
+    "session_end": "16:00 ET",
+    "daily_flatten": "16:00 ET",
+    "session_resume": "18:00 ET",
+    "watch_mode": "rth_open",
+    "note": "10:00 start skips Open block (NPF=0.83, 29.6% cap-walk rate)"
+  },
+
+  "speedread_filter": {
+    "type": "rolling_average",
+    "rolling_window_ticks": 50,
+    "seed_threshold": 48.0,
+    "reversal_threshold": 48.0,
+    "note": "50-tick rolling avg of SpeedRead composite. Both seed and reversal filtered. Rev SR is the primary driver (+10% NPF)."
+  },
+
+  "risk_mitigation": {
+    "implemented": [],
+    "recommended_phase_2_5": [
+      {
+        "name": "max_cap_walks_per_cycle",
+        "value": 3,
+        "reason": "CW>=2 cycles average -248 to -980 ticks. Requires simulator modification.",
+        "estimated_impact": "NPF +50-100%, worst day improvement +70-90%"
+      },
+      {
+        "name": "adaptive_cycle_stop",
+        "n_sigma": 2.5,
+        "reason": "Flatten when MAE > 2.5 * rolling zigzag std. Requires simulator-level real-time MAE tracking.",
+        "estimated_impact": "Significant tail-risk reduction. Post-hoc estimates optimistic."
+      }
+    ],
+    "rejected": {
+      "max_daily_loss": "Too aggressive. Even -250t stop kills NPF to 1.08 and forfeits 875 cycles."
+    }
+  },
+
+  "feature_filters": {
+    "status": "none_adopted",
+    "note": "16/17 features pass 3% threshold but quintile patterns are non-monotonic and overfitting risk is high on 59 sessions. Features identified for future investigation but not frozen into V1.4.",
+    "top_candidates_for_future": [
+      "session_volume_ratio (Q5 NPF=1.59, +48.8%)",
+      "current_sd_vs_p85 (Q3 NPF=1.44, +34.6%)",
+      "zigzag_reversal_distance (Q2 NPF=1.37, +28.0%)"
+    ]
+  },
+
+  "instrument": "NQ",
+  "data_period": "Full P1 (Sep 21 - Dec 14, 2025)",
+
+  "performance": {
+    "layer_0_base_no_filter": {
+      "npf": 1.068,
+      "net_pnl_ticks": 12235,
+      "cycles": 2803,
+      "worst_day": "N/A",
+      "sessions": 59
+    },
+    "layer_1_plus_sr_roll50_48": {
+      "npf": 1.1997,
+      "net_pnl_ticks": 20919,
+      "cycles": 1847,
+      "worst_day": -2210,
+      "sessions": 59,
+      "improvement_vs_base": "+12.3% NPF, +71% PnL"
+    }
+  },
+
+  "rolling_computations_for_cpp": {
+    "note": "TWO separate rolling computations, different studies, different windows, different data sources.",
+    "computation_1_zigzag_regime": {
+      "study": "ZigZagRegime",
+      "input": "Completed RTH zigzag leg distances (abs, from Sierra Chart Zig Zag study)",
+      "window": "200 swings (count-based, NOT time-based)",
+      "outputs": ["P90 -> StepDist", "P75 -> AddDist"],
+      "floor": 10.0,
+      "update_frequency": "On each completed zigzag swing",
+      "data_source": "Sierra Chart Zig Zag Line Length study column"
+    },
+    "computation_2_speedread_filter": {
+      "study": "SpeedRead",
+      "input": "SpeedRead composite value (per-tick or per-bar)",
+      "window": "50 bars (count-based rolling average)",
+      "outputs": ["Rolling average compared against threshold 48"],
+      "update_frequency": "Every tick/bar",
+      "data_source": "SpeedRead.cpp composite output"
+    }
+  }
+}

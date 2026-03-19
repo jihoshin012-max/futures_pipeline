@@ -1,0 +1,108 @@
+{
+  "remove_worst": [
+    {
+      "removed": 0,
+      "npf": 0.9577,
+      "net_ticks": -1797.0,
+      "cycles": 667,
+      "sessions_left": 28
+    },
+    {
+      "removed": 1,
+      "npf": 1.0345,
+      "net_ticks": 1258.0,
+      "cycles": 613,
+      "sessions_left": 27
+    },
+    {
+      "removed": 2,
+      "npf": 1.0856,
+      "net_ticks": 2910.0,
+      "cycles": 598,
+      "sessions_left": 26
+    },
+    {
+      "removed": 3,
+      "npf": 1.1392,
+      "net_ticks": 4280.0,
+      "cycles": 564,
+      "sessions_left": 25
+    },
+    {
+      "removed": 4,
+      "npf": 1.1964,
+      "net_ticks": 5495.0,
+      "cycles": 535,
+      "sessions_left": 24
+    },
+    {
+      "removed": 5,
+      "npf": 1.2514,
+      "net_ticks": 6479.0,
+      "cycles": 511,
+      "sessions_left": 23
+    }
+  ],
+  "remove_best": [
+    {
+      "removed": 0,
+      "npf": 0.9577,
+      "net_ticks": -1797.0,
+      "cycles": 667
+    },
+    {
+      "removed": 1,
+      "npf": 0.9104,
+      "net_ticks": -3754.0,
+      "cycles": 633
+    },
+    {
+      "removed": 2,
+      "npf": 0.8616,
+      "net_ticks": -5366.0,
+      "cycles": 572
+    },
+    {
+      "removed": 3,
+      "npf": 0.8199,
+      "net_ticks": -6883.0,
+      "cycles": 538
+    }
+  ],
+  "worst_session": {
+    "date": "2026-01-21",
+    "net_pnl": -3055.0,
+    "cycles": 54,
+    "cap_walks": 47
+  },
+  "worst3_details": [
+    {
+      "date": "2026-01-21",
+      "net_pnl": -3055.0,
+      "cycles": 54,
+      "clean": 21,
+      "cap_walks": 47,
+      "mean_stepdist": 20.7,
+      "mean_adddist": 15.3
+    },
+    {
+      "date": "2026-01-09",
+      "net_pnl": -1652.0,
+      "cycles": 15,
+      "clean": 7,
+      "cap_walks": 15,
+      "mean_stepdist": 21.9,
+      "mean_adddist": 15.6
+    },
+    {
+      "date": "2026-01-30",
+      "net_pnl": -1370.0,
+      "cycles": 34,
+      "clean": 13,
+      "cap_walks": 25,
+      "mean_stepdist": 23.2,
+      "mean_adddist": 18.0
+    }
+  ],
+  "total_sessions": 28
+}

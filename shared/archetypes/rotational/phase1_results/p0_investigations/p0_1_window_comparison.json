@@ -1,0 +1,284 @@
+[
+  {
+    "label": "200-swing (baseline)",
+    "metrics": {
+      "label": "200-swing (baseline)",
+      "cycles": 3424,
+      "clean_pct": 0.4419,
+      "gpf": 1.0859,
+      "npf_1t": 1.0365,
+      "net_pnl": 8134.0,
+      "mean_mae": 27.95,
+      "p75_mae": 38.75,
+      "max_single_cycle_loss": -1633.0,
+      "mean_daily": 137.9,
+      "std_daily": 1460.0,
+      "session_win_pct": 0.5254,
+      "cycles_per_hour": 8.93,
+      "ev_clean": {
+        "pct": 0.4419,
+        "mean_pnl": 83.9828
+      },
+      "ev_1add": {
+        "pct": 0.29,
+        "recover_pct": 0.9869,
+        "mean_pnl": 103.2014
+      },
+      "ev_capwalk": {
+        "pct": 0.2681,
+        "mean_pnl": -241.1885
+      },
+      "ev_deep": {
+        "pct": 0.0,
+        "mean_pnl": 0
+      },
+      "sd_range": {
+        "min": 15.0,
+        "max": 35.5,
+        "mean": 21.59
+      },
+      "ad_range": {
+        "min": 11.25,
+        "max": 27.19,
+        "mean": 16.02
+      },
+      "sessions": 59,
+      "cap_walks": 1820
+    },
+    "blocks": {
+      "Open": {
+        "cycles": 635,
+        "npf": 0.8252,
+        "net_pnl": -8335.0,
+        "ev_per_cycle": -13.1,
+        "capwalk_pct": 0.2961
+      },
+      "Morning": {
+        "cycles": 1016,
+        "npf": 1.0264,
+        "net_pnl": 1782.0,
+        "ev_per_cycle": 1.8,
+        "capwalk_pct": 0.2697
+      },
+      "Midday": {
+        "cycles": 889,
+        "npf": 1.0825,
+        "net_pnl": 4712.0,
+        "ev_per_cycle": 5.3,
+        "capwalk_pct": 0.2733
+      },
+      "Afternoon": {
+        "cycles": 493,
+        "npf": 1.1744,
+        "net_pnl": 5204.0,
+        "ev_per_cycle": 10.6,
+        "capwalk_pct": 0.2596
+      },
+      "Close": {
+        "cycles": 341,
+        "npf": 1.1787,
+        "net_pnl": 3367.0,
+        "ev_per_cycle": 9.9,
+        "capwalk_pct": 0.2053
+      }
+    },
+    "sd_range": {
+      "min": 14.77,
+      "max": 35.5,
+      "mean": 21.55
+    },
+    "ad_range": {
+      "min": 11.25,
+      "max": 28.81,
+      "mean": 15.92
+    }
+  },
+  {
+    "label": "60-min clock-time",
+    "metrics": {
+      "label": "60-min clock-time",
+      "cycles": 2474,
+      "clean_pct": 0.5049,
+      "gpf": 1.0433,
+      "npf_1t": 1.0016,
+      "net_pnl": 293.0,
+      "mean_mae": 33.59,
+      "p75_mae": 47.0,
+      "max_single_cycle_loss": -1706.0,
+      "mean_daily": 5.0,
+      "std_daily": 1217.0,
+      "session_win_pct": 0.5593,
+      "cycles_per_hour": 6.45,
+      "ev_clean": {
+        "pct": 0.5049,
+        "mean_pnl": 95.9912
+      },
+      "ev_1add": {
+        "pct": 0.2583,
+        "recover_pct": 0.975,
+        "mean_pnl": 90.7121
+      },
+      "ev_capwalk": {
+        "pct": 0.2369,
+        "mean_pnl": -303.0119
+      },
+      "ev_deep": {
+        "pct": 0.0,
+        "mean_pnl": 0
+      },
+      "sd_range": {
+        "min": 25.0,
+        "max": 25.0,
+        "mean": 25.0
+      },
+      "ad_range": {
+        "min": 25.0,
+        "max": 25.0,
+        "mean": 25.0
+      },
+      "sessions": 59,
+      "cap_walks": 1163
+    },
+    "blocks": {
+      "Open": {
+        "cycles": 460,
+        "npf": 0.862,
+        "net_pnl": -5299.0,
+        "ev_per_cycle": -11.5,
+        "capwalk_pct": 0.263
+      },
+      "Morning": {
+        "cycles": 736,
+        "npf": 0.9697,
+        "net_pnl": -1705.0,
+        "ev_per_cycle": -2.3,
+        "capwalk_pct": 0.2418
+      },
+      "Midday": {
+        "cycles": 645,
+        "npf": 1.0803,
+        "net_pnl": 3591.0,
+        "ev_per_cycle": 5.6,
+        "capwalk_pct": 0.2341
+      },
+      "Afternoon": {
+        "cycles": 355,
+        "npf": 1.0078,
+        "net_pnl": 201.0,
+        "ev_per_cycle": 0.6,
+        "capwalk_pct": 0.2451
+      },
+      "Close": {
+        "cycles": 255,
+        "npf": 1.2509,
+        "net_pnl": 3420.0,
+        "ev_per_cycle": 13.4,
+        "capwalk_pct": 0.1686
+      }
+    },
+    "sd_range": {
+      "min": 12.38,
+      "max": 34.33,
+      "mean": 21.7
+    },
+    "ad_range": {
+      "min": 9.38,
+      "max": 25.75,
+      "mean": 16.02
+    }
+  },
+  {
+    "label": "90-min clock-time",
+    "metrics": {
+      "label": "90-min clock-time",
+      "cycles": 2474,
+      "clean_pct": 0.5049,
+      "gpf": 1.0433,
+      "npf_1t": 1.0016,
+      "net_pnl": 293.0,
+      "mean_mae": 33.59,
+      "p75_mae": 47.0,
+      "max_single_cycle_loss": -1706.0,
+      "mean_daily": 5.0,
+      "std_daily": 1217.0,
+      "session_win_pct": 0.5593,
+      "cycles_per_hour": 6.45,
+      "ev_clean": {
+        "pct": 0.5049,
+        "mean_pnl": 95.9912
+      },
+      "ev_1add": {
+        "pct": 0.2583,
+        "recover_pct": 0.975,
+        "mean_pnl": 90.7121
+      },
+      "ev_capwalk": {
+        "pct": 0.2369,
+        "mean_pnl": -303.0119
+      },
+      "ev_deep": {
+        "pct": 0.0,
+        "mean_pnl": 0
+      },
+      "sd_range": {
+        "min": 25.0,
+        "max": 25.0,
+        "mean": 25.0
+      },
+      "ad_range": {
+        "min": 25.0,
+        "max": 25.0,
+        "mean": 25.0
+      },
+      "sessions": 59,
+      "cap_walks": 1163
+    },
+    "blocks": {
+      "Open": {
+        "cycles": 460,
+        "npf": 0.862,
+        "net_pnl": -5299.0,
+        "ev_per_cycle": -11.5,
+        "capwalk_pct": 0.263
+      },
+      "Morning": {
+        "cycles": 736,
+        "npf": 0.9697,
+        "net_pnl": -1705.0,
+        "ev_per_cycle": -2.3,
+        "capwalk_pct": 0.2418
+      },
+      "Midday": {
+        "cycles": 645,
+        "npf": 1.0803,
+        "net_pnl": 3591.0,
+        "ev_per_cycle": 5.6,
+        "capwalk_pct": 0.2341
+      },
+      "Afternoon": {
+        "cycles": 355,
+        "npf": 1.0078,
+        "net_pnl": 201.0,
+        "ev_per_cycle": 0.6,
+        "capwalk_pct": 0.2451
+      },
+      "Close": {
+        "cycles": 255,
+        "npf": 1.2509,
+        "net_pnl": 3420.0,
+        "ev_per_cycle": 13.4,
+        "capwalk_pct": 0.1686
+      }
+    },
+    "sd_range": {
+      "min": 13.0,
+      "max": 33.45,
+      "mean": 21.74
+    },
+    "ad_range": {
+      "min": 9.75,
+      "max": 25.75,
+      "mean": 16.01
+    }
+  }
+]

@@ -1,0 +1,114 @@
+{
+  "validation": "P2a",
+  "verdict": "FAIL",
+  "run_date": "2026-03-18T19:57:12.602875",
+  "frozen_config": {
+    "version": "V1.4",
+    "step_dist": "rolling_zigzag_P90 (floor 10)",
+    "add_dist": "rolling_zigzag_P75 (floor 10)",
+    "seed_dist": 15.0,
+    "session": "10:00-16:00 ET",
+    "speedread": "Roll50 >= 48.0 (seed + reversal)",
+    "max_levels": 1,
+    "position_cap": 2,
+    "cap_action": "walk",
+    "cost_ticks": 1,
+    "tick_size": 0.25
+  },
+  "p2a_date_range": {
+    "first_rth": "2025-12-18",
+    "last_rth": "2026-01-30",
+    "sessions": 28
+  },
+  "p2a_metrics": {
+    "cycles": 667,
+    "gpf": 1.0058,
+    "npf_1t": 0.9577,
+    "net_pnl": -1797.0,
+    "mean_daily": -64.2,
+    "std_daily": 1054.3,
+    "session_win_pct": 0.4643,
+    "seed_accuracy": 0.621,
+    "clean_pct": 0.4708,
+    "mean_mae": 26.0,
+    "p75_mae": 37.5,
+    "max_single_cycle_loss": -1376.0,
+    "cycles_per_hour": 3.66
+  },
+  "p1_metrics": {
+    "npf_1t": 1.1997,
+    "net_pnl": 20919.0,
+    "cycles": 1847,
+    "mean_daily": 354.6,
+    "session_win_pct": 0.6949,
+    "clean_pct": 0.4396,
+    "mean_mae": 27.23
+  },
+  "adaptive_ranges_p2a": {
+    "stepdist": {
+      "min": 14.78,
+      "max": 27.32,
+      "mean": 20.34
+    },
+    "adddist": {
+      "min": 11.31,
+      "max": 20.25,
+      "mean": 14.99
+    }
+  },
+  "distribution_per_session": {
+    "p10": -1261.5,
+    "p25": -534.5,
+    "p50": -92.5,
+    "p75": 498.0,
+    "p90": 1268.5
+  },
+  "worst5_sessions": {
+    "2026-01-21": -3055.0,
+    "2026-01-09": -1652.0,
+    "2026-01-30": -1370.0,
+    "2026-01-14": -1215.0,
+    "2025-12-18": -984.0
+  },
+  "best5_sessions": {
+    "2026-01-28": 1957.0,
+    "2026-01-29": 1612.0,
+    "2025-12-24": 1517.0,
+    "2026-01-22": 1162.0,
+    "2025-12-19": 710.0
+  },
+  "ev_components": {
+    "clean": {
+      "pct": 0.4708,
+      "mean_pnl": 78.7006
+    },
+    "one_add": {
+      "pct": 0.2489,
+      "recover_pct": 0.9578,
+      "mean_pnl": 93.6627
+    },
+    "capwalk": {
+      "pct": 0.2804,
+      "mean_pnl": -224.9037
+    },
+    "deep": {
+      "pct": 0.0,
+      "mean_pnl": 0
+    }
+  },
+  "sr_filter": {
+    "reversal_sr_skips": 108
+  },
+  "pass_fail": {
+    "verdict": "FAIL",
+    "flags": [
+      "Session win% 46.43% between 45-50%"
+    ],
+    "fail_reasons": [
+      "NPF 0.9577 < 1.0",
+      "Gross PF 1.0058 < 1.05",
+      "Net PnL -1,797 <= 0"
+    ]
+  },
+  "contamination_update": "P2a validation: Frozen V1.4 config | FAIL | P2a dates 2025-12-18 to 2026-01-30 now consumed. P2b UNTOUCHED."
+}

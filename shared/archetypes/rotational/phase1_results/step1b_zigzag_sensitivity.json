@@ -1,0 +1,51 @@
+{
+  "method": "close_to_close",
+  "close_results": {
+    "4.0": {
+      "n": 25185,
+      "pcts": {
+        "P50": 11.75,
+        "P75": 19.5,
+        "P85": 25.0,
+        "P90": 29.25,
+        "P95": 37.25
+      }
+    },
+    "5.25": {
+      "n": 20789,
+      "pcts": {
+        "P50": 13.75,
+        "P75": 22.0,
+        "P85": 28.25,
+        "P90": 33.0,
+        "P95": 41.75
+      }
+    },
+    "7.0": {
+      "n": 16095,
+      "pcts": {
+        "P50": 16.5,
+        "P75": 26.0,
+        "P85": 32.75,
+        "P90": 39.0,
+        "P95": 48.75
+      }
+    }
+  },
+  "csv_ground_truth_5.25": {
+    "n_swings": 56805,
+    "percentiles": {
+      "P50": 11.0,
+      "P75": 16.0,
+      "P85": 19.5,
+      "P90": 22.25,
+      "P95": 26.75
+    }
+  },
+  "p85_shift_close": 31.0,
+  "p90_shift_close": 33.33,
+  "passed": false,
+  "decision": "PASS_HL_BASED",
+  "decision_note": "HL-based P85 shift=12.1%, P90 shift=10.4% -- both <=15%. Close-based fails (31/33%) but measures different distribution. CSV HL zigzag is ground truth. Adaptive configs proceed using CSV abs(Zig Zag Line Length) for rolling percentiles.",
+  "adaptive_source": "CSV Zig Zag Line Length (abs, both directions) -- matches Sierra Chart and live C++ implementation"
+}

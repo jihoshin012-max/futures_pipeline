@@ -1,0 +1,437 @@
+[
+  {
+    "label": "09:30 (baseline)",
+    "start_tod": 34200,
+    "trading_hours_per_session": 6.5,
+    "pnl_per_hour": 21.21,
+    "metrics": {
+      "label": "09:30 (baseline)",
+      "cycles": 3424,
+      "clean_pct": 0.4419,
+      "gpf": 1.0859,
+      "npf_1t": 1.0365,
+      "net_pnl": 8134.0,
+      "mean_mae": 27.95,
+      "p75_mae": 38.75,
+      "max_single_cycle_loss": -1633.0,
+      "mean_daily": 137.9,
+      "std_daily": 1460.0,
+      "session_win_pct": 0.5254,
+      "cycles_per_hour": 8.93,
+      "ev_clean": {
+        "pct": 0.4419,
+        "mean_pnl": 83.9828
+      },
+      "ev_1add": {
+        "pct": 0.29,
+        "recover_pct": 0.9869,
+        "mean_pnl": 103.2014
+      },
+      "ev_capwalk": {
+        "pct": 0.2681,
+        "mean_pnl": -241.1885
+      },
+      "ev_deep": {
+        "pct": 0.0,
+        "mean_pnl": 0
+      },
+      "sd_range": {
+        "min": 15.0,
+        "max": 35.5,
+        "mean": 21.59
+      },
+      "ad_range": {
+        "min": 11.25,
+        "max": 27.19,
+        "mean": 16.02
+      },
+      "sessions": 59,
+      "cap_walks": 1820
+    },
+    "blocks": {
+      "Open": {
+        "cycles": 635,
+        "npf": 0.8252,
+        "net_pnl": -8335.0,
+        "ev_per_cycle": -13.1,
+        "capwalk_pct": 0.2961
+      },
+      "Morning": {
+        "cycles": 1016,
+        "npf": 1.0264,
+        "net_pnl": 1782.0,
+        "ev_per_cycle": 1.8,
+        "capwalk_pct": 0.2697
+      },
+      "Midday": {
+        "cycles": 889,
+        "npf": 1.0825,
+        "net_pnl": 4712.0,
+        "ev_per_cycle": 5.3,
+        "capwalk_pct": 0.2733
+      },
+      "Afternoon": {
+        "cycles": 493,
+        "npf": 1.1744,
+        "net_pnl": 5204.0,
+        "ev_per_cycle": 10.6,
+        "capwalk_pct": 0.2596
+      },
+      "Close": {
+        "cycles": 341,
+        "npf": 1.1787,
+        "net_pnl": 3367.0,
+        "ev_per_cycle": 9.9,
+        "capwalk_pct": 0.2053
+      }
+    }
+  },
+  {
+    "label": "09:45",
+    "start_tod": 35100,
+    "trading_hours_per_session": 6.25,
+    "pnl_per_hour": 34.43,
+    "metrics": {
+      "label": "09:45",
+      "cycles": 3016,
+      "clean_pct": 0.4393,
+      "gpf": 1.1169,
+      "npf_1t": 1.0659,
+      "net_pnl": 12696.0,
+      "mean_mae": 28.08,
+      "p75_mae": 38.5,
+      "max_single_cycle_loss": -1391.0,
+      "mean_daily": 215.2,
+      "std_daily": 1277.3,
+      "session_win_pct": 0.5254,
+      "cycles_per_hour": 7.86,
+      "ev_clean": {
+        "pct": 0.4393,
+        "mean_pnl": 84.88
+      },
+      "ev_1add": {
+        "pct": 0.2914,
+        "recover_pct": 0.9852,
+        "mean_pnl": 103.9909
+      },
+      "ev_capwalk": {
+        "pct": 0.2692,
+        "mean_pnl": -235.4409
+      },
+      "ev_deep": {
+        "pct": 0.0,
+        "mean_pnl": 0
+      },
+      "sd_range": {
+        "min": 14.82,
+        "max": 35.5,
+        "mean": 21.78
+      },
+      "ad_range": {
+        "min": 11.25,
+        "max": 27.81,
+        "mean": 16.17
+      },
+      "sessions": 59,
+      "cap_walks": 1576
+    },
+    "blocks": {
+      "Open": {
+        "cycles": 262,
+        "npf": 0.7483,
+        "net_pnl": -5196.0,
+        "ev_per_cycle": -19.8,
+        "capwalk_pct": 0.3435
+      },
+      "Morning": {
+        "cycles": 996,
+        "npf": 0.9962,
+        "net_pnl": -260.0,
+        "ev_per_cycle": -0.3,
+        "capwalk_pct": 0.2701
+      },
+      "Midday": {
+        "cycles": 869,
+        "npf": 1.1348,
+        "net_pnl": 7294.0,
+        "ev_per_cycle": 8.4,
+        "capwalk_pct": 0.2716
+      },
+      "Afternoon": {
+        "cycles": 504,
+        "npf": 1.2449,
+        "net_pnl": 7029.0,
+        "ev_per_cycle": 13.9,
+        "capwalk_pct": 0.25
+      },
+      "Close": {
+        "cycles": 335,
+        "npf": 1.1291,
+        "net_pnl": 2428.0,
+        "ev_per_cycle": 7.2,
+        "capwalk_pct": 0.2269
+      }
+    }
+  },
+  {
+    "label": "10:00",
+    "start_tod": 36000,
+    "trading_hours_per_session": 6.0,
+    "pnl_per_hour": 34.56,
+    "metrics": {
+      "label": "10:00",
+      "cycles": 2803,
+      "clean_pct": 0.4392,
+      "gpf": 1.1187,
+      "npf_1t": 1.068,
+      "net_pnl": 12235.0,
+      "mean_mae": 27.93,
+      "p75_mae": 37.5,
+      "max_single_cycle_loss": -1379.0,
+      "mean_daily": 207.4,
+      "std_daily": 1424.3,
+      "session_win_pct": 0.5254,
+      "cycles_per_hour": 7.31,
+      "ev_clean": {
+        "pct": 0.4392,
+        "mean_pnl": 84.5012
+      },
+      "ev_1add": {
+        "pct": 0.2993,
+        "recover_pct": 0.9833,
+        "mean_pnl": 103.2956
+      },
+      "ev_capwalk": {
+        "pct": 0.2615,
+        "mean_pnl": -243.4529
+      },
+      "ev_deep": {
+        "pct": 0.0,
+        "mean_pnl": 0
+      },
+      "sd_range": {
+        "min": 15.03,
+        "max": 35.5,
+        "mean": 21.76
+      },
+      "ad_range": {
+        "min": 11.25,
+        "max": 27.19,
+        "mean": 16.17
+      },
+      "sessions": 59,
+      "cap_walks": 1445
+    },
+    "blocks": {
+      "Open": {
+        "cycles": 20,
+        "npf": 1.2411,
+        "net_pnl": 251.0,
+        "ev_per_cycle": 12.6,
+        "capwalk_pct": 0.3
+      },
+      "Morning": {
+        "cycles": 995,
+        "npf": 0.9342,
+        "net_pnl": -4677.0,
+        "ev_per_cycle": -4.7,
+        "capwalk_pct": 0.2844
+      },
+      "Midday": {
+        "cycles": 873,
+        "npf": 1.0644,
+        "net_pnl": 3714.0,
+        "ev_per_cycle": 4.3,
+        "capwalk_pct": 0.2692
+      },
+      "Afternoon": {
+        "cycles": 518,
+        "npf": 1.2804,
+        "net_pnl": 8196.0,
+        "ev_per_cycle": 15.8,
+        "capwalk_pct": 0.2394
+      },
+      "Close": {
+        "cycles": 345,
+        "npf": 1.1528,
+        "net_pnl": 2965.0,
+        "ev_per_cycle": 8.6,
+        "capwalk_pct": 0.2058
+      }
+    }
+  },
+  {
+    "label": "10:15",
+    "start_tod": 36900,
+    "trading_hours_per_session": 5.75,
+    "pnl_per_hour": 31.88,
+    "metrics": {
+      "label": "10:15",
+      "cycles": 2539,
+      "clean_pct": 0.4301,
+      "gpf": 1.1175,
+      "npf_1t": 1.0665,
+      "net_pnl": 10816.0,
+      "mean_mae": 28.33,
+      "p75_mae": 38.5,
+      "max_single_cycle_loss": -1633.0,
+      "mean_daily": 183.3,
+      "std_daily": 1235.6,
+      "session_win_pct": 0.5254,
+      "cycles_per_hour": 6.62,
+      "ev_clean": {
+        "pct": 0.4301,
+        "mean_pnl": 85.7436
+      },
+      "ev_1add": {
+        "pct": 0.2981,
+        "recover_pct": 0.9815,
+        "mean_pnl": 103.8018
+      },
+      "ev_capwalk": {
+        "pct": 0.2718,
+        "mean_pnl": -233.9043
+      },
+      "ev_deep": {
+        "pct": 0.0,
+        "mean_pnl": 0
+      },
+      "sd_range": {
+        "min": 15.03,
+        "max": 35.5,
+        "mean": 21.93
+      },
+      "ad_range": {
+        "min": 11.31,
+        "max": 27.81,
+        "mean": 16.29
+      },
+      "sessions": 59,
+      "cap_walks": 1330
+    },
+    "blocks": {
+      "Open": {
+        "cycles": 16,
+        "npf": 1.0744,
+        "net_pnl": 73.0,
+        "ev_per_cycle": 4.6,
+        "capwalk_pct": 0.3125
+      },
+      "Morning": {
+        "cycles": 760,
+        "npf": 0.9093,
+        "net_pnl": -5052.0,
+        "ev_per_cycle": -6.6,
+        "capwalk_pct": 0.3
+      },
+      "Midday": {
+        "cycles": 880,
+        "npf": 1.0978,
+        "net_pnl": 5514.0,
+        "ev_per_cycle": 6.3,
+        "capwalk_pct": 0.2716
+      },
+      "Afternoon": {
+        "cycles": 520,
+        "npf": 1.3131,
+        "net_pnl": 8866.0,
+        "ev_per_cycle": 17.1,
+        "capwalk_pct": 0.25
+      },
+      "Close": {
+        "cycles": 313,
+        "npf": 1.0007,
+        "net_pnl": 13.0,
+        "ev_per_cycle": 0.0,
+        "capwalk_pct": 0.2332
+      }
+    }
+  },
+  {
+    "label": "10:30",
+    "start_tod": 37800,
+    "trading_hours_per_session": 5.5,
+    "pnl_per_hour": 40.88,
+    "metrics": {
+      "label": "10:30",
+      "cycles": 2398,
+      "clean_pct": 0.4354,
+      "gpf": 1.1404,
+      "npf_1t": 1.0881,
+      "net_pnl": 13267.0,
+      "mean_mae": 27.89,
+      "p75_mae": 37.94,
+      "max_single_cycle_loss": -1577.0,
+      "mean_daily": 224.9,
+      "std_daily": 1199.0,
+      "session_win_pct": 0.5424,
+      "cycles_per_hour": 6.25,
+      "ev_clean": {
+        "pct": 0.4354,
+        "mean_pnl": 84.4808
+      },
+      "ev_1add": {
+        "pct": 0.2994,
+        "recover_pct": 0.9833,
+        "mean_pnl": 103.3329
+      },
+      "ev_capwalk": {
+        "pct": 0.2652,
+        "mean_pnl": -234.4717
+      },
+      "ev_deep": {
+        "pct": 0.0,
+        "mean_pnl": 0
+      },
+      "sd_range": {
+        "min": 15.25,
+        "max": 35.5,
+        "mean": 21.83
+      },
+      "ad_range": {
+        "min": 11.25,
+        "max": 27.19,
+        "mean": 16.21
+      },
+      "sessions": 59,
+      "cap_walks": 1230
+    },
+    "blocks": {
+      "Open": {
+        "cycles": 16,
+        "npf": 1.0744,
+        "net_pnl": 73.0,
+        "ev_per_cycle": 4.6,
+        "capwalk_pct": 0.3125
+      },
+      "Morning": {
+        "cycles": 589,
+        "npf": 0.8889,
+        "net_pnl": -4934.0,
+        "ev_per_cycle": -8.4,
+        "capwalk_pct": 0.2937
+      },
+      "Midday": {
+        "cycles": 888,
+        "npf": 1.1014,
+        "net_pnl": 5719.0,
+        "ev_per_cycle": 6.4,
+        "capwalk_pct": 0.2748
+      },
+      "Afternoon": {
+        "cycles": 512,
+        "npf": 1.2757,
+        "net_pnl": 7838.0,
+        "ev_per_cycle": 15.3,
+        "capwalk_pct": 0.25
+      },
+      "Close": {
+        "cycles": 343,
+        "npf": 1.1692,
+        "net_pnl": 3169.0,
+        "ev_per_cycle": 9.2,
+        "capwalk_pct": 0.207
+      }
+    }
+  }
+]

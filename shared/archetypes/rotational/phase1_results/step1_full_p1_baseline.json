@@ -1,0 +1,25 @@
+{
+  "label": "Full-P1 baseline: SD=25/AD=25/ML=1/cap=2/noSR/walk",
+  "cycles": 2445,
+  "gpf": 1.006,
+  "npf_1t": 0.9663,
+  "net_pnl": -6210,
+  "sessions": 59,
+  "mean_daily": -105.3,
+  "std_daily": 1416.3,
+  "session_win_pct": 0.5424,
+  "cycles_per_session": 41.4,
+  "seed_accuracy": 0.7931,
+  "p10": -2105.0,
+  "p25": -1121.5,
+  "p50": 202.0,
+  "p75": 763.5,
+  "p90": 1420.0,
+  "worst5": {
+    "41": -3606.0,
+    "18": -2987.0,
+    "47": -2979.0,
+    "57": -2298.0,
+    "4": -2288.0
+  }
+}

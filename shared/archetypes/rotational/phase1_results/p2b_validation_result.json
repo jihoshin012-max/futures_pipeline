@@ -1,0 +1,105 @@
+{
+  "validation": "P2b",
+  "verdict": "PASS",
+  "run_date": "2026-03-18T22:05:20.060320",
+  "frozen_config": {
+    "version": "V1.4 + 4C stop",
+    "step_dist": "rolling_zigzag_P90 (floor 10)",
+    "add_dist": "rolling_zigzag_P75 (floor 10)",
+    "seed_dist": 15.0,
+    "session": "10:00-16:00 ET",
+    "speedread": "Roll50 >= 48.0",
+    "max_levels": 1,
+    "position_cap": 2,
+    "cap_action": "walk",
+    "cost_ticks": 1,
+    "max_cap_walks": 2,
+    "max_adverse_sigma": null
+  },
+  "p2b_date_range": {
+    "first_rth": "2026-02-02",
+    "last_rth": "2026-03-13",
+    "sessions": 29
+  },
+  "p2b_metrics": {
+    "cycles": 995,
+    "gpf": 1.2858,
+    "npf_1t": 1.2299,
+    "net_pnl": 14172.0,
+    "gross_pnl": 17314.0,
+    "mean_daily": 488.7,
+    "std_daily": 1088.6,
+    "session_win_pct": 0.6552,
+    "clean_pct": 0.4211,
+    "mean_mae": 28.27,
+    "worst_day": -2135.0,
+    "max_single_cycle_loss": -864.0,
+    "capwalk_rate": 0.2553,
+    "stopped_4c": 51
+  },
+  "p1_with_stops": {
+    "npf_1t": 1.1724,
+    "net_pnl": 18944.0,
+    "gpf": 1.2302,
+    "cycles": 1880,
+    "stopped_4c": 100
+  },
+  "adaptive_ranges": {
+    "stepdist": {
+      "min": 15.75,
+      "max": 34.75,
+      "mean": 23.72
+    },
+    "adddist": {
+      "min": 12.0,
+      "max": 26.0,
+      "mean": 17.5
+    }
+  },
+  "distribution": {
+    "p10": -751.8,
+    "p25": -328.0,
+    "p50": 462.0,
+    "p75": 1416.0,
+    "p90": 1583.2
+  },
+  "worst5": {
+    "2026-03-13": -2135.0,
+    "2026-02-19": -1134.0,
+    "2026-02-13": -883.0,
+    "2026-02-02": -719.0,
+    "2026-02-18": -539.0
+  },
+  "best5": {
+    "2026-03-03": 3014.0,
+    "2026-02-12": 1793.0,
+    "2026-02-04": 1648.0,
+    "2026-02-05": 1567.0,
+    "2026-02-26": 1495.0
+  },
+  "ev_components": {
+    "clean": {
+      "pct": 0.4211,
+      "mean_pnl": 92.043
+    },
+    "one_add": {
+      "pct": 0.3236,
+      "recover_pct": 0.972,
+      "mean_pnl": 113.9224
+    },
+    "capwalk": {
+      "pct": 0.2553,
+      "mean_pnl": -240.4606
+    },
+    "deep": {
+      "pct": 0.0,
+      "mean_pnl": 0
+    }
+  },
+  "pass_fail": {
+    "verdict": "PASS",
+    "flags": [],
+    "fail_reasons": []
+  },
+  "contamination_update": "P2b: V1.4 + 4C(maxcw=2) | PASS | P2b dates 2026-02-02 to 2026-03-13 consumed. NO CLEAN HOLDOUT REMAINING."
+}

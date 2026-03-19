@@ -1,0 +1,70 @@
+{
+  "strategy": "rotational",
+  "phase": "Phase 1 Base Parameter Calibration",
+  "type": "adaptive",
+  "step_dist": {
+    "source": "rolling_zigzag_P90",
+    "percentile": 90,
+    "floor": 10.0
+  },
+  "add_dist": {
+    "source": "rolling_zigzag_P75",
+    "percentile": 75,
+    "floor": 10.0
+  },
+  "seed_dist": {
+    "value": 15.0,
+    "type": "fixed",
+    "note": "decoupled from StepDist"
+  },
+  "zigzag_rolling_window": 200,
+  "zigzag_source": "CSV Zig Zag Line Length (abs, both directions) \u2014 Sierra Chart HL-based",
+  "zigzag_reversal": 5.25,
+  "max_levels": 1,
+  "position_cap": 2,
+  "cap_action": "walk",
+  "session_window": "10:00-16:00",
+  "session_window_end": null,
+  "watch_mode": "rth_open",
+  "daily_flatten": "16:00 ET",
+  "cost_ticks": 1,
+  "tick_size": 0.25,
+  "instrument": "NQ",
+  "data_period": "Full P1 (Sep 21 - Dec 14, 2025)",
+  "speedread": "disabled",
+  "feature_filters": "none (pure base economics)",
+  "phase2_queue": [
+    {
+      "priority": "P0",
+      "item": "Clock-time rolling window (60 min) vs 200-swing count window",
+      "rationale": "Open block inflates P90 which persists into afternoon via 200-swing window. Afternoon profits with tighter params (NPF=1.17). A time-based window would give afternoon trades appropriately tighter thresholds instead of using morning volatility data. Test last 60 min of zigzag swings as rolling window.",
+      "source": "Phase 1 Step 5 block diagnostic"
+    },
+    {
+      "priority": "P0",
+      "item": "Session start 10:00 vs 09:30 (skip Open block)",
+      "rationale": "Open block has NPF=0.8252, EV=-13.1/cycle, 29.6% cap-walk rate. It is the single largest source of losses (-8335 ticks). Removing it removes the drag. Test watch_mode=rth_open but delay seed acceptance to 10:00 ET.",
+      "source": "Phase 1 Step 5 block diagnostic"
+    },
+    {
+      "priority": "P0",
+      "item": "SpeedRead quintile diagnostic broken by block",
+      "rationale": "Open may show strong speed-quality gradient (fast Open cycles worst) while Afternoon may show flat (speed irrelevant when cycles already good). Block-level SR analysis informs whether SR filter can selectively fix the Open problem without hurting profitable blocks.",
+      "source": "Phase 1 Step 5 block diagnostic"
+    },
+    {
+      "priority": "P1",
+      "item": "SpeedRead filter: seed and reversal SR thresholds"
+    },
+    {
+      "priority": "P1",
+      "item": "Feature filters: regime detection, volatility gates"
+    },
+    {
+      "priority": "P2",
+      "item": "P2 one-shot validation (frozen params, OOS)"
+    }
+  ],
+  "session_start": "10:00 ET",
+  "seed_start_tod": 36000
+}

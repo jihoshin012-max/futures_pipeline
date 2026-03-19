@@ -1,0 +1,147 @@
+{
+  "strategy": "rotational",
+  "version": "V1.4 + 4C stop",
+  "status": "P2b validated — PASS",
+  "validation_date": "2026-03-18",
+
+  "core_parameters": {
+    "step_dist": {
+      "source": "rolling_zigzag_P90",
+      "percentile": 90,
+      "floor_pts": 10.0,
+      "rolling_window": "200 swings",
+      "zigzag_source": "Sierra Chart Zig Zag Line Length (abs, HL-based, 5.25 pt reversal)",
+      "update_frequency": "On each completed RTH zigzag swing (09:30-16:00)",
+      "note": "Computed from ALL RTH bars, not just the 10:00-16:00 trading window"
+    },
+    "add_dist": {
+      "source": "rolling_zigzag_P75",
+      "percentile": 75,
+      "floor_pts": 10.0,
+      "rolling_window": "200 swings (same window as step_dist)",
+      "note": "AddDist < StepDist decoupled — transfers ticks from loss to profit on adds"
+    },
+    "seed_dist": {
+      "value": 15.0,
+      "type": "fixed",
+      "note": "Decoupled from StepDist. Initial value; coupled to StepDist (P90) after first seed."
+    },
+    "max_levels": 1,
+    "position_cap": 2,
+    "cap_action": "walk",
+    "init_qty": 1,
+    "cost_ticks": 1,
+    "tick_size": 0.25
+  },
+
+  "session": {
+    "session_start": "10:00 ET",
+    "seed_start_tod": 36000,
+    "session_end": "16:00 ET",
+    "daily_flatten": "16:00 ET",
+    "session_resume": "18:00 ET",
+    "watch_mode": "rth_open",
+    "note": "10:00 start skips Open block (NPF=0.83, 29.6% cap-walk rate)"
+  },
+
+  "speedread_filter": {
+    "type": "rolling_average",
+    "rolling_window_ticks": 50,
+    "seed_threshold": 48.0,
+    "reversal_threshold": 48.0,
+    "normalization": "median (200-bar trailing window)",
+    "note": "50-tick rolling avg of SpeedRead composite. Both seed and reversal filtered."
+  },
+
+  "stop_4c": {
+    "max_cap_walks": 2,
+    "trigger_behavior": "flatten_reset_watch",
+    "note": "Flatten position when cap-walk count within cycle exceeds 2. Full state reset: new watch price at flatten price, wait for fresh SeedDist move. Counter resets per cycle (seed, reversal, or flatten).",
+    "validation": "0% recovery rate on stopped cycles in P1 counterfactual — pure tail-risk insurance with no false positives.",
+    "p1_effect": "NPF 1.200 -> 1.172, worst day -2,210 -> -1,556 (29.6% improvement), 99 cycles stopped (5.3%)"
+  },
+
+  "stop_4a": {
+    "max_adverse_sigma": null,
+    "status": "NOT USED — killed in Task 2 sweep",
+    "reason": "50-60% of stopped cycles eventually recovered in P1 counterfactual. Stops destroyed the strategy (NPF < 0.89 at all sigma levels). The rotation mechanism inherently requires absorbing large adverse excursions."
+  },
+
+  "instrument": "NQ",
+  "zigzag_settings": {
+    "reversal_pts": 5.25,
+    "calc_mode": 3,
+    "bar_filter": false
+  },
+
+  "rolling_computations_for_cpp": {
+    "note": "TWO separate rolling computations, different studies, different windows.",
+    "computation_1_zigzag_regime": {
+      "study": "ZigZagRegime",
+      "input": "Completed RTH zigzag leg distances (abs, from Sierra Chart Zig Zag study)",
+      "window": "200 swings (count-based)",
+      "outputs": ["P90 -> StepDist", "P75 -> AddDist"],
+      "floor": 10.0,
+      "update_frequency": "On each completed zigzag swing"
+    },
+    "computation_2_speedread_filter": {
+      "study": "SpeedRead",
+      "input": "SpeedRead composite value (per-tick or per-bar)",
+      "window": "50 bars (count-based rolling average)",
+      "outputs": ["Rolling average compared against threshold 48"],
+      "update_frequency": "Every tick/bar"
+    }
+  },
+
+  "cpp_inputs_needed": {
+    "study_1_zigzag_regime": [
+      "[1] StepDist percentile = 90",
+      "[2] AddDist percentile = 75",
+      "[3] Floor = 10.0",
+      "[4] Rolling window = 200 swings"
+    ],
+    "study_2_speedread": [
+      "[5] Rolling window = 50 ticks",
+      "[6] Seed threshold = 48.0",
+      "[7] Reversal threshold = 48.0"
+    ],
+    "study_3_autotrader": [
+      "[8] SeedDist = 15.0 (initial, coupled to StepDist after first seed)",
+      "[9] MaxLevels = 1",
+      "[10] PositionCap = 2",
+      "[11] SeedStartTOD = 36000 (10:00 ET)",
+      "[12] MaxCapWalks = 2 (4C stop)"
+    ]
+  },
+
+  "validation_results": {
+    "p1_full": {
+      "config": "V1.4 + 4C",
+      "npf": 1.1724,
+      "net_pnl_ticks": 18944,
+      "gpf": 1.2302,
+      "cycles": 1880,
+      "sessions": 59,
+      "stopped_4c": 100
+    },
+    "p2a": {
+      "config": "V1.4 (no stops)",
+      "npf": 0.9577,
+      "net_pnl_ticks": -1797,
+      "gpf": 1.0058,
+      "cycles": 667,
+      "sessions": 28,
+      "status": "FAIL — regime compression, gross edge near zero"
+    },
+    "p2b": {
+      "config": "V1.4 + 4C",
+      "npf": 1.2299,
+      "net_pnl_ticks": 14172,
+      "gpf": 1.2858,
+      "cycles": 995,
+      "sessions": 29,
+      "stopped_4c": 51,
+      "status": "PASS — gross PF P1-like, P2a was regime dip"
+    }
+  }
+}
