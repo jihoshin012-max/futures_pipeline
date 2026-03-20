@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step_dist": 25.0,
+    "seed_dist": 25.0,
+    "flatten_reseed_cap": 2,
+    "max_levels": 1,
+    "speedread_filter": "DISABLED",
+    "watch_mode": "rth_open",
+    "daily_flatten": "16:00 ET",
+    "cost_ticks": 1,
+    "data": "NQ 1-tick P1 (Sep 21 \u2013 Dec 14, 2025)"
+  },
+  "zigzag_settings": {
+    "reversal_amount_pts": 5.25,
+    "reversal_amount_ticks": 21,
+    "bar_type": "250-tick",
+    "study": "Sierra Chart Zig Zag"
+  },
+  "totals": {
+    "rth_cycles": 2789,
+    "rth_zz_swings": 56811,
+    "sessions": 59
+  },
+  "B1_mfe_distribution": {
+    "count": 2789,
+    "mean": 17.5,
+    "p50": 25.0,
+    "p75": 25.0,
+    "p80": 25.0,
+    "p85": 25.0,
+    "p90": 25.0,
+    "p95": 25.25,
+    "max": 27.0
+  },
+  "B1_zigzag_distribution": {
+    "count": 56811,
+    "mean": 12.83,
+    "p50": 11.0,
+    "p75": 16.0,
+    "p80": 17.5,
+    "p85": 19.5,
+    "p90": 22.25,
+    "p95": 26.75,
+    "max": 88.25
+  },
+  "B2_mae_distribution": {
+    "count": 2789,
+    "mean": 25.23,
+    "p50": 23.0,
+    "p75": 47.0,
+    "p80": 50.0,
+    "p85": 50.0,
+    "p90": 50.0,
+    "p95": 50.25,
+    "max": 51.75
+  },
+  "B3_clean_cycles": {
+    "count": 1447,
+    "gross_distance": {
+      "count": 1447,
+      "mean": 24.61,
+      "p50": 25.0,
+      "p75": 25.0,
+      "p80": 25.0,
+      "p85": 25.25,
+      "p90": 25.25,
+      "p95": 25.5,
+      "max": 27.0
+    }
+  },
+  "B3_messy_cycles": {
+    "count": 1342,
+    "gross_distance": {
+      "count": 1342,
+      "mean": 24.84,
+      "p50": 10.12,
+      "p75": 50.0,
+      "p80": 50.0,
+      "p85": 50.0,
+      "p90": 50.25,
+      "p95": 50.25,
+      "max": 51.75
+    }
+  },
+  "B4_block_comparison": {
+    "Open": {
+      "zz_median": 11.0,
+      "zz_p90": 22.0,
+      "mfe_median": 24.25,
+      "mfe_p90": 25.0,
+      "cycles": 463,
+      "zz_swings_per_hour": 330.6,
+      "cycles_per_hour": 15.7
+    },
+    "Morning": {
+      "zz_median": 11.0,
+      "zz_p90": 22.25,
+      "mfe_median": 25.0,
+      "mfe_p90": 25.0,
+      "cycles": 881,
+      "zz_swings_per_hour": 196.5,
+      "cycles_per_hour": 10.0
+    },
+    "Midday": {
+      "zz_median": 11.0,
+      "zz_p90": 22.5,
+      "mfe_median": 25.0,
+      "mfe_p90": 25.0,
+      "cycles": 788,
+      "zz_swings_per_hour": 125.8,
+      "cycles_per_hour": 6.7
+    },
+    "Afternoon": {
+      "zz_median": 11.0,
+      "zz_p90": 22.25,
+      "mfe_median": 23.25,
+      "mfe_p90": 25.0,
+      "cycles": 403,
+      "zz_swings_per_hour": 96.1,
+      "cycles_per_hour": 4.6
+    },
+    "Close": {
+      "zz_median": 10.25,
+      "zz_p90": 21.0,
+      "mfe_median": 21.0,
+      "mfe_p90": 25.0,
+      "cycles": 254,
+      "zz_swings_per_hour": 107.3,
+      "cycles_per_hour": 4.3
+    }
+  },
+  "regime_comparison": {
+    "Open": {
+      "P1a": {
+        "cycles": 169,
+        "mfe_median": 25.0,
+        "mfe_p90": 25.0
+      },
+      "P1b": {
+        "cycles": 294,
+        "mfe_median": 22.38,
+        "mfe_p90": 25.0
+      }
+    },
+    "Morning": {
+      "P1a": {
+        "cycles": 305,
+        "mfe_median": 25.0,
+        "mfe_p90": 25.0
+      },
+      "P1b": {
+        "cycles": 576,
+        "mfe_median": 25.0,
+        "mfe_p90": 25.25
+      }
+    },
+    "Midday": {
+      "P1a": {
+        "cycles": 316,
+        "mfe_median": 24.38,
+        "mfe_p90": 25.0
+      },
+      "P1b": {
+        "cycles": 472,
+        "mfe_median": 25.0,
+        "mfe_p90": 25.25
+      }
+    },
+    "Afternoon": {
+      "P1a": {
+        "cycles": 146,
+        "mfe_median": 25.0,
+        "mfe_p90": 25.0
+      },
+      "P1b": {
+        "cycles": 257,
+        "mfe_median": 21.0,
+        "mfe_p90": 25.0
+      }
+    },
+    "Close": {
+      "P1a": {
+        "cycles": 106,
+        "mfe_median": 19.0,
+        "mfe_p90": 25.0
+      },
+      "P1b": {
+        "cycles": 148,
+        "mfe_median": 21.88,
+        "mfe_p90": 25.0
+      }
+    }
+  }
+}

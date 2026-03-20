@@ -1,0 +1,237 @@
+{
+  "sessions": {
+    "total": 60,
+    "P1a": 30,
+    "P1b": 30
+  },
+  "swing_duration": {
+    "Open": {
+      "swings": 9753,
+      "mean_sec": 11.1,
+      "median_sec": 7.9,
+      "p10_sec": 3.0,
+      "p90_sec": 22.5
+    },
+    "Morning": {
+      "swings": 17386,
+      "mean_sec": 18.7,
+      "median_sec": 12.3,
+      "p10_sec": 4.4,
+      "p90_sec": 38.5
+    },
+    "Midday": {
+      "swings": 14839,
+      "mean_sec": 43.0,
+      "median_sec": 17.3,
+      "p10_sec": 5.5,
+      "p90_sec": 63.0
+    },
+    "Afternoon": {
+      "swings": 8504,
+      "mean_sec": 36.9,
+      "median_sec": 21.7,
+      "p10_sec": 7.4,
+      "p90_sec": 81.6
+    },
+    "Close": {
+      "swings": 6329,
+      "mean_sec": 32.7,
+      "median_sec": 18.3,
+      "p10_sec": 4.9,
+      "p90_sec": 75.6
+    }
+  },
+  "swings_per_hour": {
+    "Open": {
+      "hrs_per_session": 0.5,
+      "total_hours": 30.0,
+      "swings": 9753,
+      "swings_per_hour": 325.1
+    },
+    "Morning": {
+      "hrs_per_session": 1.5,
+      "total_hours": 90.0,
+      "swings": 17386,
+      "swings_per_hour": 193.2
+    },
+    "Midday": {
+      "hrs_per_session": 2.0,
+      "total_hours": 120.0,
+      "swings": 14839,
+      "swings_per_hour": 123.7
+    },
+    "Afternoon": {
+      "hrs_per_session": 1.5,
+      "total_hours": 90.0,
+      "swings": 8504,
+      "swings_per_hour": 94.5
+    },
+    "Close": {
+      "hrs_per_session": 1.0,
+      "total_hours": 60.0,
+      "swings": 6329,
+      "swings_per_hour": 105.5
+    }
+  },
+  "price_travel": {
+    "Open": {
+      "total_travel_pts": 69445.0,
+      "total_minutes": 1800.0,
+      "pts_per_minute": 38.58
+    },
+    "Morning": {
+      "total_travel_pts": 127782.2,
+      "total_minutes": 5400.0,
+      "pts_per_minute": 23.66
+    },
+    "Midday": {
+      "total_travel_pts": 111197.8,
+      "total_minutes": 7200.0,
+      "pts_per_minute": 15.44
+    },
+    "Afternoon": {
+      "total_travel_pts": 63404.5,
+      "total_minutes": 5400.0,
+      "pts_per_minute": 11.74
+    },
+    "Close": {
+      "total_travel_pts": 46697.2,
+      "total_minutes": 3600.0,
+      "pts_per_minute": 12.97
+    }
+  },
+  "points_per_hour": {
+    "Open": {
+      "mean_swing_pts": 12.86,
+      "swings_per_hour": 325.1,
+      "points_per_hour": 4181.2,
+      "rank": 1
+    },
+    "Morning": {
+      "mean_swing_pts": 12.86,
+      "swings_per_hour": 193.2,
+      "points_per_hour": 2484.0,
+      "rank": 2
+    },
+    "Midday": {
+      "mean_swing_pts": 13.0,
+      "swings_per_hour": 123.7,
+      "points_per_hour": 1608.1,
+      "rank": 3
+    },
+    "Afternoon": {
+      "mean_swing_pts": 12.92,
+      "swings_per_hour": 94.5,
+      "points_per_hour": 1221.4,
+      "rank": 5
+    },
+    "Close": {
+      "mean_swing_pts": 12.14,
+      "swings_per_hour": 105.5,
+      "points_per_hour": 1280.9,
+      "rank": 4
+    }
+  },
+  "regime_comparison": {
+    "Open": {
+      "P1a": {
+        "swings": 4214,
+        "sessions": 30,
+        "median_duration_sec": 9.2,
+        "swings_per_hour": 280.9,
+        "pts_per_minute": 31.32,
+        "mean_swing_pts": 11.7,
+        "points_per_hour": 3286.3
+      },
+      "P1b": {
+        "swings": 5539,
+        "sessions": 30,
+        "median_duration_sec": 7.1,
+        "swings_per_hour": 369.3,
+        "pts_per_minute": 45.84,
+        "mean_swing_pts": 13.75,
+        "points_per_hour": 5076.0
+      }
+    },
+    "Morning": {
+      "P1a": {
+        "swings": 7000,
+        "sessions": 30,
+        "median_duration_sec": 15.1,
+        "swings_per_hour": 155.6,
+        "pts_per_minute": 18.33,
+        "mean_swing_pts": 11.95,
+        "points_per_hour": 1859.3
+      },
+      "P1b": {
+        "swings": 10386,
+        "sessions": 30,
+        "median_duration_sec": 11.0,
+        "swings_per_hour": 230.8,
+        "pts_per_minute": 29.0,
+        "mean_swing_pts": 13.47,
+        "points_per_hour": 3108.2
+      }
+    },
+    "Midday": {
+      "P1a": {
+        "swings": 6738,
+        "sessions": 30,
+        "median_duration_sec": 17.5,
+        "swings_per_hour": 112.3,
+        "pts_per_minute": 13.8,
+        "mean_swing_pts": 12.4,
+        "points_per_hour": 1392.1
+      },
+      "P1b": {
+        "swings": 8101,
+        "sessions": 30,
+        "median_duration_sec": 17.2,
+        "swings_per_hour": 135.0,
+        "pts_per_minute": 17.09,
+        "mean_swing_pts": 13.5,
+        "points_per_hour": 1823.0
+      }
+    },
+    "Afternoon": {
+      "P1a": {
+        "swings": 3746,
+        "sessions": 30,
+        "median_duration_sec": 23.9,
+        "swings_per_hour": 83.2,
+        "pts_per_minute": 9.94,
+        "mean_swing_pts": 12.16,
+        "points_per_hour": 1012.4
+      },
+      "P1b": {
+        "swings": 4758,
+        "sessions": 30,
+        "median_duration_sec": 20.6,
+        "swings_per_hour": 105.7,
+        "pts_per_minute": 13.55,
+        "mean_swing_pts": 13.53,
+        "points_per_hour": 1430.1
+      }
+    },
+    "Close": {
+      "P1a": {
+        "swings": 2813,
+        "sessions": 30,
+        "median_duration_sec": 19.3,
+        "swings_per_hour": 93.8,
+        "pts_per_minute": 11.59,
+        "mean_swing_pts": 11.68,
+        "points_per_hour": 1095.3
+      },
+      "P1b": {
+        "swings": 3516,
+        "sessions": 30,
+        "median_duration_sec": 18.0,
+        "swings_per_hour": 117.2,
+        "pts_per_minute": 14.35,
+        "mean_swing_pts": 12.51,
+        "points_per_hour": 1466.1
+      }
+    }
+  }
+}

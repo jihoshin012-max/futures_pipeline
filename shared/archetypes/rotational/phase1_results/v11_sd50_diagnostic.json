@@ -1,0 +1,344 @@
+{
+  "P1_0930": {
+    "label": "P1_0930",
+    "npf": 0.8448,
+    "gpf": 0.8694,
+    "net_pnl": -52904.0,
+    "gross_pnl": -44232.0,
+    "cycles": 836,
+    "sessions": 59,
+    "worst_day": -14574.0,
+    "max_position": 16,
+    "max_mae": 200.75,
+    "mean_mae": 66.26,
+    "session_win_pct": 0.4746,
+    "mean_daily": -896.7,
+    "blocks": {
+      "Open": {
+        "cycles": 107,
+        "npf": 0.7806,
+        "mean_pnl": -100.8,
+        "cw_rate": 0.0,
+        "mean_pos": 5.48,
+        "spill_pct": 0.4299
+      },
+      "Morning": {
+        "cycles": 178,
+        "npf": 0.9313,
+        "mean_pnl": -26.4,
+        "cw_rate": 0.0,
+        "mean_pos": 5.57,
+        "spill_pct": 0.2697
+      },
+      "Midday": {
+        "cycles": 154,
+        "npf": 1.0341,
+        "mean_pnl": 11.7,
+        "cw_rate": 0.0,
+        "mean_pos": 4.96,
+        "spill_pct": 0.2727
+      },
+      "Afternoon": {
+        "cycles": 92,
+        "npf": 0.7811,
+        "mean_pnl": -89.4,
+        "cw_rate": 0.0,
+        "mean_pos": 5.07,
+        "spill_pct": 0.3261
+      },
+      "Close": {
+        "cycles": 54,
+        "npf": 1.0151,
+        "mean_pnl": 3.1,
+        "cw_rate": 0.0,
+        "mean_pos": 3.78,
+        "spill_pct": 0.5
+      }
+    }
+  },
+  "P1_1000": {
+    "label": "P1_1000",
+    "npf": 0.9824,
+    "gpf": 1.0095,
+    "net_pnl": -3306.0,
+    "gross_pnl": 1770.0,
+    "cycles": 547,
+    "sessions": 59,
+    "worst_day": -10998.0,
+    "max_position": 16,
+    "max_mae": 201.0,
+    "mean_mae": 59.17,
+    "session_win_pct": 0.6271,
+    "mean_daily": -56.0,
+    "blocks": {
+      "Open": {
+        "cycles": 6,
+        "npf": 0,
+        "mean_pnl": 392.0,
+        "cw_rate": 0.0,
+        "mean_pos": 4.67,
+        "spill_pct": 0.3333
+      },
+      "Morning": {
+        "cycles": 213,
+        "npf": 0.9508,
+        "mean_pnl": -18.6,
+        "cw_rate": 0.0,
+        "mean_pos": 5.04,
+        "spill_pct": 0.2582
+      },
+      "Midday": {
+        "cycles": 166,
+        "npf": 0.9412,
+        "mean_pnl": -21.9,
+        "cw_rate": 0.0,
+        "mean_pos": 4.87,
+        "spill_pct": 0.2651
+      },
+      "Afternoon": {
+        "cycles": 91,
+        "npf": 1.098,
+        "mean_pnl": 29.6,
+        "cw_rate": 0.0,
+        "mean_pos": 4.31,
+        "spill_pct": 0.3077
+      },
+      "Close": {
+        "cycles": 64,
+        "npf": 1.2518,
+        "mean_pnl": 45.7,
+        "cw_rate": 0.0,
+        "mean_pos": 3.22,
+        "spill_pct": 0.4844
+      }
+    }
+  },
+  "P2a_0930": {
+    "label": "P2a_0930",
+    "npf": 0.8739,
+    "gpf": 0.8981,
+    "net_pnl": -14724.0,
+    "gross_pnl": -11820.0,
+    "cycles": 301,
+    "sessions": 28,
+    "worst_day": -15318.0,
+    "max_position": 16,
+    "max_mae": 201.5,
+    "mean_mae": 63.13,
+    "session_win_pct": 0.5714,
+    "mean_daily": -525.9,
+    "blocks": {
+      "Open": {
+        "cycles": 60,
+        "npf": 1.8451,
+        "mean_pnl": 171.0,
+        "cw_rate": 0.0,
+        "mean_pos": 4.2,
+        "spill_pct": 0.3833
+      },
+      "Morning": {
+        "cycles": 67,
+        "npf": 0.6974,
+        "mean_pnl": -145.1,
+        "cw_rate": 0.0,
+        "mean_pos": 4.93,
+        "spill_pct": 0.3731
+      },
+      "Midday": {
+        "cycles": 45,
+        "npf": 1.6014,
+        "mean_pnl": 127.0,
+        "cw_rate": 0.0,
+        "mean_pos": 4.04,
+        "spill_pct": 0.4
+      },
+      "Afternoon": {
+        "cycles": 19,
+        "npf": 0.333,
+        "mean_pnl": -488.9,
+        "cw_rate": 0.0,
+        "mean_pos": 6.53,
+        "spill_pct": 0.6316
+      },
+      "Close": {
+        "cycles": 14,
+        "npf": 3.7487,
+        "mean_pnl": 148.4,
+        "cw_rate": 0.0,
+        "mean_pos": 3.43,
+        "spill_pct": 0.6429
+      }
+    }
+  },
+  "P2a_1000": {
+    "label": "P2a_1000",
+    "npf": 1.0151,
+    "gpf": 1.0441,
+    "net_pnl": 848.0,
+    "gross_pnl": 2452.0,
+    "cycles": 176,
+    "sessions": 28,
+    "worst_day": -14544.0,
+    "max_position": 16,
+    "max_mae": 200.75,
+    "mean_mae": 58.96,
+    "session_win_pct": 0.7143,
+    "mean_daily": 30.3,
+    "blocks": {
+      "Open": {
+        "cycles": 7,
+        "npf": 0,
+        "mean_pnl": 394.9,
+        "cw_rate": 0.0,
+        "mean_pos": 2.57,
+        "spill_pct": 0.1429
+      },
+      "Morning": {
+        "cycles": 79,
+        "npf": 1.163,
+        "mean_pnl": 49.6,
+        "cw_rate": 0.0,
+        "mean_pos": 4.81,
+        "spill_pct": 0.3671
+      },
+      "Midday": {
+        "cycles": 42,
+        "npf": 0.486,
+        "mean_pnl": -337.1,
+        "cw_rate": 0.0,
+        "mean_pos": 5.05,
+        "spill_pct": 0.5
+      },
+      "Afternoon": {
+        "cycles": 24,
+        "npf": 4.1069,
+        "mean_pnl": 261.5,
+        "cw_rate": 0.0,
+        "mean_pos": 4.42,
+        "spill_pct": 0.5417
+      },
+      "Close": {
+        "cycles": 18,
+        "npf": 0.8822,
+        "mean_pnl": -16.0,
+        "cw_rate": 0.0,
+        "mean_pos": 3.0,
+        "spill_pct": 0.7778
+      }
+    }
+  },
+  "P2b_0930": {
+    "label": "P2b_0930",
+    "npf": 1.198,
+    "gpf": 1.2299,
+    "net_pnl": 41940.0,
+    "gross_pnl": 48400.0,
+    "cycles": 702,
+    "sessions": 29,
+    "worst_day": -20848.0,
+    "max_position": 16,
+    "max_mae": 201.5,
+    "mean_mae": 60.88,
+    "session_win_pct": 0.5517,
+    "mean_daily": 1446.2,
+    "blocks": {
+      "Open": {
+        "cycles": 111,
+        "npf": 0.7377,
+        "mean_pnl": -128.4,
+        "cw_rate": 0.0,
+        "mean_pos": 4.99,
+        "spill_pct": 0.2613
+      },
+      "Morning": {
+        "cycles": 155,
+        "npf": 0.942,
+        "mean_pnl": -22.6,
+        "cw_rate": 0.0,
+        "mean_pos": 5.15,
+        "spill_pct": 0.1871
+      },
+      "Midday": {
+        "cycles": 105,
+        "npf": 1.957,
+        "mean_pnl": 180.4,
+        "cw_rate": 0.0,
+        "mean_pos": 4.04,
+        "spill_pct": 0.2762
+      },
+      "Afternoon": {
+        "cycles": 64,
+        "npf": 1.2403,
+        "mean_pnl": 70.2,
+        "cw_rate": 0.0,
+        "mean_pos": 3.88,
+        "spill_pct": 0.3281
+      },
+      "Close": {
+        "cycles": 42,
+        "npf": 2.3607,
+        "mean_pnl": 134.4,
+        "cw_rate": 0.0,
+        "mean_pos": 3.1,
+        "spill_pct": 0.5
+      }
+    }
+  },
+  "P2b_1000": {
+    "label": "P2b_1000",
+    "npf": 1.2239,
+    "gpf": 1.2568,
+    "net_pnl": 23366.0,
+    "gross_pnl": 26630.0,
+    "cycles": 365,
+    "sessions": 29,
+    "worst_day": -11388.0,
+    "max_position": 16,
+    "max_mae": 200.75,
+    "mean_mae": 60.25,
+    "session_win_pct": 0.5862,
+    "mean_daily": 805.7,
+    "blocks": {
+      "Open": {
+        "cycles": 3,
+        "npf": 0.1296,
+        "mean_pnl": -1750.0,
+        "cw_rate": 0.0,
+        "mean_pos": 8.67,
+        "spill_pct": 0.0
+      },
+      "Morning": {
+        "cycles": 162,
+        "npf": 0.9675,
+        "mean_pnl": -12.3,
+        "cw_rate": 0.0,
+        "mean_pos": 4.86,
+        "spill_pct": 0.179
+      },
+      "Midday": {
+        "cycles": 97,
+        "npf": 1.8049,
+        "mean_pnl": 166.3,
+        "cw_rate": 0.0,
+        "mean_pos": 4.08,
+        "spill_pct": 0.2577
+      },
+      "Afternoon": {
+        "cycles": 56,
+        "npf": 1.4918,
+        "mean_pnl": 114.2,
+        "cw_rate": 0.0,
+        "mean_pos": 4.36,
+        "spill_pct": 0.4107
+      },
+      "Close": {
+        "cycles": 41,
+        "npf": 2.4344,
+        "mean_pnl": 139.8,
+        "cw_rate": 0.0,
+        "mean_pos": 3.51,
+        "spill_pct": 0.4878
+      }
+    }
+  }
+}
