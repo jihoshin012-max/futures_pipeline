@@ -1,7 +1,13 @@
 __pycache__/
 *.pyc
 *.pyo
+*.nbi
+*.nbc
 
 # Raw data files — too large for git
 stages/01-data/data/**/*.csv
 stages/01-data/data/**/*.txt
+
+# Large intermediate/output files
+*.pkl
+stages/01-data/output/zone_prep/NQ_bardata_*.csv
