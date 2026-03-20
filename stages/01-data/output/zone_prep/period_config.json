@@ -1,0 +1,38 @@
+{
+  "instrument": "NQ",
+  "tick_size": 0.25,
+  "tick_value_dollars": 5.0,
+  "bar_type": "250-volume",
+  "periods": {
+    "P1a": {
+      "start": "2025-09-21",
+      "end": "2025-11-04",
+      "touches": 2334,
+      "parent": "P1"
+    },
+    "P1b": {
+      "start": "2025-11-05",
+      "end": "2025-12-14",
+      "touches": 2367,
+      "parent": "P1"
+    },
+    "P2a": {
+      "start": "2025-12-15",
+      "end": "2026-01-26",
+      "touches": 2304,
+      "parent": "P2"
+    },
+    "P2b": {
+      "start": "2026-01-27",
+      "end": "2026-03-02",
+      "touches": 2356,
+      "parent": "P2"
+    }
+  },
+  "bar_data_files": {
+    "P1": "NQ_bardata_P1.csv",
+    "P2": "NQ_bardata_P2.csv"
+  },
+  "total_touches": 9361,
+  "generated_at": "2026-03-20T13:46:22.305285"
+}
