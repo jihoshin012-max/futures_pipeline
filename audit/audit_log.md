@@ -566,3 +566,20 @@ subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Proje
 #   rotational: P1a = 2025-09-21 to 2025-11-02 | P1b = 2025-11-03 to 2025-12-14
 - reason: chore: complete v1.0 milestone — archive, evolve PROJECT.md, retrospective
 - generated_by: pre-commit hook
+
+---
+
+## 2026-03-20 — Fractal Structure Discovery + Rotation V2 Strategy Redesign
+
+**Decision:** Redesign rotational strategy from scratch based on fractal market structure analysis rather than continuing V1.4 parameter tuning.
+
+**Rationale:** V1.4 P2a failed (NPF 0.958). Rather than patch, conducted first-principles analysis of NQ swing structure using 60.9M 1-tick bars. Discovered self-similar fractal decomposition with quantifiable completion rates. Strategy hypothesis now grounded in six empirical structural facts.
+
+**Key changes from V1.4:**
+- Decoupled StepDist (reversal) from AddDist (add trigger) — parent/child ratio 2.5
+- Five approach variants instead of one (pure rotation, martingale, anti-martingale, scaled entry, multi-scale stacking)
+- Period structure changed: P1 (full) + P2a + P2b instead of P1a/P1b/P2a/P2b
+- Fractal monitor skill built for quarterly structural drift detection
+
+**Artifacts:** fractal_strategy_hypothesis_v3.md, fractal_summary.md, phase0_calibration_prompt.md
+**Status:** Phase 0 (calibration gate) — pending
