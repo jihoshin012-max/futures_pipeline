@@ -12,7 +12,7 @@ import pandas as pd
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 BAR_FILE = os.path.join(REPO_ROOT, "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_P1.txt")
-TOUCH_FILE = os.path.join(REPO_ROOT, "stages/01-data/data/touches/ZRA_Hist_P1.csv")
+TOUCH_FILE = os.path.join(REPO_ROOT, "stages/01-data/data/touches/NQ_ZRA_Hist_P1.csv")
 INSTRUMENTS_MD = os.path.join(REPO_ROOT, "_config/instruments.md")
 
 from shared.data_loader import load_bars, load_touches, load_data, parse_instruments_md

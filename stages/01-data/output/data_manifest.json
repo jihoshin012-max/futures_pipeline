@@ -11,15 +11,27 @@
           "schema_version": "see stages/01-data/references/",
           "validation_status": "PASS"
         },
-        "zra_hist_p1": {
-          "path": "stages/01-data/data/touches/ZRA_Hist_P1.csv",
-          "row_count": 6232,
+        "nq_zra_hist_p1": {
+          "path": "stages/01-data/data/touches/NQ_ZRA_Hist_P1.csv",
+          "row_count": 4964,
           "schema_version": "see stages/01-data/references/",
           "validation_status": "PASS"
         },
-        "zra_hist_p2": {
-          "path": "stages/01-data/data/touches/ZRA_Hist_P2.csv",
-          "row_count": 5891,
+        "nq_zra_hist_p2": {
+          "path": "stages/01-data/data/touches/NQ_ZRA_Hist_P2.csv",
+          "row_count": 4660,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "nq_zb4_signals_p1": {
+          "path": "stages/01-data/data/touches/NQ_ZB4_signals_P1.csv",
+          "row_count": 4964,
+          "schema_version": "see stages/01-data/references/",
+          "validation_status": "PASS"
+        },
+        "nq_zb4_signals_p2": {
+          "path": "stages/01-data/data/touches/NQ_ZB4_signals_P2.csv",
+          "row_count": 4653,
           "schema_version": "see stages/01-data/references/",
           "validation_status": "PASS"
         },

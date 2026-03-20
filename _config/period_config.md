@@ -7,7 +7,7 @@ last_reviewed: 2026-03-13
 
 | period_id | archetype  | role | start_date | end_date   | notes                     |
 |-----------|------------|------|------------|------------|---------------------------|
-| P1        | zone_touch | IS   | 2025-09-16 | 2025-12-14 | Calibration — used freely |
+| P1        | zone_touch | IS   | 2025-09-21 | 2025-12-14 | Calibration — aligned to bar data start |
 | P2        | zone_touch | OOS  | 2025-12-15 | 2026-03-02 | Holdout — one-shot only   |
 | P1        | rotational | IS   | 2025-09-21 | 2025-12-14 | Calibration — used freely |
 | P2        | rotational | OOS  | 2025-12-15 | 2026-03-13 | Holdout — one-shot only   |
@@ -27,13 +27,13 @@ last_reviewed: 2026-03-13
 ## Example — end of Q2 2026 (P3 arrives)
 
 Before:
-| P1 | zone_touch | IS  | 2025-09-16 | 2025-12-14 |
+| P1 | zone_touch | IS  | 2025-09-21 | 2025-12-14 |
 | P2 | zone_touch | OOS | 2025-12-15 | 2026-03-02 |
 | P1 | rotational | IS  | 2025-09-21 | 2025-12-14 |
 | P2 | rotational | OOS | 2025-12-15 | 2026-03-13 |
 
 After (P2 tested, P3 arrives):
-| P1 | zone_touch | IS  | 2025-09-16 | 2025-12-14 |
+| P1 | zone_touch | IS  | 2025-09-21 | 2025-12-14 |
 | P2 | zone_touch | IS  | 2025-12-15 | 2026-03-02 | promoted after one-shot OOS test |
 | P3 | *          | OOS | 2026-03-03 | 2026-06-30 | new holdout (all archetypes)      |
 | P1 | rotational | IS  | 2025-09-21 | 2025-12-14 |
@@ -51,7 +51,7 @@ p1_split_rule: midpoint
 # When P1 rolls forward the split auto-updates — no manual date editing.
 # Current computed split per archetype (informational — Stage 01 writes resolved dates
 # into data_manifest.json):
-#   zone_touch: P1a = 2025-09-16 to 2025-10-31 | P1b = 2025-11-01 to 2025-12-14
+#   zone_touch: P1a = 2025-09-21 to ~2025-11-02 | P1b = ~2025-11-03 to 2025-12-14
 #   rotational: P1a = 2025-09-21 to 2025-11-02 | P1b = 2025-11-03 to 2025-12-14
 replication_gate: flag_and_review
 # Options: hard_block | flag_and_review

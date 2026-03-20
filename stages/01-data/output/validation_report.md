@@ -33,8 +33,10 @@ Generated: 2026-03-15 03:38:04
 ## Data Sources Found
 
 - stages/01-data/data/labels/regime_labels.csv (144 rows)
-- stages/01-data/data/touches/ZRA_Hist_P1.csv (6232 rows)
-- stages/01-data/data/touches/ZRA_Hist_P2.csv (5891 rows)
+- stages/01-data/data/touches/NQ_ZRA_Hist_P1.csv (4964 rows)
+- stages/01-data/data/touches/NQ_ZRA_Hist_P2.csv (4660 rows)
+- stages/01-data/data/touches/NQ_ZB4_signals_P1.csv (4964 rows)
+- stages/01-data/data/touches/NQ_ZB4_signals_P2.csv (4653 rows)
 - stages/01-data/data/bar_data/tick/NQ_BarData_250tick_rot_P1.csv (127567 rows)
 - stages/01-data/data/bar_data/tick/NQ_BarData_250tick_rot_P2.csv (121595 rows)
 - stages/01-data/data/bar_data/time/NQ_BarData_10sec_rot_P1.csv (477810 rows)

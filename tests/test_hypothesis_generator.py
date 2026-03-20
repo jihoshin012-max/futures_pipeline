@@ -100,7 +100,7 @@ class TestP1bFilter:
 SEEDED_CONFIG = {
     "version": "v1",
     "instrument": "NQ",
-    "touches_csv": "stages/01-data/data/touches/ZRA_Hist_P1.csv",
+    "touches_csv": "stages/01-data/data/touches/NQ_ZRA_Hist_P1.csv",
     "bar_data": "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_P1.txt",
     "scoring_model_path": "shared/scoring_models/zone_touch_v1.json",
     "archetype": {

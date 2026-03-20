@@ -583,3 +583,28 @@ subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Proje
 
 **Artifacts:** fractal_strategy_hypothesis_v3.md, fractal_summary.md, phase0_calibration_prompt.md
 **Status:** Phase 0 (calibration gate) — pending
+
+## 2026-03-20 16:47:32 | PERIOD_CONFIG_CHANGED
+- file: _config/period_config.md
+- commit: 54c70ae
+- before: | period_id | archetype  | role | start_date | end_date   | notes                     |
+|-----------|------------|------|------------|------------|---------------------------|
+| P1        | zone_touch | IS   | 2025-09-16 | 2025-12-14 | Calibration — used freely |
+| P2        | zone_touch | OOS  | 2025-12-15 | 2026-03-02 | Holdout — one-shot only   |
+| P1        | rotational | IS   | 2025-09-21 | 2025-12-14 | Calibration — used freely |
+| P2        | rotational | OOS  | 2025-12-15 | 2026-03-13 | Holdout — one-shot only   |
+| P1 | zone_touch | IS  | 2025-09-16 | 2025-12-14 |
+| P2 | zone_touch | OOS | 2025-12-15 | 2026-03-02 |
+| P1 | rotational | IS  | 2025-09-21 | 2025-12-14 |
+| P2 | rotational | OOS | 2025-12-15 | 2026-03-13 |
+| P1 | zone_touch | IS  | 2025-09-16 | 2025-12-14 |
+| P2 | zone_touch | IS  | 2025-12-15 | 2026-03-02 | promoted after one-shot OOS test |
+| P3 | *          | OOS | 2026-03-03 | 2026-06-30 | new holdout (all archetypes)      |
+| P1 | rotational | IS  | 2025-09-21 | 2025-12-14 |
+| P2 | rotational | IS  | 2025-12-15 | 2026-03-13 | promoted after one-shot OOS test |
+- after: | P1        | zone_touch | IS   | 2025-09-21 | 2025-12-14 | Calibration — aligned to bar data start |
+| P1 | zone_touch | IS  | 2025-09-21 | 2025-12-14 |
+| P1 | zone_touch | IS  | 2025-09-21 | 2025-12-14 |
+#   zone_touch: P1a = 2025-09-21 to ~2025-11-02 | P1b = ~2025-11-03 to 2025-12-14
+- reason: chore: update .gitignore for large intermediates and numba caches
+- generated_by: pre-commit hook

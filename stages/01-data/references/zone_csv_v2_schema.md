@@ -2,7 +2,7 @@
 last_reviewed: 2026-03-13
 # Required columns for ZRA zone touch event files. Validation fails if any column is missing.
 # Source ID: zone_csv_v2 — must match data_registry.md entry.
-# File pattern: ZRA_Hist_*.csv (32 columns total, V4/ZRA format)
+# File pattern: NQ_ZRA_Hist_*.csv (32 columns total, V4/ZRA format)
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -20,4 +20,4 @@ last_reviewed: 2026-03-13
 - Columns above are the minimum required for Stage 02 feature engineering
 - If a required column is missing, Stage 01 validation fails with schema_error in validation_report.md
 - Spot-check 10 rows against source files to verify column alignment after any data migration
-- Source files use file pattern ZRA_Hist_*.csv per _config/data_registry.md
+- Source files use file pattern NQ_ZRA_Hist_*.csv per _config/data_registry.md
