@@ -608,3 +608,41 @@ subprocess.CalledProcessError: Command '['C:\\Python314\\python.exe', 'C:\\Proje
 #   zone_touch: P1a = 2025-09-21 to ~2025-11-02 | P1b = ~2025-11-03 to 2025-12-14
 - reason: chore: update .gitignore for large intermediates and numba caches
 - generated_by: pre-commit hook
+
+## 2026-03-21 — Frozen-Anchor Research Arc Complete: Random Walk Finding
+
+**Context:** Following the V1.1 sweep failure (stuck positions), pivoted to
+frozen-anchor mechanics. Conducted systematic investigation of fractal edge
+translation: frozen-anchor sweep (210 configs), pullback entry test (9 configs,
+3 options), decoupled seed test (9 configs), structural factor analysis
+(7 queries), post-completion reversion analysis, and P2a validation.
+
+**Definitive Finding: From every accessible entry point, NQ at the 15-50pt
+scale behaves as a random walk.**
+
+Evidence:
+1. Frozen-anchor sweep: SR matches first-passage formula b/(a+b) within 1pp
+   across 5 RT values, 7 StepDist values, 6 add groups (210 configs)
+2. Pullback entry: depth gradient vanishes under execution. No entry filter
+   shifts SR above random walk prediction.
+3. Decoupled seed: smaller detection = lower SR. Fractal requires proportional
+   scale alignment — but proportional alignment consumes the move.
+4. Post-completion reversion: 100% at 16pt is definitional (zig-zag artifact).
+   From actual entry point, first-passage matches random walk formula within 1-3pp.
+5. P2a validation: FAIL. First-cycle SR collapsed (66->47%). Later-cycle edge
+   compressed 80% (4.9->1.05 ticks/cycle). Market directional properties shifted.
+
+**What the fractal structure IS:** Geometric self-similarity. Scale-invariant
+distributions. Stateless completion rates. Waste ratios constant across scales.
+Multi-scale hierarchy with no directional inheritance.
+
+**What it ISN'T:** A source of directional trading edge at intraday scales.
+The structure describes the shape of price movement, not its direction.
+
+**Preserved Assets:**
+- Fractal knowledge base: 6 original facts + structural factor results
+- Frozen-anchor simulator: tested, verified, reusable
+- 1-tick infrastructure: data pipeline, context tagger, logging
+- P2a consumed. P2b reserved (not used).
+
+**Status:** Research arc closed. Architecture fully explored.
