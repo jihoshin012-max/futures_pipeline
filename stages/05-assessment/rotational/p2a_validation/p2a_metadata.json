@@ -1,0 +1,24 @@
+{
+  "run_timestamp": "2026-03-21T13:27:38.059792",
+  "period": "P2a",
+  "p2a_start": "2025-12-18",
+  "p2a_end": "2026-01-30",
+  "p2b_start": "2026-02-02",
+  "p2b_end": "2026-03-13",
+  "rth_trading_days_p2a": 30,
+  "rth_trading_days_p2b": 30,
+  "total_bars": 10475281,
+  "configs_run": [
+    "P2A_VALIDATION",
+    "P2A_R03_MA2",
+    "P2A_RANDOM_WALK_CHECK"
+  ],
+  "verdict": "FAIL",
+  "frozen_params": {
+    "step_dist": 40.0,
+    "add_dist": 16.0,
+    "max_adds": 0,
+    "reversal_target": 0.8,
+    "cost_ticks": 2.0
+  }
+}
