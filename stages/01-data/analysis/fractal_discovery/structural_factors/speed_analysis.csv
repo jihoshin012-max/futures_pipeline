@@ -1,0 +1,11 @@
+factor,bucket,sample_count,completion_rate,median_value
+speed_PT25,Q1,895,64.69,0.0149
+speed_PT25,Q2,894,65.21,0.0291
+speed_PT25,Q3,895,63.58,0.0508
+speed_PT25,Q4,893,60.47,0.1122
+corr_speed_range_PT25,correlation,3577,,0.0
+speed_PT40,Q1,342,65.79,0.0099
+speed_PT40,Q2,342,64.33,0.0192
+speed_PT40,Q3,341,61.58,0.0328
+speed_PT40,Q4,342,63.16,0.0653
+corr_speed_range_PT40,correlation,1367,,0.0

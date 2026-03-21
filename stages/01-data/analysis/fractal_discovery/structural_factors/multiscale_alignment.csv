@@ -1,0 +1,9 @@
+factor,bucket,sample_count,completion_rate,median_value
+alignment_PT25,WITH,0,0.0,0.0
+alignment_PT25,AGAINST,1315,63.88,0.0
+alignment_PT25,EXTENDED,2251,63.31,0.0
+alignment_PT25,UNKNOWN,11,54.55,0.0
+alignment_PT40,WITH,15,66.67,0.0
+alignment_PT40,AGAINST,700,63.86,0.0
+alignment_PT40,EXTENDED,649,63.79,0.0
+alignment_PT40,UNKNOWN,3,0.0,0.0

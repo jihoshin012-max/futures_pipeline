@@ -1,0 +1,9 @@
+factor,bucket,sample_count,completion_rate,median_value
+volume_ratio_PT25,Q1,895,66.93,0.944
+volume_ratio_PT25,Q2,894,66.11,0.993
+volume_ratio_PT25,Q3,894,61.41,1.0247
+volume_ratio_PT25,Q4,894,59.51,1.0786
+volume_ratio_PT40,Q1,342,69.01,0.9571
+volume_ratio_PT40,Q2,342,69.01,0.9927
+volume_ratio_PT40,Q3,341,60.7,1.0191
+volume_ratio_PT40,Q4,342,56.14,1.0591

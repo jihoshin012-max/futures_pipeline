@@ -1,0 +1,15 @@
+factor,spread_pp,verdict
+volume_ratio_PT25,7.42,WEAK
+speed_PT25,4.74,WEAK
+timeofday_PT25,14.16,MODERATE
+range_ratio_PT25,0.0,WEAK
+alignment_PT25,0.57,WEAK
+prior_completion_PT25,0.61,WEAK
+swing_seq_PT25,13.56,MODERATE
+volume_ratio_PT40,12.87,MODERATE
+speed_PT40,4.21,WEAK
+timeofday_PT40,16.33,STRONG
+range_ratio_PT40,0.0,WEAK
+alignment_PT40,2.88,WEAK
+prior_completion_PT40,7.08,WEAK
+swing_seq_PT40,13.56,MODERATE

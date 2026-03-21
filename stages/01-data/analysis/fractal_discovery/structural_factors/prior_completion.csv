@@ -1,0 +1,7 @@
+factor,bucket,sample_count,completion_rate,median_value
+prior_completion_PT25,0-1 (failures),150,63.33,0.0
+prior_completion_PT25,2-3 (mixed),1479,63.15,0.0
+prior_completion_PT25,4-5 (completions),1948,63.76,0.0
+prior_completion_PT40,0-1 (failures),32,59.38,0.0
+prior_completion_PT40,2-3 (mixed),471,66.45,0.0
+prior_completion_PT40,4-5 (completions),864,62.38,0.0
