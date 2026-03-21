@@ -1,0 +1,22 @@
+{
+  "run_timestamp": "2026-03-21T00:59:48.841345",
+  "p1_date_range": "2025-09-22 to 2025-12-12",
+  "bar_type": "1tick",
+  "total_bars": 25457094,
+  "rth_trading_days": 60,
+  "total_configs": 182,
+  "configs_by_approach": {
+    "A": 7,
+    "B": 84,
+    "C": 35,
+    "D": 56
+  },
+  "cost_ticks": 2.0,
+  "context_thresholds": {
+    "swing_zigzag": 5,
+    "persistence_zigzag": 10
+  },
+  "total_runtime_seconds": 9630.7,
+  "n_workers": 4,
+  "zero_cycle_configs": []
+}
