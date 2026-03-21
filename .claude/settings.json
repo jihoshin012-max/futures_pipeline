@@ -20,7 +20,8 @@
       "Skill(gsd:add-phase)",
       "Skill(gsd:add-phase:*)",
       "Read(//c/Users/jshin/.claude/projects/c--Projects-pipeline/f5ccb11d-d32f-4c4b-af94-1d883f3a3906/tool-results/**)",
-      "Read(//e/SierraChart/Data/**)"
+      "Read(//e/SierraChart/Data/**)",
+      "WebFetch(domain:github.com)"
     ],
     "additionalDirectories": [
       "C:\\Projects\\pipeline"

@@ -11,3 +11,4 @@ stages/01-data/data/**/*.txt
 # Large intermediate/output files
 *.pkl
 stages/01-data/output/zone_prep/NQ_bardata_*.csv
+__pycache__/
