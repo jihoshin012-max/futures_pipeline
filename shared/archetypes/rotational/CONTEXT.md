@@ -1,36 +1,48 @@
 # Rotational Archetype — Context
 
-## Current Status: Phase 0 (Calibration Gate)
+## Current Status: Research Arc Closed — Random Walk Finding
 
-### What's Done
-- Fractal structure discovery complete (Sept 2025 – Mar 2026, 60.9M 1-tick bars)
-- Six structural facts established and documented
-- Strategy hypothesis v3 finalized: 5 approaches, ~221 sweep configs
-- V1.1 C++ reference and live trade log archived
+### Summary
+Systematic investigation of fractal-informed rotational strategies concluded
+that NQ at the 15-50pt intraday scale behaves as a random walk from every
+accessible entry point. The fractal structure is real (geometric self-similarity,
+completion rates, waste ratios) but describes the SHAPE of price movement,
+not a tradeable directional edge.
 
-### What's Next
-- **Phase 0:** Calibrate Python simulator against C++ V1.1 live log (see phase0_calibration_prompt.md)
-- **Phase 1:** Primary sweep (~221 configs on P1 data) — BLOCKED on Phase 0 pass
-- **Phase 2:** Secondary sweep (FlattenReseed + ReversalTarget) — BLOCKED on Phase 1
-- **Phase 3:** P2a replication — BLOCKED on Phase 2
-- **Phase 4:** P2b validation — BLOCKED on Phase 3
+### What Was Done
+- Fractal discovery: 6 structural facts established (Sept 2025 - Mar 2026 data)
+- V1.1 sweep: 182 configs, 4 approaches. Walking anchor causes stuck positions.
+- Frozen-anchor pivot: symmetric failure exit. 210 configs swept.
+- Pullback entry: 3 re-entry options. First-cycle +10pp, but total PnL worse.
+- Decoupled seed: smaller detection = lower SR (inverted prediction).
+- Structural factors: 7 queries. Multi-scale alignment WEAK. Speed WEAK.
+- Post-completion reversion: 100% at 16pt is definitional. From entry: random walk.
+- P2a validation: FAIL. First-cycle edge collapsed. Later-cycle: +$37/day.
 
-### Key Documents
-- `docs/fractal_strategy_hypothesis_v3.md` — source of truth for sweep design
-- `docs/phase0_calibration_prompt.md` — calibration gate specification
-- `docs/fractal_decomposition_prompt.md` — original analysis prompt
-- `docs/fractal_monitor_skill_prompt.md` — quarterly monitoring skill spec
-- `references/ATEAM_ROTATION_V1_1.cpp` — V1.1 state machine reference
-- `references/ATEAM_ROTATION_V1_1_log_live.csv` — calibration ground truth
+### Key Finding: Random Walk at All Entry Points
+SR matches first-passage formula b/(a+b) within 1-3pp across:
+- 5 RT values (0.5-1.0)
+- 7 StepDist values (15-50)
+- 6 add configurations
+- 4 entry methods (immediate, pullback, decoupled seed, reversion)
+- 2 time periods (P1 and P2a)
 
-### Key Findings (Fractal Analysis)
-- Self-similarity confirmed: mean/threshold ≈ 2.0x, skewness ≈ 1.9 across all scales
-- Completion at 1 retracement: ~75-80% (structural backing for first add)
-- Optimal parent/child ratio: 2.5 (25→10 pair highest completion)
-- Half-block curve: 70% at entry → 86% at 70% progress → 95% at 90%
-- Time-of-day: structure stable (7-12pp variation), not time-dependent
+### Preserved Assets
+- Fractal knowledge base: `stages/01-data/analysis/fractal_discovery/`
+- Frozen-anchor simulator: `stages/04-backtest/rotational/`
+- Structural factors: `stages/01-data/analysis/fractal_discovery/structural_factors/`
+- P2a results: `stages/05-assessment/rotational/p2a_validation/`
+- P2b holdout: NOT consumed (reserved for future use)
+
+### What Would Need to Change for Future Work
+The random walk finding applies to PRICE-DISTANCE strategies at intraday scales.
+It does NOT rule out:
+- Order flow / volume-driven strategies (different information source)
+- Cross-scale strategies using structural factors (time-of-day, volume ratio)
+- Non-directional strategies (market-making, volatility capture)
+- Longer timeframe strategies where fractal properties may carry directional info
 
 ### Period Boundaries
-- P1: Sept 21, 2025 – Dec 17, 2025 (sweep calibration)
-- P2a: Dec 17, 2025 – ~Jan/Feb 2026 (replication)
-- P2b: ~Jan/Feb 2026 – Mar 13, 2026 (validation)
+- P1: Sept 22 - Dec 12, 2025 (60 RTH days, fully consumed)
+- P2a: Dec 18 - Jan 30, 2026 (30 RTH days, consumed — FAIL)
+- P2b: Feb 2 - Mar 13, 2026 (30 RTH days, NOT consumed)
