@@ -1,0 +1,18 @@
+{
+  "run_timestamp": "2026-03-21T10:22:19.664915",
+  "strategy": "frozen_anchor_pullback",
+  "total_configs": 9,
+  "total_runtime_seconds": 1717.2,
+  "cost_ticks": 2.0,
+  "entry_mode": "pullback",
+  "reentry_modes": [
+    "A",
+    "B",
+    "C"
+  ],
+  "param_sets": [
+    "SD40_RT80",
+    "SD35_RT100",
+    "SD25_RT80"
+  ]
+}
