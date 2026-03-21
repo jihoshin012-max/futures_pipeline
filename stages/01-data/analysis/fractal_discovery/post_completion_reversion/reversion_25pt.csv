@@ -1,0 +1,2 @@
+parent_thresh,sample_count,median_reversion_pts,p25_reversion,p75_reversion,p90_reversion,mean_reversion_pts,pct_gte_8pt,pct_gte_12pt,pct_gte_16pt,pct_gte_20pt,pct_gte_24pt,median_bars_to_max_rev,median_bars_to_recovery,pct_full_recovery,pct_continued_reversal,pct_pullback_only
+25,3382,113.12,50.25,218.5,357.83,162.8,99.82,98.34,95.89,93.35,90.54,95,2,93.47,89.89,9.7
