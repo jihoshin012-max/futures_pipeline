@@ -131,7 +131,7 @@ The fractal data supports multiple distinct strategies, each exploiting differen
 | ConfirmDist (fraction of StepDist) | 0.4, 0.5, 0.6, 0.7 |
 | MaxAdds | 1, 2 |
 
-**7 × 4 × 2 = 56 configurations.**
+**7 × 4 × 2 = 56 configurations.** (After pruning dead MaxAdds=2 configs where ConfirmDist ≥ 0.5×SD: 35 configs. See Prompt 2 for details.)
 
 ⚠️ **Mid-document reminder: All five approaches use the same V1.1 core state machine. Approaches A-D differ only in WHEN and WHY adds fire. Approach E is the only one requiring a different simulator architecture (two concurrent state machines). The Python simulator from Phase 0 calibration is the foundation — Approaches A-D are parameterized variants of it.**
 
@@ -203,10 +203,10 @@ The fractal data supports multiple distinct strategies, each exploiting differen
 |----------|---------|-------|
 | A: Pure Rotation | 7 | Simplest baseline |
 | B: Traditional Martingale | 84 | Decoupled StepDist/AddDist |
-| C: Anti-Martingale | 56 | Add into strength |
+| C: Anti-Martingale | 35 | After pruning dead MaxAdds=2 configs |
 | D: Scaled Entry | ~56 unique | After dedup with C |
 | E: Multi-Scale Stacking | 18 | Deferred build, two state machines |
-| **Phase 1 Total** | **~221** | **A-D: ~203, E: 18 (deferred)** |
+| **Phase 1 Total** | **~200** | **A-D: ~182, E: 18 (deferred)** |
 | Phase 2 (secondary) | ~180-300 | ~12 per winner × 15-25 winners |
 
 ---
@@ -217,11 +217,11 @@ The fractal data supports multiple distinct strategies, each exploiting differen
 
 | Period | Date Range | Purpose | Rule |
 |--------|-----------|---------|------|
-| **P1 (full)** | Sept 21, 2025 – Dec 17, 2025 | Calibration + Sweep | All 221 configs run here. Parameter selection happens here. This is the ONLY period where parameters are tuned. |
+| **P1 (full)** | Sept 21, 2025 – Dec 17, 2025 | Calibration + Sweep | All 182 configs run here (A-D). Parameter selection happens here. This is the ONLY period where parameters are tuned. |
 | **P2a** | Dec 17, 2025 – ~Jan/Feb 2026 | Replication Gate | Frozen parameters from P1. NO re-tuning. If P2a fails, investigate why — do NOT re-optimize. |
 | **P2b** | ~Jan/Feb 2026 – Mar 13, 2026 | Final Validation | Frozen parameters. One shot. If P2b fails after P2a passed, the edge may be regime-dependent. If both pass, proceed to paper trading. |
 
-**Why P1 (full) instead of P1a/P1b:** The sweep has 221 configs across 5 structurally different approaches. With ~3 months of P1 data, the 50pt StepDist configs get ~1,200+ parent swings — sufficient to reliably differentiate signal from noise. Splitting P1 in half would leave ~600 swings at the 50pt scale, marginal for a 221-config sweep. The P2a replication gate provides the early warning that a P1a/P1b split would have provided.
+**Why P1 (full) instead of P1a/P1b:** The sweep has 182 configs across 4 approaches (A-D), with Approach E (18 configs) deferred. With ~3 months of P1 data, the 50pt StepDist configs get ~1,200+ parent swings — sufficient to reliably differentiate signal from noise. Splitting P1 in half would leave ~600 swings at the 50pt scale, marginal for a 182-config sweep. The P2a replication gate provides the early warning that a P1a/P1b split would have provided.
 
 ⚠️ **Reminder: P2a and P2b use FROZEN parameters from P1. "Frozen" means: no re-optimization, no parameter adjustment, no adding/removing filters. The exact configuration that won on P1 runs unchanged on P2a and P2b. The only acceptable action on P2a failure is investigation (understanding WHY), not re-tuning.**
 
@@ -234,8 +234,8 @@ PHASE 0: Calibration Gate
   └─ Python sim matches V1.1 C++ log → PASS required
       └─ If FAIL → debug simulator, do not proceed
 
-PHASE 1: Primary Sweep (P1 data, ~221 configs)
-  └─ Run Approaches A-D (~203 configs)
+PHASE 1: Primary Sweep (P1 data, ~182 configs)
+  └─ Run Approaches A-D (~182 configs)
   └─ Evaluate: NPF, cycle count, max DD, win rate by type, profit/maxDD
   └─ Identify top 3-5 per approach
   └─ [Decision point: build Approach E or skip based on A-D results]
@@ -311,7 +311,7 @@ Each should be added individually on top of a validated baseline, tested through
 
 ### Structural Integrity
 - [ ] Every parameter has structural justification from fractal data
-- [ ] Sweep space is bounded (~221 primary, not thousands)
+- [ ] Sweep space is bounded (~182 primary + E deferred, not thousands)
 - [ ] No parameters cherry-picked from single-day results
 - [ ] Multiple approaches tested — data picks winner
 - [ ] Improvements explicitly deferred to post-validation
