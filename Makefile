@@ -34,8 +34,4 @@ replication-gate:
 
 archive-sweep:
 	@test -n "$(NAME)" || { echo "Usage: make archive-sweep NAME=<sweep_dir>"; exit 1; }
-	@test -d "stages/04-backtest/rotational/$(NAME)" || { echo "ERROR: stages/04-backtest/rotational/$(NAME) not found"; exit 1; }
-	mkdir -p archive/sweeps/$(NAME)
-	mv stages/04-backtest/rotational/$(NAME)/* archive/sweeps/$(NAME)/
-	rmdir stages/04-backtest/rotational/$(NAME)
-	@echo "Archived $(NAME) to archive/sweeps/$(NAME)/"
+	$(PYTHON) stages/04-backtest/scripts/archive_sweep.py $(NAME)
