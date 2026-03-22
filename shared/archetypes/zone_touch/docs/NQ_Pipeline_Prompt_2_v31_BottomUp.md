@@ -39,7 +39,7 @@
 
 | File | Purpose |
 |------|---------|
-| `feature_screening_clean.md` | Single-feature screening: STRONG/MODERATE/WEAK classifications |
+| `feature_screening_clean.md` | Single-feature screening: STRONG/SBB-MASKED/MODERATE/WEAK classifications |
 | `feature_mechanism_validation.md` | Mechanism classification per feature |
 
 ### From Prompt 1b (model building):
@@ -53,7 +53,7 @@
 | `scoring_model_acal.json` | A-Cal weights, bin edges, threshold |
 | `scoring_model_aeq.json` | A-Eq threshold |
 | `scoring_model_bzscore.json` | B-ZScore weights, threshold, window |
-| `feature_config.json` | Bin edges, TrendSlope P33/P67, Feature 18 threshold, P1 mean/std |
+| `feature_config.json` | Bin edges, TrendSlope P33/P67, P1 mean/std for all active features |
 
 ⚠️ Reminder: Prompt 1b produced 3 models (one per approach, all using the winning feature set). This prompt runs 5 segmentations × 3 models = 15 independent calibration runs. P2a/P2b are NOT loaded.
 
@@ -66,7 +66,7 @@
 | `NQ_bardata_P1.csv` | Rotational bar data for P1 simulation |
 | `period_config.json` | Date boundaries and touch counts |
 
-⚠️ **Concatenate P1a + P1b** into one P1 dataset at load time. All calibration uses the full P1 set (4,701 touches).
+⚠️ **Concatenate P1a + P1b** into one P1 dataset at load time. **Filter out touches with RotBarIndex < 0** (same filter as Prompts 0 and 1a). All calibration uses the filtered P1 set.
 
 ⚠️ Read `baseline_report_clean.md` first. Print the raw baseline PF anchor (median cell). Every result in this prompt is compared against it.
 
@@ -89,7 +89,7 @@ Print: baseline PF anchor (median cell), winning feature set, scoring thresholds
 - Single-leg mode: 1 contract, 1 target.
 - No overlapping trades — if in position, skip new signals until flat.
 
-**Time cap:** Flatten all remaining legs at time cap bar count. Also flatten at 16:55 ET.
+**Time cap:** Flatten all remaining legs at time cap bar count. **16:55 ET flatten:** If bar DateTime is available, also flatten when bar DateTime ≥ 16:55 ET. If not available, rely on time_cap only (same deferral as Prompt 0).
 
 **Direction:** DEMAND_EDGE → long. SUPPLY_EDGE → short.
 
@@ -158,6 +158,10 @@ Select k maximizing combined PF of retained clusters (simulated with default exi
 ---
 
 ### Exit Calibration (for EACH segmentation, EACH group with ≥ 30 touches)
+
+⚠️ **Small group fallback:** If a group has < 30 touches, do NOT run the exit grid — use the **median cell exit from Prompt 0** (Stop=90t, Target=120t, TimeCap=80 — or whatever the actual baseline values). This is the conservative default. Report these groups as "MEDIAN EXIT (insufficient sample for calibration)." If a group has < 10 touches, drop it entirely — insufficient for any meaningful result.
+
+⚠️ **Trade count reality check:** The A-Eq model has ~103 P1 trades. Segmentations with 3-4 groups will produce some groups below 30. This is expected. B-ZScore (~325 trades) will have more room. Report per-model which groups qualified for exit calibration vs which used median cell fallback.
 
 **Single-leg exit grid:**
 
@@ -239,6 +243,20 @@ For the best-performing group in each segmentation (pick single best across mode
 
 **SBB analysis:** For each group, report SBB vs NORMAL touch PF separately. Does the scoring model naturally filter SBB touches (lower scores) or do they leak through?
 
+⚠️ **SBB-MASKED feature check:** The winning model includes SBB-MASKED feature(s) whose signal was demonstrated on NORMAL-only population. Now that the scoring model is applied, verify: (a) what % of SBB touches receive scores above the threshold (leak rate), and (b) for touches that pass the threshold, is the SBB-MASKED feature adding separation within the NORMAL subset? If SBB leak rate is high despite SBB-MASKED features, the scoring threshold isn't filtering SBB effectively — exit calibration must compensate.
+
+**Cross-model overlap analysis (A-Eq vs B-ZScore):**
+
+B-ZScore trades ~3× more than A-Eq at roughly half the PF. Identify the touches that B-ZScore accepts but A-Eq rejects — the "B-only" population. Using B-ZScore's best-performing segmentation (highest PF across its 5 segs):
+1. How many B-only touches exist on P1?
+2. What is their PF @3t under B-ZScore's calibrated exits?
+3. What is their SBB rate vs the A-Eq population's SBB rate?
+4. What is their mean score under A-Eq (how far below threshold)?
+
+If B-only PF > 1.0 with reasonable exits: these are lower-conviction but still profitable trades — a potential secondary mode for Prompt 3 (trade A-Eq's high-conviction touches with wide exits AND B-only touches with tighter exits as a combined portfolio). If B-only PF < 1.0: B-ZScore's volume comes from unprofitable trades that A-Eq correctly rejects.
+
+Print: "B-only population: [N] touches, PF @3t = [X], SBB rate = [X]%. Verdict: [VIABLE SECONDARY MODE / NOT VIABLE]."
+
 ⚠️ Reminder: P1 only. All parameters still frozen from Step 5. Feature analysis is observational — does NOT change any frozen parameters.
 
 Print per segmentation:
@@ -246,6 +264,7 @@ Print per segmentation:
 - Within-group power table
 - Correlation flags
 - SBB leak rate and SBB-specific PF
+- B-only population verdict (VIABLE SECONDARY MODE or NOT VIABLE)
 
 ⚠️ Checkpoint: all parameters still frozen from Step 5. Feature analysis is observational only. Baseline PF anchor = [X].
 
@@ -257,7 +276,7 @@ Reprint ALL frozen parameters for ALL 15 runs:
 
 For each run, print:
 - Scoring model reference (A-Cal / A-Eq / B-ZScore with threshold)
-- Winning feature set (from Prompt 1b Step 6d)
+- Winning feature set (from Prompt 1b Step 6c)
 - Segmentation rules (group definitions)
 - Per-group: exit structure, seq gate, TF filter, width filter
 - For Seg 5: cluster centroids, k value
@@ -273,7 +292,7 @@ State: **"All parameters derived from P1 only (4,701 touches, P1a + P1b combined
 |-------------|----------|
 | `segmentation_params_clean.json` | All 15 frozen parameter sets (5 seg × 3 models) |
 | `p1_calibration_summary_clean.md` | Mid-pipeline checkpoint table + per-group P1 results |
-| `feature_analysis_clean.md` | Ablation rankings, within-group power, correlation flags, SBB analysis |
+| `feature_analysis_clean.md` | Ablation rankings, within-group power, correlation flags, SBB analysis, B-only overlap verdict |
 | `frozen_parameters_manifest_clean.json` | Complete parameter dump with P1 PF and P1 Profit/DD per run |
 
 ⚠️ **Handoff contract to Prompt 3:** These files plus Prompt 0, 1a, 1b and data prep outputs. Prompt 3 will:
@@ -307,6 +326,9 @@ Prompt 3 does NOT recalibrate anything.
 - [ ] Each segmentation calibrated independently (no cross-contamination)
 - [ ] Feature analysis did NOT modify any frozen parameters
 - [ ] SBB breakdown included in feature analysis
+- [ ] SBB-MASKED feature check: leak rate and within-NORMAL separation reported
+- [ ] Cross-model overlap analysis: B-only population identified with PF and verdict
+- [ ] Small groups (< 30 touches) used median cell fallback, not exit grid
 - [ ] Profit/DD reported for every group alongside PF
 - [ ] All 15 runs have frozen parameters saved
 - [ ] Mid-pipeline checkpoint table printed with baseline comparison

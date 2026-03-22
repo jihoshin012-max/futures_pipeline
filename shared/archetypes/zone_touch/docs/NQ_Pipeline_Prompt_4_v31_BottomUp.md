@@ -10,7 +10,7 @@
 
 ## Purpose
 
-The fresh pipeline (Prompts 1-3) ran from scratch with a bottom-up methodology: baseline first, single-feature screening, incremental model building. This prompt checks whether anything valuable from the prior work was missed and whether the bottom-up approach surfaced new insights the top-down couldn't.
+The fresh pipeline (Prompts 0-3) ran from scratch with a bottom-up methodology: baseline first, single-feature screening, incremental model building. This prompt checks whether anything valuable from the prior work was missed and whether the bottom-up approach surfaced new insights the top-down couldn't.
 
 This is NOT re-running the old analysis. It's a targeted investigation of specific gaps.
 
@@ -19,7 +19,7 @@ This is NOT re-running the old analysis. It's a targeted investigation of specif
 ## Rules
 
 1. **Prompt 3 results are final.** Do not modify verdicts. This prompt produces supplementary findings only.
-2. **Any new calibration uses P1 only.** Same holdout discipline as Prompts 1-3.
+2. **Any new calibration uses P1 only.** Same holdout discipline as Prompts 1a–3.
 3. **Reference doc is informational, not authoritative.** Prior findings were based on incomplete data.
 
 ⚠️ Reminder: this prompt is supplementary. Prompt 3 verdicts are final. Every result here is compared against the baseline PF anchor from Prompt 0.
@@ -33,13 +33,15 @@ This is NOT re-running the old analysis. It's a targeted investigation of specif
 | File | Purpose |
 |------|---------|
 | `baseline_report_clean.md` | Raw baseline PF anchor (all periods) |
-| `feature_screening_clean.md` | Single-feature STRONG/MODERATE/WEAK classifications |
+| `feature_screening_clean.md` | Single-feature STRONG/SBB-MASKED/MODERATE/WEAK classifications |
 | `incremental_build_clean.md` | Elbow model feature set |
 | `verdict_report_clean.md` | Fresh pipeline verdicts and winner |
 | `segmentation_comparison_clean.md` | All 15 runs compared |
+| `p2_holdout_clean.md` | Detailed P2a/P2b per-group results and stat tests |
 | `feature_analysis_clean.md` | Ablation rankings |
+| `verdict_narrative.md` | Standalone narrative (7-section report from Prompt 3) |
 | `feature_mechanism_validation.md` | Mechanism classifications |
-| `frozen_parameters_clean.json` | Winning configuration |
+| `deployment_spec_clean.json` | Winning configuration (machine-readable frozen parameters from Prompt 3) |
 | `scoring_model_acal.json` | Fresh A-Cal weights for comparison |
 | `p1_scored_touches_acal.csv` | Scored P1 touches (for targeted follow-ups) |
 | `NQ_bardata_P1.csv` | P1 bar data (for targeted simulations) |
@@ -96,6 +98,8 @@ If baseline PF is 1.2 and M1_A was 4.67, features + exits contributed ~3.5 PF po
 | M4 (Scalp) | Afternoon session | ? | ? | Exact / Similar / None |
 | M5 (Structural) | Catch-all | ? | ? | Exact / Similar / None |
 
+⚠️ **Counter-trend structural inversion:** The prior M3 combined counter-trend with LOW score (M1 rejects) and failed (PF 1.06). If the fresh pipeline's winner is counter-trend with HIGH score, this is the opposite population — same trend filter, opposite quality filter. The prior analysis assumed CT was a rescue mode for rejects. The fresh analysis may show CT is actually the highest-conviction mode when zone quality is strong. Flag and discuss.
+
 ### 15b: Bottom-Up vs Top-Down Feature Selection
 
 ⚠️ Reminder: the bottom-up approach screened each feature independently (Prompt 1a Step 4), then built incrementally. The prior top-down calibrated all 14 simultaneously. Differences between the two reveal which features were genuinely structural vs which benefited from combination effects.
@@ -119,16 +123,22 @@ If baseline PF is 1.2 and M1_A was 4.67, features + exits contributed ~3.5 PF po
 | *zz_swing_regime* | N/A (new) | ? | ? | — |
 | *zz_oscillator* | N/A (new) | ? | ? | — |
 | *atr_regime* | N/A (new) | ? | ? | — |
-| *channel_confluence* | N/A (new) | ? | ? | — |
+| *channel_confluence* | N/A (new) | **DROPPED (no channel data)** | N/A | — |
 | *vp_ray_consumption* | N/A (new) | ? | ? | — |
 | *distance_to_consumed_vp_ray* | N/A (new) | ? | ? | — |
+| *zone_age (F21)* | N/A (expansion) | ? | ? | — |
+| *recent_break_rate (F22)* | N/A (expansion) | ? | ? | — |
+| *cross_tf_confluence (F23)* | N/A (expansion) | ? | ? | — |
+| *nearest_zone_dist (F24)* | N/A (expansion) | ? | ? | — |
+| *break_history (F25)* | N/A (expansion) | ? | ? | — |
 
-⚠️ Reminder: the prior top-down analysis calibrated all 14 features simultaneously. The bottom-up screened each independently first. If a feature was important in the prior analysis but classified WEAK in bottom-up screening, it was likely benefiting from combination effects — not independently structural.
+⚠️ Reminder: the prior top-down analysis calibrated all 14 features simultaneously. The bottom-up screened each independently first. If a feature was important in the prior analysis but classified WEAK in bottom-up screening, it was likely benefiting from combination effects — not independently structural. Expansion features 21-25 are entirely new — they use `zone_lifecycle.csv` and had no prior equivalent.
 
 Key questions:
 - Did cascade stay the strongest independent signal?
 - Did any prior low-weight features become STRONG in independent screening?
-- Did any of the 6 new features (15-20) rank STRONG?
+- Did any of the 11 new features (15-25) rank STRONG or SBB-MASKED?
+- Did any SBB-MASKED features enter the elbow model?
 - How many elbow features overlap with the prior top-6?
 
 ### 15c: Mechanism Cross-Check
@@ -145,10 +155,11 @@ Load `feature_mechanism_validation.md`. Cross-reference:
 
 **Flag combinations:**
 - **STRONG + STRUCTURAL in elbow:** Trustworthy. High deployment confidence.
+- **SBB-MASKED + STRUCTURAL in elbow:** Signal was hidden by SBB noise but real on NORMAL population. High confidence if SBB leak rate is low in deployed group.
 - **STRONG + STATISTICAL ONLY in elbow:** The feature works independently but may not generalize. Monitor in paper trading.
 - **WEAK + STRUCTURAL not in elbow:** Mechanistically grounded but didn't show independent separation. May be valuable in combination — test in Step 17.
-- **New features (15-20) STRONG + STRUCTURAL:** The zigzag/regime/VP Ray features add real value.
-- **New features (15-20) WEAK across the board:** They don't help. The original 14 (minus VP Ray) were sufficient.
+- **New features (15-25) STRONG or SBB-MASKED + STRUCTURAL:** The expansion features add real value beyond the original set.
+- **New features (15-25) WEAK across the board:** They don't help. The original 14 (minus VP Ray) were sufficient.
 
 ---
 
@@ -171,15 +182,39 @@ Load `feature_mechanism_validation.md`. Cross-reference:
 | Random %ile | 99.5th | ? | — |
 | Verdict | Conditional | ? | — |
 | Feature count | 14 | ? (elbow) | 0 |
+| Exit structure | 3-leg partial (T1/T2/T3) | ? (single or 3-leg) | — |
+| Stop | TF-specific width gates | ? | — |
+| Target | (via T1/T2/T3) | ? | — |
+| BE/Trail | yes | ? | — |
+| Seq gate | ≤ 3 | ? | — |
+| TF filter | ≤ 120m | ? | — |
 | vs Baseline | ? | +? | — |
 
 ### 16b: What Changed and Why
 
 For each significant difference (PF delta > 0.5 or verdict changed):
 - Is the change due to SBB zones in training data?
-- Is the change due to new features (15-20)?
+- Is the change due to new features (15-25 including expansion)?
 - Is the change due to bottom-up methodology (fewer, stronger features)?
 - Is the change due to the larger baseline sample (9,361 vs ~2,000)?
+
+**Specific investigation points:**
+
+⚠️ **A-Cal vs A-Eq reversal:** A-Eq was P1 champion (PF 2.69 vs A-Cal 2.08). If A-Cal dominates on P2 while A-Eq drops to Conditional, explain why calibrated weights generalized better than equal weights out of sample. Does this relate to F10's dominant R/P spread getting proportionally more weight?
+
+⚠️ **Win rate change:** Prior M1_A had 60.6% win rate. If the fresh winner shows ~90%, this is a 30-point increase. Investigate: is this because (a) fewer but higher-quality trades (58 vs 66), (b) different exit structure (80t target vs prior exits), (c) counter-trend filter selects more decisive bounces, or (d) sample size artifact on 58 trades?
+
+⚠️ **seg1 = seg2 ModeA duplication:** Seg 2 ModeA and Seg 1 ModeA may be identical populations (same score threshold, same touches). If both show "Yes" verdicts with the same trades and PF, count them as one independent confirmation, not two. Report whether they share the exact same trade set.
+
+⚠️ **Nested group decomposition:** The 4 "Yes" groups likely overlap — seg3 ModeB (CT, 58 trades) is probably a subset of seg1 ModeA (all high-score, 91 trades). Decompose seg1 ModeA into its seg3 sub-populations:
+- CT touches (= seg3 ModeB): how many? what PF?
+- WT/NT touches (= seg3 ModeA): how many? what PF?
+This answers the deployment question: trade 58 at PF ~5.0 (CT only), or trade 91 at PF ~3.0 (all)? If the WT/NT subset has PF > 1.5, it's worth including as a second mode with potentially different exits.
+
+⚠️ **P2 exit breakdown comparison:** Report the exit reason profile (target/stop/BE/trail/time cap %) for the winner on P2 and compare against P1:
+- P1: 94% target, 2% stop, 0% BE/trail, 4% time cap (from Prompt 2 analysis)
+- P2: ? (from Prompt 3 simulation output — exit_type field)
+If target rate dropped significantly on P2, investigate: did the win rate degrade (fewer bounces reaching target) or did the stop rate increase (deeper penetrations)? This is the most direct diagnostic for edge stability.
 
 ⚠️ Reminder: prior results were on incomplete data (SBB excluded). Clean data results are the honest numbers.
 
@@ -227,17 +262,19 @@ For each gap where a prior finding looks promising but wasn't captured:
 
 ## Step 18: Synthesis
 
-### 18a: Final Assessment (9 questions)
+### 18a: Final Assessment (11 questions)
 
 1. **Did the clean data pipeline find an edge?** (Yes/No, cite Prompt 3 verdicts)
 2. **Is the edge stronger or weaker than prior findings?** (Compare PF, Profit/DD, trade count, max drawdown)
 3. **Did the prior mode structure (M1-M5) survive clean data?** (Full/Partial/No, cite Step 15a)
-4. **Did the new features (15-20) add value?** (Yes/No, cite screening and elbow)
+4. **Did the new features (15-25 including expansion) add value?** (Yes/No, cite screening and elbow. Note SBB-MASKED features specifically.)
 5. **Were there gaps — prior findings the fresh pipeline missed?** (Yes/No, cite Step 17)
 6. **Did targeted follow-ups recover any missed edge?** (Yes/No, cite Step 17b)
 7. **What is the recommended deployment configuration?** (Prompt 3 winner, modified by any Step 17b)
 8. **Is the winning model mechanistically sound?** (Cite Step 15c — % of score weight from STRUCTURAL features)
 9. **What does the baseline tell us about overfit risk?** (If winner PF is 3× baseline, moderate risk. If winner PF is 10× baseline, high risk — much of the edge comes from optimization.)
+10. **Counter-trend structural inversion:** The prior M3 (CT + low score) was dead. If the fresh winner is CT + high score, this is a major structural insight — counter-trend works only with zone quality selection. Discuss mechanistic implications.
+11. **B-only tier verdict:** The B-only population (B-ZScore accepts, A-Eq rejects) was tested as a 16th run. Report result and whether a two-tier deployment is justified or if single-tier is correct.
 
 ⚠️ Reminder: question 9 is new to the bottom-up approach. The baseline gives an objective measure of how much value the features add vs how much they might be fitting noise.
 
@@ -288,17 +325,19 @@ Do NOT overwrite any Prompt 1-3 outputs.
 
 ⚠️ **Before targeted tests (Step 17b):** Restate: "These are supplementary. They do not replace Prompt 3 verdicts."
 
-⚠️ **Before synthesis (Step 18):** Re-read all 9 questions. Ensure baseline comparison (question 9) is answered — this is the unique contribution of the bottom-up methodology.
+⚠️ **Before synthesis (Step 18):** Re-read all 11 questions. Ensure baseline comparison (question 9), counter-trend inversion (question 10), and B-only verdict (question 11) are answered — these are unique contributions of the bottom-up methodology.
 
 ✅ **Prompt 4 self-check:**
 - [ ] Prompt 3 verdicts not modified
 - [ ] Baseline comparison (Step 14) completed — overfit risk assessed
-- [ ] Structural comparison (Step 15a, 15b) completed
+- [ ] Structural comparison (Step 15a, 15b) completed — includes expansion features 21-25 and SBB-MASKED classifications
 - [ ] Mechanism cross-check (Step 15c) completed — deployment confidence per feature
 - [ ] Performance comparison (Step 16) completed with baseline reference and Profit/DD
+- [ ] P2 exit breakdown compared against P1 exit breakdown
+- [ ] Nested group decomposition completed — deployment trade-off documented (CT-only vs all high-score)
 - [ ] Gaps identified (Step 17a) — all 11 prior lessons assessed
 - [ ] Targeted follow-ups (Step 17b) used P1-calibrate / P2-one-shot protocol
-- [ ] Synthesis (Step 18) answers all 9 questions including baseline overfit assessment
+- [ ] Synthesis (Step 18) answers all 11 questions including baseline overfit, CT inversion, and B-only verdict
 - [ ] Combined recommendation produced
 - [ ] `combined_recommendation_clean.md` is standalone readable (supplements Prompt 3's `verdict_narrative.md`)
 - [ ] Output files saved

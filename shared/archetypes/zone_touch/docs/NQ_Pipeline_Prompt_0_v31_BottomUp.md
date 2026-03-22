@@ -2,7 +2,7 @@
 
 > **Version:** 3.1
 > **Date:** 2026-03-20
-> **Scope:** Load all data, establish raw edge baseline across all periods, 9 structural splits, verdict
+> **Scope:** Load all data, establish raw edge baseline across all periods, 12 structural splits, verdict
 > **Prerequisite:** Data prep skill outputs (merged CSVs, bar data, period config)
 > **Next:** Review baseline results. Proceed to Prompt 1a (Feature Screening) if there's signal to work with.
 
@@ -62,7 +62,7 @@
 
 **No overlapping trades:** If in position, skip new signals until flat.
 
-**Time cap:** Flatten at time cap bar count. Also flatten at 16:55 ET.
+**Time cap:** Flatten at time cap bar count. **16:55 ET flatten:** If the bar data includes a DateTime column, also flatten any open position when bar DateTime ≥ 16:55 ET, at that bar's Close price. If DateTime is not available in bar data, defer this rule and rely on time_cap only — document this deferral in the baseline report.
 
 ⚠️ These simulation specs are fixed for the entire pipeline. Do not change them.
 
@@ -73,9 +73,10 @@
 1. Load ALL merged CSVs: `NQ_merged_P1a.csv`, `NQ_merged_P1b.csv`, `NQ_merged_P2a.csv`, `NQ_merged_P2b.csv`
 2. Load both bar data files: `NQ_bardata_P1.csv`, `NQ_bardata_P2.csv`
 3. Load `period_config.json` — print all period date boundaries and touch counts
-4. Verify RotBarIndex maps correctly for each period (spot-check 5 touches per period)
-5. Print per period: row count, touch type distribution, TF distribution, CascadeState distribution, SBB rate
-6. Print total: combined touch count across all 4 periods
+4. **Filter out touches with RotBarIndex < 0** (invalid bar mapping — these cannot be simulated). Report how many were removed and from which period.
+5. Verify RotBarIndex maps correctly for each period (spot-check 5 touches per period): entry bar = RotBarIndex + 1, confirm it exists in bar data and has a valid Open price.
+6. Print per period: row count, touch type distribution, TF distribution, CascadeState distribution, SBB rate
+7. Print total: combined touch count across all 4 periods (after filtering)
 
 ⚠️ Checkpoint: all 4 period files loaded. This prompt uses ALL of them for baseline.
 
@@ -127,10 +128,28 @@ This shows whether the no-overlap filter biases toward first touches (seq 1) or 
 
 ⚠️ Reminder: everything in Step 2 uses ALL periods (9,361 touches). No parameters are fit. These are population statistics.
 
-**Population R/P ratios (all touches, no filtering, no simulation):**
+**Population R/P ratios (all touches, no filtering):**
 
-| Horizon | Mean Reaction | Mean Penetration | R/P Ratio |
-|---------|--------------|-----------------|-----------|
+⚠️ **CRITICAL: The columns `RxnBar_30`, `PenBar_30`, etc. contain bar INDICES (where the peak occurred), NOT tick values.** Do NOT use them for R/P computation. Compute horizon-specific reaction and penetration directly from bar data:
+
+**Horizon R/P computation method (used here and in Prompt 1a screening):**
+
+For each touch, using the bar data file:
+1. Entry bar = RotBarIndex + 1. Entry price = Open of entry bar.
+2. For horizon N (30, 60, 120 bars), look forward N bars from entry bar.
+3. **Reaction at N bars:**
+   - Demand (long): max(High[entry_bar : entry_bar+N]) - entry_price. Convert to ticks (÷ 0.25).
+   - Supply (short): entry_price - min(Low[entry_bar : entry_bar+N]). Convert to ticks.
+4. **Penetration at N bars:**
+   - Demand (long): entry_price - min(Low[entry_bar : entry_bar+N]). Convert to ticks.
+   - Supply (short): max(High[entry_bar : entry_bar+N]) - entry_price. Convert to ticks.
+5. **Full observation:** Use the existing `Reaction` and `Penetration` columns from the merged CSV (these are already in ticks and correct).
+6. R/P at horizon N = mean(Reaction at N) / mean(Penetration at N). Apply floor rule: if mean penetration < 1.0 tick, set denominator to 1.0.
+
+⚠️ If entry_bar + N exceeds the bar data length, use all available bars (truncated horizon). Report how many touches were truncated per horizon.
+
+| Horizon | Mean Reaction (ticks) | Mean Penetration (ticks) | R/P Ratio |
+|---------|----------------------|-------------------------|-----------|
 | 30 bars | ? | ? | ? |
 | 60 bars | ? | ? | ? |
 | 120 bars | ? | ? | ? |
@@ -149,6 +168,8 @@ This is the population-level R/P at each horizon. Prompt 1a screening uses these
 - Worst PF and its stop/target/time_cap combination
 
 **Print a 5×6 stop × target visual heatmap** at time_cap=80 (the middle value) for readability. This is a visual summary — the statistics above use all 120 cells.
+
+⚠️ **Identify the median cell explicitly.** After computing all 120 PFs, find the cell at the 50th percentile. Print: "MEDIAN CELL: Stop=[X]t, Target=[X]t, TimeCap=[X] bars, PF @3t = [X]." This specific exit structure is used for ALL subsequent splits (2b–2k). Cache these values.
 
 **Bootstrap confidence interval:** For the median cell and the best cell, compute 95% CI via 10,000 bootstrap resamples. **Resample the trade-level PnL outcomes** from the existing simulation (do NOT re-run the simulation — resample the vector of per-trade net PnL values, recompute PF each time). Report:
 - Median cell PF @3t: [point estimate] (95% CI: [lower] – [upper])
@@ -280,7 +301,7 @@ Key questions:
 - Does the TF edge persist after removing SBB touches? (Cross-reference with 2b SBB split — run TF × SBB if any TF shows PF > 1.5)
 - Is there a TF below which zones have no edge? If 15m PF < 1.0 even for NORMAL touches, those zones may not be worth trading regardless of features.
 
-⚠️ Reminder: all splits in Step 2 (direction, session, SBB, per-period, CascadeState, TF, seq) use ALL periods with no parameters fit. These are population properties. The baseline anchor is the MEDIAN cell PF.
+⚠️ Reminder: all splits in Step 2 (direction, session, SBB, per-period, CascadeState, TF, seq, zone density, break contagion) use ALL periods with no parameters fit. These are population properties. The baseline anchor is the MEDIAN cell PF.
 
 ---
 
@@ -303,9 +324,80 @@ The prior analysis found seq ≤ 3 was the sweet spot. If seq 1-3 show PF > 1.0 
 
 ---
 
-#### 2i: Time Cap Sensitivity
+#### 2i: Zone Density Split
 
-For the median stop/target, report PF at all 4 time caps:
+At the median grid cell, classify each touch by how many OTHER active same-direction zones exist within 500 ticks of this zone's edge at touch time.
+
+**Zone lifecycle construction (needed for density and contagion):**
+
+Build a zone lifecycle table from the touch data before computing density:
+1. Group all touches across all periods by ZoneID
+2. **Zone birth** = DateTime of the first touch on that ZoneID (earliest appearance in our data)
+3. **Zone death** = DateTime of the earliest touch where SBB_Label = SBB OR Penetration > ZoneWidthTicks. If no such touch exists, zone survives to end of data.
+4. **Active zones at time T** = all zones where birth ≤ T < death
+5. Store: ZoneID, direction (DEMAND/SUPPLY), ZonePrice, ZoneWidthTicks, SourceLabel, birth, death
+
+⚠️ This is an approximation — zones exist before their first touch (drawn on chart) and can break between touches (price blows through without a touch event). We only observe touch events, so birth = first touch and death = first observed break. This is the best construction possible from touch-level data.
+
+**Density classification:** For each touch at time T, count active same-direction zones (excluding this zone's own ZoneID) with ZonePrice within 500 ticks of this zone's edge.
+
+| Density | PF @3t | PF @4t | Trades | R/P @60 |
+|---------|--------|--------|--------|---------|
+| Isolated (0 nearby) | ? | ? | ? | ? |
+| Sparse (1 nearby) | ? | ? | ? | ? |
+| Clustered (2+ nearby) | ? | ? | ? | ? |
+| Combined | ? | ? | ? | ? |
+
+⚠️ Reminder: "nearby" = another active zone of the same direction (demand or supply) within 500 ticks. This threshold is fixed — no calibration. Count all TFs.
+
+Key questions:
+- Do clustered zones hold better than isolated ones? If yes, layered support/resistance is a structural mechanism.
+- Do isolated zones perform worse? If yes, single zones are more vulnerable to breakouts.
+- If no difference: zone density doesn't drive the edge at the population level.
+
+---
+
+#### 2j: Break Contagion Analysis
+
+**Purpose:** Measure whether zone breaks cluster — when one zone breaks, do nearby zones break soon after?
+
+This is NOT a per-touch split. It's a population-level conditional probability computed across all zone break events in all periods.
+
+**Method:** Uses the zone lifecycle table from Step 2i.
+1. Identify all zone death events (zone lifecycle death != end of data)
+2. For each death event at time T, find all other active same-direction zones within 500 ticks at time T (from lifecycle table)
+3. Check whether each nearby zone also died within the next 200 bars
+4. **Conditional break rate** = (nearby zones that died within 200 bars) / (total nearby zones at risk)
+5. **Base rate:** For every touch in the dataset, count all active same-direction zones within 500 ticks. What fraction of them died within the next 200 bars? This uses the same lifecycle table and same distance threshold, just without conditioning on a prior break event.
+6. **Contagion ratio** = conditional break rate / base rate
+
+⚠️ Reminder: no parameters fit. The 500-tick radius and 200-bar window are fixed. This is a population-level conditional probability.
+
+**Report:**
+
+| Metric | Value |
+|--------|-------|
+| Total zone death events | ? |
+| Nearby zones at risk (within 500t at time of death) | ? |
+| Nearby zones that also died within 200 bars | ? |
+| **Conditional break rate** | ? |
+| Base rate (unconditional) | ? |
+| **Contagion ratio** (conditional / base) | ? |
+
+**Interpretation:**
+- Contagion ratio > 2.0: Breaks cascade strongly. Trading a zone right after a nearby zone broke is structurally worse than average. This supports a "recent break" feature in Prompt 1a.
+- Contagion ratio 1.0–2.0: Mild clustering. Some contagion but not dramatic.
+- Contagion ratio ≈ 1.0: Breaks are independent. No contagion effect.
+
+Also report contagion ratio split by TF of the dead zone (do HTF deaths cause more contagion than LTF deaths?) and by direction (do demand deaths trigger nearby supply deaths and vice versa, suggesting directional momentum?).
+
+⚠️ Reminder: break contagion is a population statistic — no parameters fit. It informs whether Feature 22 (Recent Break Rate) in Prompt 1a is likely to be structural.
+
+---
+
+#### 2k: Time Cap Sensitivity
+
+For the median cell's stop and target values (fixed from 2a), report PF at all 4 time caps — this shows how PF changes as you vary only the holding period:
 
 | Time Cap | PF @3t | Trades |
 |----------|--------|--------|
@@ -316,9 +408,11 @@ For the median stop/target, report PF at all 4 time caps:
 
 This reveals the edge's time structure: does the edge appear immediately (low time cap best) or develop slowly (high time cap best)?
 
+⚠️ Reminder: ALL splits in Step 2 use ALL periods with no parameters fit. The baseline anchor is the MEDIAN cell PF across 120 grid cells. No parameters have been calibrated anywhere in this prompt.
+
 ---
 
-#### 2j: Baseline Verdict
+#### 2l: Baseline Verdict
 
 Combine all findings. The baseline determines the **overfit risk level** — not whether the strategy works. Features may create an edge even if the unfiltered population is unprofitable.
 
@@ -332,7 +426,7 @@ Combine all findings. The baseline determines the **overfit risk level** — not
 
 ⚠️ **The baseline anchor = MEDIAN cell PF @3t with 95% CI.** This is the honest reference for the entire pipeline. Every feature, filter, and scoring model must justify how much it improves over this anchor.
 
-Print: "RAW BASELINE: Median PF @3t = [X] (95% CI: [lower]–[upper]) across 120 grid cells. Best cell PF = [Y]. [Z]% of cells > 1.0. Population R/P @60bars = [R]. SBB split: NORMAL=[A], SBB=[B]. Per-period: P1a=[X], P1b=[X], P2a=[X], P2b=[X]. Direction: Demand=[X], Supply=[X]. Session: RTH=[X], Overnight=[X]. Cascade: HELD=[X], BROKE=[X], NO_PRIOR=[X]. TF: 15m=[X], 30m=[X], 60m=[X], 90m=[X], 120m=[X], 240m=[X], 360m=[X], 480m=[X], 720m=[X]. Seq: 1=[X], 2=[X], 3=[X], 4=[X], 5+=[X]."
+Print: "RAW BASELINE: Median PF @3t = [X] (95% CI: [lower]–[upper]) across 120 grid cells. Best cell PF = [Y]. [Z]% of cells > 1.0. Population R/P @60bars = [R]. SBB split: NORMAL=[A], SBB=[B]. Per-period: P1a=[X], P1b=[X], P2a=[X], P2b=[X]. Direction: Demand=[X], Supply=[X]. Session: RTH=[X], Overnight=[X]. Cascade: HELD=[X], BROKE=[X], NO_PRIOR=[X]. TF: 15m=[X], 30m=[X], 60m=[X], 90m=[X], 120m=[X], 240m=[X], 360m=[X], 480m=[X], 720m=[X]. Seq: 1=[X], 2=[X], 3=[X], 4=[X], 5+=[X]. Density: Isolated=[X], Sparse=[X], Clustered=[X]. Break contagion ratio=[X]."
 
 ---
 
@@ -340,9 +434,10 @@ Print: "RAW BASELINE: Median PF @3t = [X] (95% CI: [lower]–[upper]) across 120
 
 | Output File | Contents |
 |-------------|----------|
-| `baseline_report_clean.md` | Raw edge baseline: MEDIAN cell PF @3t with bootstrap 95% CI (the anchor) across 120 grid cells, best cell PF, % of grid > 1.0, population R/P ratios at 4 horizons (reference for feature screening), SBB split (NORMAL vs SBB), per-period stability (P1a/P1b/P2a/P2b), direction split (demand vs supply), session split (RTH vs overnight), CascadeState split (PRIOR_HELD vs PRIOR_BROKE vs NO_PRIOR), TF split (per timeframe PF + SBB rate), seq split (per-seq PF), seq distribution of trades taken, time cap sensitivity, baseline verdict. Uses ALL periods — no parameters fit. |
+| `baseline_report_clean.md` | Raw edge baseline: MEDIAN cell PF @3t with bootstrap 95% CI (the anchor) across 120 grid cells, median cell risk profile (win rate, avg PnL, max consecutive losses), best cell PF, % of grid > 1.0, population R/P ratios at 4 horizons (reference for feature screening), SBB split (NORMAL vs SBB), per-period stability (P1a/P1b/P2a/P2b), direction split (demand vs supply), session split (RTH vs overnight), CascadeState split (PRIOR_HELD vs PRIOR_BROKE vs NO_PRIOR), TF split (all 9 TFs, PF + SBB rate), seq split (per-seq PF), zone density split (isolated vs sparse vs clustered), break contagion analysis (conditional break rate + contagion ratio), seq distribution of trades taken, time cap sensitivity, baseline verdict. Uses ALL periods — no parameters fit. |
+| `zone_lifecycle.csv` | One row per ZoneID: ZoneID, direction, ZonePrice, ZoneWidthTicks, SourceLabel, birth_datetime, death_datetime (null if never broken), death_cause (SBB / PENETRATION / ALIVE). Built from ALL periods. Prompt 1a expansion features 21–25 load this directly rather than rebuilding it. |
 
-⚠️ **Handoff contract to Prompt 1a:** This file is the single output. Prompt 1a also loads the merged CSVs and bar data directly from data prep — but only P1 (P1a + P1b) for calibration. The baseline report is the anchor everything downstream references.
+⚠️ **Handoff contract to Prompt 1a:** Two output files. Prompt 1a loads `baseline_report_clean.md` as the anchor reference and `zone_lifecycle.csv` for expansion feature computation. Prompt 1a also loads the merged CSVs and bar data directly from data prep — but only P1 (P1a + P1b) for calibration.
 
 ---
 
@@ -359,6 +454,8 @@ Print: "RAW BASELINE: Median PF @3t = [X] (95% CI: [lower]–[upper]) across 120
 7. **CascadeState split** — is the edge in PRIOR_HELD zones? Are PRIOR_BROKE zones structural losers?
 8. **TF split** — which timeframes have an edge? Does any TF lack an edge entirely?
 9. **Seq split** — does performance degrade at higher seq? Is seq ≤ 3 a structural filter?
+10. **Zone density** — do clustered zones behave differently from isolated ones?
+11. **Break contagion** — do breaks cascade? Is the contagion ratio > 2.0?
 
 ⚠️ **If baseline median PF < 1.0:** This does NOT mean stop. It means the unfiltered population isn't profitable — features must create the edge. Proceed to Prompt 1a to see if features can separate.
 
@@ -371,14 +468,15 @@ Print: "RAW BASELINE: Median PF @3t = [X] (95% CI: [lower]–[upper]) across 120
 ⚠️ **Every 25–35 lines of code, reinforce:**
 - ALL periods used in this prompt — no parameters fit
 - Baseline anchor is MEDIAN cell PF (not best cell)
-- Every split (2a–2j) is a population property
+- Every split (2a–2l) is a population property
 
-⚠️ **After Step 2j (verdict):** Print the full baseline summary. This is the single most important output of the entire pipeline — everything else is measured against it.
+⚠️ **After Step 2l (verdict):** Print the full baseline summary. This is the single most important output of the entire pipeline — everything else is measured against it.
 
 ✅ **Prompt 0 self-check (run before saving outputs):**
 - [ ] ALL periods loaded and used (9,361 touches)
 - [ ] No parameters fit anywhere in this prompt
 - [ ] Baseline anchor is MEDIAN cell PF across 120 grid cells (not best cell)
+- [ ] Median cell stop/target/time_cap explicitly identified and printed
 - [ ] Bootstrap 95% CI computed on median and best cell PF
 - [ ] Median cell risk profile reported (win rate, avg trade PnL, max consecutive losses)
 - [ ] SBB split reported (NORMAL vs SBB baselines separately)
@@ -388,6 +486,9 @@ Print: "RAW BASELINE: Median PF @3t = [X] (95% CI: [lower]–[upper]) across 120
 - [ ] CascadeState split reported (PRIOR_HELD vs PRIOR_BROKE vs NO_PRIOR)
 - [ ] TF split reported (per-timeframe PF + SBB rate)
 - [ ] Seq split reported (per-seq PF)
+- [ ] Zone lifecycle table constructed (birth/death per ZoneID from touch data)
+- [ ] Zone density split reported (isolated vs sparse vs clustered)
+- [ ] Break contagion analysis reported (conditional rate, base rate, contagion ratio)
 - [ ] Seq distribution of trades taken reported (after no-overlap filter)
 - [ ] Population R/P ratios at 4 horizons reported
 - [ ] Cost robustness checked (@4t in addition to @3t)
@@ -395,3 +496,4 @@ Print: "RAW BASELINE: Median PF @3t = [X] (95% CI: [lower]–[upper]) across 120
 - [ ] Baseline verdict printed (LOW/MODERATE/HIGH)
 - [ ] Full baseline summary string printed
 - [ ] `baseline_report_clean.md` saved
+- [ ] `zone_lifecycle.csv` saved (one row per ZoneID with birth/death)
