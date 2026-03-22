@@ -50,22 +50,33 @@ All studies and config files in this directory are snapshots from 2026-03-22. Th
 2. Re-run at minimum Prompt 0 (baseline) to check for data drift
 3. If baseline changes materially, re-run full pipeline
 
-## Files in this directory
+## Active Studies (deploy these to Sierra Chart)
 
-| File | Study | Snapshot Date | Notes |
-|------|-------|--------------|-------|
-| SupplyDemandZonesV4.cpp | V4 | 2026-03-22 | Live zone creation (compiled Mar 8) |
-| SupplyDemandZonesV4_history.cpp | V4_history | 2026-03-22 | SBB zone export (compiled Mar 18) |
-| ZoneReactionAnalyzer.cpp | ZRA | 2026-03-22 | Touch detection (compiled Mar 7) |
-| ZoneBounceSignalsV4_aligned.cpp | ZB4 | 2026-03-22 | Edge alignment (compiled Mar 20) |
-| zone_bounce_config.h | Header | 2026-03-22 | P1-frozen config shared by autotrader |
-| ATEAM_ZONE_BOUNCE_V1.cpp | Autotrader | 2026-03-22 | Zone bounce autotrader (Part A spec) |
-| scoring_model_acal.json | Config | 2026-03-22 | P1-frozen A-Cal weights + threshold |
-| feature_config.json | Config | 2026-03-22 | P1-frozen bin edges + trend cutoffs |
-| v4_study_settings_15m.txt | Settings | — | V4 inputs for 15m (PENDING — export from SC) |
-| v4_study_settings_30m.txt | Settings | — | V4 inputs for 30m (PENDING — export from SC) |
-| v4_study_settings_60m.txt | Settings | — | V4 inputs for 60m (PENDING — export from SC) |
-| v4_study_settings_90m.txt | Settings | — | V4 inputs for 90m (PENDING — export from SC) |
-| v4_study_settings_120m.txt | Settings | — | V4 inputs for 120m (PENDING — export from SC) |
-| zra_study_settings.txt | Settings | — | ZRA inputs (PENDING — export from SC) |
-| zb4_study_settings.txt | Settings | — | ZB4 inputs (PENDING — export from SC) |
+| File | Version | Date | Notes |
+|------|---------|------|-------|
+| SupplyDemandZonesV4.cpp | v3.1 | 2026-03-08 | Unchanged — no VP fix needed here |
+| SupplyDemandZonesV4_history.cpp | v3.1 | 2026-03-18 | Unchanged |
+| ZoneReactionAnalyzer.cpp | v3.2 | 2026-03-22 | VP proximity filter added |
+| ZoneBounceSignalsV4_aligned.cpp | v3.2 | 2026-03-22 | VP proximity filter added |
+| zone_bounce_config.h | v3.1 | 2026-03-22 | Autotrader config |
+| ATEAM_ZONE_BOUNCE_V1.cpp | v3.1 | 2026-03-22 | Autotrader study |
+
+## Sierra Chart Settings
+
+| Setting | Value | Changed from |
+|---------|-------|-------------|
+| V4 MaxVPProfiles (Input[11]) | 0 (=500) | Was 50 |
+
+## Backups (do not deploy — for rollback only)
+
+| File | Version | Purpose |
+|------|---------|---------|
+| ZoneReactionAnalyzer_v31.cpp | v3.1 | Pre-VP-filter backup |
+| ZoneBounceSignalsV4_aligned_v31.cpp | v3.1 | Pre-VP-filter backup |
+
+## Config Files (P1-frozen — do not modify)
+
+| File | Purpose |
+|------|---------|
+| scoring_model_acal.json | A-Cal weights + threshold |
+| feature_config.json | Bin edges + TrendSlope cutoffs |
