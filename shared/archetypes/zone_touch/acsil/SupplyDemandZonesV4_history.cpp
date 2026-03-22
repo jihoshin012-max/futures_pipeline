@@ -1,6 +1,6 @@
-// PIPELINE SNAPSHOT: 2026-03-22
-// This version produced the data used in Pipeline v3.1
-// DO NOT EDIT — edit in C:\Projects\sierrachart\ and re-copy
+// STUDY VERSION LOG
+// Current: v3.1 (2026-03-18) — Pipeline snapshot
+// No modifications since snapshot
 
 /*===========================================================================*\
  * Supply and Demand Zones Study for Sierra Chart
@@ -303,7 +303,7 @@ SCSFExport scsf_SupplyDemandZones(SCStudyInterfaceRef sc)
 
 	if (sc.SetDefaults)
 	{
-		sc.GraphName = "Supply and Demand Zones V4";
+		sc.GraphName = "SD Zones V4 History [v3.1]";
 		sc.GraphRegion = 0;
 		sc.AutoLoop = 1;
 		sc.CalculationPrecedence = LOW_PREC_LEVEL;

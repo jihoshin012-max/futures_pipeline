@@ -1,3 +1,7 @@
+// STUDY VERSION LOG
+// Current: v1.0 (2026-03-22) — P1-frozen config
+// Source: scoring_model_acal.json + feature_config.json
+
 // zone_bounce_config.h — P1-frozen configuration for ATEAM_ZONE_BOUNCE_V1
 // CONFIG_VERSION = "P1_2026-03-22"
 //

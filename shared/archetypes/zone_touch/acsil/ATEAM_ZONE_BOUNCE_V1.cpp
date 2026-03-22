@@ -1,3 +1,7 @@
+// STUDY VERSION LOG
+// Current: v1.0 (2026-03-22) — Initial build
+// Fresh build — not derived from M1A or M1B
+
 // archetype: zone_touch
 // @study: ATEAM Zone Bounce V1
 // @version: 1.0
@@ -278,7 +282,7 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
     // =================================================================
     if (sc.SetDefaults)
     {
-        sc.GraphName = "ATEAM Zone Bounce V1";
+        sc.GraphName = "ATEAM Zone Bounce V1 [v1.0]";
         sc.StudyDescription = "A-Cal zone bounce autotrader (P1_2026-03-22)";
         sc.AutoLoop = 1;
         sc.GraphRegion = 0;

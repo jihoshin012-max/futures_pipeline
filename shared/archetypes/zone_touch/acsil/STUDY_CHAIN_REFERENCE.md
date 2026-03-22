@@ -52,14 +52,14 @@ All studies and config files in this directory are snapshots from 2026-03-22. Th
 
 ## Active Studies (deploy these to Sierra Chart)
 
-| File | Version | Date | Notes |
-|------|---------|------|-------|
-| SupplyDemandZonesV4.cpp | v3.1 | 2026-03-08 | Unchanged — no VP fix needed here |
-| SupplyDemandZonesV4_history.cpp | v3.1 | 2026-03-18 | Unchanged |
-| ZoneReactionAnalyzer.cpp | v3.2 | 2026-03-22 | VP proximity filter added |
-| ZoneBounceSignalsV4_aligned.cpp | v3.2 | 2026-03-22 | VP proximity filter added |
-| zone_bounce_config.h | v3.1 | 2026-03-22 | Autotrader config |
-| ATEAM_ZONE_BOUNCE_V1.cpp | v3.1 | 2026-03-22 | Autotrader study |
+| File | Version | Date | sc.GraphName | Notes |
+|------|---------|------|-------------|-------|
+| SupplyDemandZonesV4.cpp | v3.1 | 2026-03-08 | SD Zones V4 [v3.1] | Unchanged |
+| SupplyDemandZonesV4_history.cpp | v3.1 | 2026-03-18 | SD Zones V4 History [v3.1] | Unchanged |
+| ZoneReactionAnalyzer.cpp | v3.2 | 2026-03-22 | Zone Reaction Analyzer [v3.2] | VP proximity filter |
+| ZoneBounceSignalsV4_aligned.cpp | v3.2 | 2026-03-22 | ZBV4 Aligned [v3.2] | VP proximity filter |
+| zone_bounce_config.h | v1.0 | 2026-03-22 | — | Autotrader config |
+| ATEAM_ZONE_BOUNCE_V1.cpp | v1.0 | 2026-03-22 | ATEAM Zone Bounce V1 [v1.0] | Autotrader |
 
 ## Sierra Chart Settings
 
@@ -67,12 +67,12 @@ All studies and config files in this directory are snapshots from 2026-03-22. Th
 |---------|-------|-------------|
 | V4 MaxVPProfiles (Input[11]) | 0 (=500) | Was 50 |
 
-## Backups (do not deploy — for rollback only)
+## Backups (do not deploy — rollback only)
 
 | File | Version | Purpose |
 |------|---------|---------|
-| ZoneReactionAnalyzer_v31.cpp | v3.1 | Pre-VP-filter backup |
-| ZoneBounceSignalsV4_aligned_v31.cpp | v3.1 | Pre-VP-filter backup |
+| ZoneReactionAnalyzer_v31.cpp | v3.1 | Pre-VP-filter |
+| ZoneBounceSignalsV4_aligned_v31.cpp | v3.1 | Pre-VP-filter |
 
 ## Config Files (P1-frozen — do not modify)
 
@@ -80,3 +80,18 @@ All studies and config files in this directory are snapshots from 2026-03-22. Th
 |------|---------|
 | scoring_model_acal.json | A-Cal weights + threshold |
 | feature_config.json | Bin edges + TrendSlope cutoffs |
+
+## Documentation
+
+| File | Purpose |
+|------|---------|
+| STUDY_CHAIN_REFERENCE.md | This file — current state |
+| CHANGELOG.md | Append-only change history |
+| VP_RAY_INVESTIGATION.md | VP data investigation findings |
+
+## Identifying Studies on SC Charts
+
+Every study sets sc.GraphName with a version tag in brackets.
+When you open Chart Settings > Studies, the display name shows
+which version is loaded. When updating a study, bump the version
+in sc.GraphName as part of the change.

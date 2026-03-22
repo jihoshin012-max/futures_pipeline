@@ -1,3 +1,8 @@
+// STUDY VERSION LOG
+// Current: v3.2 (2026-03-22) — VP proximity filter added
+// Prior:   v3.1 (2026-03-20) — Pipeline snapshot, pre-VP fix
+// Backup:  ZoneBounceSignalsV4_aligned_v31.cpp
+
 // @study: Zone Bounce Signals V4
 // @version: 4
 // @author: ATEAM
@@ -832,7 +837,7 @@ SCSFExport scsf_ZoneBounceSignalsV4(SCStudyInterfaceRef sc)
 
     if (sc.SetDefaults)
     {
-        sc.GraphName = "Zone Bounce Signals V4";
+        sc.GraphName = "ZBV4 Aligned [v3.2]";
         sc.StudyDescription = "Multi-TF zone bounce signal overlay with five-mode scoring (M1/M3/M4/M5) and cascade awareness";
         sc.AutoLoop = 1;
         sc.GraphRegion = 0;

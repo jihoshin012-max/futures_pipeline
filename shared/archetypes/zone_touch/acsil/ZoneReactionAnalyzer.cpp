@@ -1,3 +1,8 @@
+// STUDY VERSION LOG
+// Current: v3.2 (2026-03-22) — VP proximity filter added
+// Prior:   v3.1 (2026-03-07) — Pipeline snapshot, pre-VP fix
+// Backup:  ZoneReactionAnalyzer_v31.cpp
+
 // @study: Zone Reaction Analyzer
 // @version: 2
 // @author: ATEAM
@@ -526,7 +531,7 @@ SCSFExport scsf_ZoneReactionAnalyzer(SCStudyInterfaceRef sc)
 
     if (sc.SetDefaults)
     {
-        sc.GraphName = "Zone Reaction Analyzer";
+        sc.GraphName = "Zone Reaction Analyzer [v3.2]";
         sc.StudyDescription =
             "Multi-TF zone reaction analyzer with unified CSV export";
         sc.AutoLoop = 1;
