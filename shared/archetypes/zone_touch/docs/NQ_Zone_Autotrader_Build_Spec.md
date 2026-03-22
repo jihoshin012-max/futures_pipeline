@@ -40,7 +40,7 @@ This document consolidates everything into one autotrader build spec.
 
 | Feature | Description | Weight Source |
 |---------|------------|-------------|
-| F10 Prior Penetration | How far price penetrated zone on prior touch | R/P spread 0.977 |
+| F10 Prior Penetration | Raw ticks price penetrated zone on prior touch (NOT a ratio) | R/P spread 0.977 |
 | F04 CascadeState | Was prior zone at this price held or broke? | R/P spread 0.580 |
 | F01 Timeframe | Zone timeframe (30m best, 480m+ worst) | R/P spread 0.336 |
 | F21 Zone Age | Bars since zone creation (SBB-MASKED) | NORMAL-only R/P spread 0.432 |
@@ -55,7 +55,7 @@ This document consolidates everything into one autotrader build spec.
 
 **F10 Prior Penetration:**
 - Definition: On the PRIOR touch of this zone (seq-1), how far did price penetrate past the zone edge?
-- Compute: Prior touch's Penetration field / Zone Width. Value = 0 if seq = 1 (no prior touch — assign to null bin).
+- Compute: Raw PenetrationTicks from the prior touch on the same zone. NOT divided by zone width. Value = 0 if seq = 1 (no prior touch — assign to lowest bin).
 - Units: Ratio (0.0 = no penetration, 1.0 = penetrated full zone width, >1.0 = penetrated beyond zone)
 - Source: V4 study tracks per-zone touch history. `Penetration` and `ZoneWidthTicks` columns.
 
@@ -111,7 +111,7 @@ This document consolidates everything into one autotrader build spec.
 - CT mode: No seq gate
 - WT/NT mode: Seq ≤ 5
 
-**Trend label computation:** TrendSlope (linear regression slope of Last price over trailing 50 bars). P1-frozen cutoffs: P33 = -0.3076, P67 = +0.3403. Direction-aware: demand CT = slope < P33 (falling into demand), supply CT = slope > P67 (rising into supply).
+**Trend label computation:** TrendSlope pre-computed by ZBV4 study (NOT linear regression from bar data). P1-frozen cutoffs: P33 = -0.3076, P67 = +0.3403. Non-direction-aware: slope ≤ P33 → CT, slope ≥ P67 → WT, otherwise → NT. Same classification regardless of demand/supply direction.
 
 ---
 
@@ -245,8 +245,8 @@ Peak hour: 14:00 (13 trades, 22% of total). 53% of trades are RTH afternoon.
 4. Compute A-Cal score (weighted sum of bin points)
 5. If score < 16.66: SKIP (log to signal_log with reason=BELOW_THRESHOLD)
 6. Check TF filter (must be ≤ 120m): if fails, SKIP (reason=TF_FILTER)
-7. Compute TrendSlope (50-bar linear regression of Last price)
-8. Assign trend label (CT/WT/NT using P1-frozen P33/P67, direction-aware)
+7. Read TrendSlope from SignalRecord (pre-computed by ZBV4)
+8. Assign trend label (slope ≤ P33 → CT, slope ≥ P67 → WT, else NT — non-direction-aware)
 9. Route to mode:
    - CT → 2-leg T1=40t(67%), T2=80t(33%), Stop=190t, TC=160
    - WT/NT + seq ≤ 5 → 2-leg T1=60t(67%), T2=80t(33%), Stop=240t, TC=160
@@ -519,7 +519,7 @@ Inverted feature polarity. SBB touches (1,411) + bounce near-miss touches (269 w
 - [ ] Scoring model loaded from `scoring_model_acal.json` (P1-frozen)
 - [ ] Feature bin edges loaded from `feature_config.json` (P1-frozen)
 - [ ] TrendSlope P33/P67 loaded from `feature_config.json` (P1-frozen)
-- [ ] F10 computation matches Python (prior penetration / zone width, null for seq=1)
+- [ ] F10 computation matches Python (raw PenetrationTicks from prior touch, NOT ratio, 0 for seq=1)
 - [ ] F04 values match Python (NO_PRIOR / PRIOR_HELD / PRIOR_BROKE from V4 cascade)
 - [ ] F01 values match Python (SourceLabel from V4 study)
 - [ ] F21 computation matches Python (bar count since zone birth)
@@ -527,7 +527,7 @@ Inverted feature polarity. SBB touches (1,411) + bounce near-miss touches (269 w
 - [ ] 2-leg exit logic implemented (67/33 split, separate targets per leg)
 - [ ] CT mode exits: T1=40t, T2=80t, Stop=190t, TC=160
 - [ ] WT/NT mode exits: T1=60t, T2=80t, Stop=240t, TC=160
-- [ ] Trend label computation matches pipeline (direction-aware, 50-bar slope)
+- [ ] Trend label: non-direction-aware (slope ≤ P33 → CT, ≥ P67 → WT). Reads from SignalRecord.
 - [ ] No-overlap rule enforced across BOTH modes (skip if any position open)
 - [ ] TF filter: ≤ 120m only
 - [ ] Seq gate: none for CT, ≤ 5 for WT/NT
