@@ -1,0 +1,311 @@
+{
+  "ct_mode": {
+    "verdict": "improved",
+    "top3": [
+      {
+        "base_idx": 0,
+        "base_config": {
+          "legs": 2,
+          "targets": [
+            40,
+            80
+          ],
+          "split": [
+            0.67,
+            0.33
+          ],
+          "stop": 190,
+          "tcap": 160,
+          "pf": 264.35318559556794,
+          "trades": 40,
+          "profit_dd": 263.353185595567,
+          "max_dd": 7.220000000000027,
+          "exit_breakdown": {
+            "target_1": 40,
+            "target_2": 37,
+            "time_cap": 3
+          },
+          "exit_pcts": {
+            "target_1": 50.0,
+            "target_2": 46.2,
+            "time_cap": 3.8
+          },
+          "net_profit": 1901.4100000000012
+        },
+        "l1_trigger": 40,
+        "l1_dest": 10,
+        "l2_trigger": null,
+        "l2_dest": null,
+        "affected": 20,
+        "low_impact": false,
+        "pf": "inf",
+        "trades": 40,
+        "profit_dd": "inf",
+        "max_dd": 0.0,
+        "exit_counts": {
+          "['target_1', 'target_2']": 19,
+          "['stepup', 'stepup']": 9,
+          "['target_1', 'time_cap']": 1,
+          "['target_1', 'stepup']": 11
+        },
+        "net_profit": 1358.17
+      },
+      {
+        "base_idx": 0,
+        "base_config": {
+          "legs": 2,
+          "targets": [
+            40,
+            80
+          ],
+          "split": [
+            0.67,
+            0.33
+          ],
+          "stop": 190,
+          "tcap": 160,
+          "pf": 264.35318559556794,
+          "trades": 40,
+          "profit_dd": 263.353185595567,
+          "max_dd": 7.220000000000027,
+          "exit_breakdown": {
+            "target_1": 40,
+            "target_2": 37,
+            "time_cap": 3
+          },
+          "exit_pcts": {
+            "target_1": 50.0,
+            "target_2": 46.2,
+            "time_cap": 3.8
+          },
+          "net_profit": 1901.4100000000012
+        },
+        "l1_trigger": 40,
+        "l1_dest": 20,
+        "l2_trigger": null,
+        "l2_dest": null,
+        "affected": 29,
+        "low_impact": false,
+        "pf": "inf",
+        "trades": 40,
+        "profit_dd": "inf",
+        "max_dd": 0.0,
+        "exit_counts": {
+          "['target_1', 'target_2']": 10,
+          "['stepup', 'stepup']": 19,
+          "['target_1', 'time_cap']": 1,
+          "['target_1', 'stepup']": 10
+        },
+        "net_profit": 1172.2700000000004
+      },
+      {
+        "base_idx": 0,
+        "base_config": {
+          "legs": 2,
+          "targets": [
+            40,
+            80
+          ],
+          "split": [
+            0.67,
+            0.33
+          ],
+          "stop": 190,
+          "tcap": 160,
+          "pf": 264.35318559556794,
+          "trades": 40,
+          "profit_dd": 263.353185595567,
+          "max_dd": 7.220000000000027,
+          "exit_breakdown": {
+            "target_1": 40,
+            "target_2": 37,
+            "time_cap": 3
+          },
+          "exit_pcts": {
+            "target_1": 50.0,
+            "target_2": 46.2,
+            "time_cap": 3.8
+          },
+          "net_profit": 1901.4100000000012
+        },
+        "l1_trigger": 40,
+        "l1_dest": 30,
+        "l2_trigger": null,
+        "l2_dest": null,
+        "affected": 37,
+        "low_impact": false,
+        "pf": "inf",
+        "trades": 40,
+        "profit_dd": "inf",
+        "max_dd": 0.0,
+        "exit_counts": {
+          "['stepup', 'stepup']": 35,
+          "['target_1', 'stepup']": 2,
+          "['target_1', 'time_cap']": 1,
+          "['target_1', 'target_2']": 2
+        },
+        "net_profit": 1156.0700000000002
+      }
+    ],
+    "all_low_impact": false
+  },
+  "all_mode": {
+    "verdict": "degraded",
+    "top3": [
+      {
+        "base_idx": 0,
+        "base_config": {
+          "legs": 2,
+          "targets": [
+            60,
+            80
+          ],
+          "split": [
+            0.67,
+            0.33
+          ],
+          "stop": 240,
+          "tcap": 160,
+          "pf": 11.741846776560763,
+          "trades": 129,
+          "profit_dd": 28.61353909465027,
+          "max_dd": 243.0,
+          "exit_breakdown": {
+            "target_1": 123,
+            "target_2": 117,
+            "time_cap": 14,
+            "stop": 4
+          },
+          "exit_pcts": {
+            "target_1": 47.7,
+            "target_2": 45.3,
+            "time_cap": 5.4,
+            "stop": 1.6
+          },
+          "net_profit": 6953.090000000016
+        },
+        "l1_trigger": 60,
+        "l1_dest": 0,
+        "l2_trigger": 80,
+        "l2_dest": 60,
+        "affected": 80,
+        "low_impact": false,
+        "pf": 10.78320373250389,
+        "trades": 133,
+        "profit_dd": 25.887242798353917,
+        "max_dd": 243.0,
+        "exit_counts": {
+          "['target_1', 'stepup']": 56,
+          "['time_cap', 'time_cap']": 4,
+          "['target_1', 'target_2']": 49,
+          "['stepup', 'stepup']": 22,
+          "['stop', 'stop']": 2
+        },
+        "net_profit": 6290.600000000002
+      },
+      {
+        "base_idx": 0,
+        "base_config": {
+          "legs": 2,
+          "targets": [
+            60,
+            80
+          ],
+          "split": [
+            0.67,
+            0.33
+          ],
+          "stop": 240,
+          "tcap": 160,
+          "pf": 11.741846776560763,
+          "trades": 129,
+          "profit_dd": 28.61353909465027,
+          "max_dd": 243.0,
+          "exit_breakdown": {
+            "target_1": 123,
+            "target_2": 117,
+            "time_cap": 14,
+            "stop": 4
+          },
+          "exit_pcts": {
+            "target_1": 47.7,
+            "target_2": 45.3,
+            "time_cap": 5.4,
+            "stop": 1.6
+          },
+          "net_profit": 6953.090000000016
+        },
+        "l1_trigger": 60,
+        "l1_dest": 0,
+        "l2_trigger": 100,
+        "l2_dest": 60,
+        "affected": 45,
+        "low_impact": false,
+        "pf": 10.726380368098168,
+        "trades": 133,
+        "profit_dd": 25.778861788617906,
+        "max_dd": 246.0,
+        "exit_counts": {
+          "['target_1', 'target_2']": 84,
+          "['target_1', 'stepup']": 29,
+          "['time_cap', 'time_cap']": 4,
+          "['stepup', 'stepup']": 14,
+          "['stop', 'stop']": 2
+        },
+        "net_profit": 6341.600000000005
+      },
+      {
+        "base_idx": 0,
+        "base_config": {
+          "legs": 2,
+          "targets": [
+            60,
+            80
+          ],
+          "split": [
+            0.67,
+            0.33
+          ],
+          "stop": 240,
+          "tcap": 160,
+          "pf": 11.741846776560763,
+          "trades": 129,
+          "profit_dd": 28.61353909465027,
+          "max_dd": 243.0,
+          "exit_breakdown": {
+            "target_1": 123,
+            "target_2": 117,
+            "time_cap": 14,
+            "stop": 4
+          },
+          "exit_pcts": {
+            "target_1": 47.7,
+            "target_2": 45.3,
+            "time_cap": 5.4,
+            "stop": 1.6
+          },
+          "net_profit": 6953.090000000016
+        },
+        "l1_trigger": 60,
+        "l1_dest": -10,
+        "l2_trigger": 80,
+        "l2_dest": 60,
+        "affected": 77,
+        "low_impact": false,
+        "pf": 10.701818181818185,
+        "trades": 133,
+        "profit_dd": 26.350617283950623,
+        "max_dd": 243.0,
+        "exit_counts": {
+          "['target_1', 'stepup']": 54,
+          "['time_cap', 'time_cap']": 4,
+          "['target_1', 'target_2']": 52,
+          "['stepup', 'stepup']": 21,
+          "['stop', 'stop']": 2
+        },
+        "net_profit": 6403.200000000002
+      }
+    ],
+    "all_low_impact": false
+  }
+}

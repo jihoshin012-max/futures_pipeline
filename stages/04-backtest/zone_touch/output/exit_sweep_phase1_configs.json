@@ -1,0 +1,192 @@
+{
+  "ct_mode": {
+    "current_best": {
+      "stop": 190,
+      "target": 80,
+      "tc": 120,
+      "pf": 30.58
+    },
+    "top3": [
+      {
+        "legs": 1,
+        "targets": [
+          40
+        ],
+        "split": [
+          1.0
+        ],
+        "stop": 190,
+        "tcap": 160,
+        "pf": Infinity,
+        "trades": 40,
+        "profit_dd": Infinity,
+        "max_dd": 0.0,
+        "exit_breakdown": {
+          "target": 40,
+          "stop": 0,
+          "time_cap": 0
+        },
+        "exit_pcts": {
+          "target": 100.0,
+          "stop": 0.0,
+          "time_cap": 0.0
+        },
+        "net_profit": 1480
+      },
+      {
+        "legs": 1,
+        "targets": [
+          40
+        ],
+        "split": [
+          1.0
+        ],
+        "stop": 240,
+        "tcap": 160,
+        "pf": Infinity,
+        "trades": 40,
+        "profit_dd": Infinity,
+        "max_dd": 0.0,
+        "exit_breakdown": {
+          "target": 40,
+          "stop": 0,
+          "time_cap": 0
+        },
+        "exit_pcts": {
+          "target": 100.0,
+          "stop": 0.0,
+          "time_cap": 0.0
+        },
+        "net_profit": 1480
+      },
+      {
+        "legs": 2,
+        "targets": [
+          40,
+          80
+        ],
+        "split": [
+          0.67,
+          0.33
+        ],
+        "stop": 190,
+        "tcap": 160,
+        "pf": 264.35318559556794,
+        "trades": 40,
+        "profit_dd": 263.353185595567,
+        "max_dd": 7.220000000000027,
+        "exit_breakdown": {
+          "target_1": 40,
+          "target_2": 37,
+          "time_cap": 3
+        },
+        "exit_pcts": {
+          "target_1": 50.0,
+          "target_2": 46.2,
+          "time_cap": 3.8
+        },
+        "net_profit": 1901.4100000000012
+      }
+    ]
+  },
+  "all_mode": {
+    "current_best": {
+      "stop": 190,
+      "target": 60,
+      "tc": 120,
+      "pf": 9.39
+    },
+    "top3": [
+      {
+        "legs": 2,
+        "targets": [
+          60,
+          80
+        ],
+        "split": [
+          0.67,
+          0.33
+        ],
+        "stop": 240,
+        "tcap": 160,
+        "pf": 11.741846776560763,
+        "trades": 129,
+        "profit_dd": 28.61353909465027,
+        "max_dd": 243.0,
+        "exit_breakdown": {
+          "target_1": 123,
+          "target_2": 117,
+          "time_cap": 14,
+          "stop": 4
+        },
+        "exit_pcts": {
+          "target_1": 47.7,
+          "target_2": 45.3,
+          "time_cap": 5.4,
+          "stop": 1.6
+        },
+        "net_profit": 6953.090000000016
+      },
+      {
+        "legs": 2,
+        "targets": [
+          60,
+          80
+        ],
+        "split": [
+          0.67,
+          0.33
+        ],
+        "stop": 240,
+        "tcap": 120,
+        "pf": 11.708173515981759,
+        "trades": 131,
+        "profit_dd": 28.951728395061792,
+        "max_dd": 243.0,
+        "exit_breakdown": {
+          "target_1": 125,
+          "target_2": 118,
+          "time_cap": 15,
+          "stop": 4
+        },
+        "exit_pcts": {
+          "target_1": 47.7,
+          "target_2": 45.0,
+          "time_cap": 5.7,
+          "stop": 1.5
+        },
+        "net_profit": 7035.270000000016
+      },
+      {
+        "legs": 2,
+        "targets": [
+          60,
+          80
+        ],
+        "split": [
+          0.5,
+          0.5
+        ],
+        "stop": 240,
+        "tcap": 120,
+        "pf": 11.673707210487983,
+        "trades": 131,
+        "profit_dd": 30.15432098765432,
+        "max_dd": 243.0,
+        "exit_breakdown": {
+          "target_1": 125,
+          "target_2": 118,
+          "time_cap": 15,
+          "stop": 4
+        },
+        "exit_pcts": {
+          "target_1": 47.7,
+          "target_2": 45.0,
+          "time_cap": 5.7,
+          "stop": 1.5
+        },
+        "net_profit": 7327.5
+      }
+    ]
+  }
+}

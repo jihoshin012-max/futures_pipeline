@@ -1,0 +1,1026 @@
+{
+  "baseline_pf": 0.8984,
+  "winning_features": [
+    "F10_PriorPenetration",
+    "F04_CascadeState",
+    "F01_Timeframe",
+    "F21_ZoneAge"
+  ],
+  "models": {
+    "A-Cal": {
+      "threshold": 16.66,
+      "max_score": 23.8
+    },
+    "A-Eq": {
+      "threshold": 26.0,
+      "max_score": 40
+    },
+    "B-ZScore": {
+      "threshold": 0.7499999999999999
+    }
+  },
+  "runs": {
+    "seg1_A-Cal": {
+      "seg_type": "seg1",
+      "model": "A-Cal",
+      "score_col": "score_acal",
+      "threshold": 16.66,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 190,
+            "target": 60,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 5,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 9.388235294117647,
+          "trades": 134,
+          "profit_dd": 33.248704663212436,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.0854249610524493,
+          "trades": 1231,
+          "profit_dd": 1.0024375380865327,
+          "fallback": false
+        }
+      }
+    },
+    "seg1_A-Eq": {
+      "seg_type": "seg1",
+      "model": "A-Eq",
+      "score_col": "score_aeq",
+      "threshold": 26.0,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 190,
+            "target": 80,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 3,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 7.367172675521822,
+          "trades": 110,
+          "profit_dd": 28.926724137931036,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.118831521230608,
+          "trades": 1158,
+          "profit_dd": 1.4955252001884127,
+          "fallback": false
+        }
+      }
+    },
+    "seg1_B-ZScore": {
+      "seg_type": "seg1",
+      "model": "B-ZScore",
+      "score_col": "score_bzscore",
+      "threshold": 0.7499999999999999,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 160,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 80,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 3.1024970963995355,
+          "trades": 155,
+          "profit_dd": 14.807770961145195,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.116218333768608,
+          "trades": 981,
+          "profit_dd": 1.5772151898734177,
+          "fallback": false
+        }
+      }
+    },
+    "seg2_A-Cal": {
+      "seg_type": "seg2",
+      "model": "A-Cal",
+      "score_col": "score_acal",
+      "threshold": 16.66,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 190,
+            "target": 60,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 5,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 9.388235294117647,
+          "trades": 134,
+          "profit_dd": 33.248704663212436,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 120,
+            "target": 200,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.3366677781482716,
+          "trades": 304,
+          "profit_dd": 2.9871794871794872,
+          "fallback": false
+        },
+        "ModeC": {
+          "exit_params": {
+            "stop": 190,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.3418796234028245,
+          "trades": 276,
+          "profit_dd": 3.5738137082601056,
+          "fallback": false
+        },
+        "ModeD": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 0.993140006236358,
+          "trades": 484,
+          "profit_dd": -0.04932735426008968,
+          "fallback": false
+        }
+      }
+    },
+    "seg2_A-Eq": {
+      "seg_type": "seg2",
+      "model": "A-Eq",
+      "score_col": "score_aeq",
+      "threshold": 26.0,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 190,
+            "target": 80,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 3,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 7.367172675521822,
+          "trades": 110,
+          "profit_dd": 28.926724137931036,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 120,
+            "target": 200,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.3127972693190084,
+          "trades": 300,
+          "profit_dd": 2.7564102564102564,
+          "fallback": false
+        },
+        "ModeC": {
+          "exit_params": {
+            "stop": 190,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.3808789514263686,
+          "trades": 279,
+          "profit_dd": 3.7329974811083124,
+          "fallback": false
+        },
+        "ModeD": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 0.9979453962947485,
+          "trades": 481,
+          "profit_dd": -0.014790674354474806,
+          "fallback": false
+        }
+      }
+    },
+    "seg2_B-ZScore": {
+      "seg_type": "seg2",
+      "model": "B-ZScore",
+      "score_col": "score_bzscore",
+      "threshold": 0.7499999999999999,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 160,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 80,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 3.1024970963995355,
+          "trades": 155,
+          "profit_dd": 14.807770961145195,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.308264355923435,
+          "trades": 320,
+          "profit_dd": 4.163318777292576,
+          "fallback": false
+        },
+        "ModeC": {
+          "exit_params": {
+            "stop": 190,
+            "target": 200,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.5209172351442426,
+          "trades": 300,
+          "profit_dd": 6.287698412698413,
+          "fallback": false
+        },
+        "ModeD": {
+          "exit_params": {
+            "stop": 120,
+            "target": 160,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 0.9733103308301198,
+          "trades": 506,
+          "profit_dd": -0.20025380710659899,
+          "fallback": false
+        }
+      }
+    },
+    "seg3_A-Cal": {
+      "seg_type": "seg3",
+      "model": "A-Cal",
+      "score_col": "score_acal",
+      "threshold": 16.66,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 190,
+            "target": 80,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 7.370013755158184,
+          "trades": 76,
+          "profit_dd": 23.99481865284974,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 190,
+            "target": 80,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": null,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 30.57777777777778,
+          "trades": 40,
+          "profit_dd": 60.5,
+          "fallback": false
+        },
+        "ModeC": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.0854249610524493,
+          "trades": 1231,
+          "profit_dd": 1.0024375380865327,
+          "fallback": false
+        }
+      }
+    },
+    "seg3_A-Eq": {
+      "seg_type": "seg3",
+      "model": "A-Eq",
+      "score_col": "score_aeq",
+      "threshold": 26.0,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 190,
+            "target": 80,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 10.156521739130435,
+          "trades": 81,
+          "profit_dd": 27.27979274611399,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 90,
+            "target": 120,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 80
+          },
+          "filters": {
+            "seq_max": 3,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.342293906810036,
+          "trades": 27,
+          "profit_dd": 0.6092503987240829,
+          "fallback": true
+        },
+        "ModeC": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.118831521230608,
+          "trades": 1158,
+          "profit_dd": 1.4955252001884127,
+          "fallback": false
+        }
+      }
+    },
+    "seg3_B-ZScore": {
+      "seg_type": "seg3",
+      "model": "B-ZScore",
+      "score_col": "score_bzscore",
+      "threshold": 0.7499999999999999,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 160,
+            "target": 60,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 12.239263803680982,
+          "trades": 72,
+          "profit_dd": 22.478527607361965,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 190,
+            "target": 200,
+            "be_trigger": 0,
+            "trail_trigger": 100,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 3,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 2.295424085774459,
+          "trades": 139,
+          "profit_dd": 9.877372262773722,
+          "fallback": false
+        },
+        "ModeC": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.116218333768608,
+          "trades": 981,
+          "profit_dd": 1.5772151898734177,
+          "fallback": false
+        }
+      }
+    },
+    "seg4_A-Cal": {
+      "seg_type": "seg4",
+      "model": "A-Cal",
+      "score_col": "score_acal",
+      "threshold": 16.66,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 190,
+            "target": 60,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 5,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 14.098939929328623,
+          "trades": 75,
+          "profit_dd": 19.207253886010363,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 190,
+            "target": 80,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 7.921161825726141,
+          "trades": 53,
+          "profit_dd": 17.28497409326425,
+          "fallback": false
+        },
+        "ModeC": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.0854249610524493,
+          "trades": 1231,
+          "profit_dd": 1.0024375380865327,
+          "fallback": false
+        }
+      }
+    },
+    "seg4_A-Eq": {
+      "seg_type": "seg4",
+      "model": "A-Eq",
+      "score_col": "score_aeq",
+      "threshold": 26.0,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 190,
+            "target": 80,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 3,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 9.253968253968255,
+          "trades": 58,
+          "profit_dd": 11.779935275080906,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 190,
+            "target": 120,
+            "be_trigger": 0,
+            "trail_trigger": 80,
+            "time_cap": 80
+          },
+          "filters": {
+            "seq_max": 3,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 7.622608695652174,
+          "trades": 54,
+          "profit_dd": 19.52820512820513,
+          "fallback": false
+        },
+        "ModeC": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.118831521230608,
+          "trades": 1158,
+          "profit_dd": 1.4955252001884127,
+          "fallback": false
+        }
+      }
+    },
+    "seg4_B-ZScore": {
+      "seg_type": "seg4",
+      "model": "B-ZScore",
+      "score_col": "score_bzscore",
+      "threshold": 0.7499999999999999,
+      "groups": {
+        "ModeA": {
+          "exit_params": {
+            "stop": 190,
+            "target": 80,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": 5,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 3.811191335740072,
+          "trades": 156,
+          "profit_dd": 18.322352941176472,
+          "fallback": false
+        },
+        "ModeB": {
+          "exit_params": {
+            "stop": 190,
+            "target": 200,
+            "be_trigger": 0,
+            "trail_trigger": 100,
+            "time_cap": 80
+          },
+          "filters": {
+            "seq_max": 3,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 2.5340397350993378,
+          "trades": 111,
+          "profit_dd": 10.304270462633452,
+          "fallback": false
+        },
+        "ModeC": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.116218333768608,
+          "trades": 981,
+          "profit_dd": 1.5772151898734177,
+          "fallback": false
+        }
+      }
+    },
+    "seg5_A-Cal": {
+      "seg_type": "seg5",
+      "model": "A-Cal",
+      "score_col": "score_acal",
+      "threshold": 16.66,
+      "groups": {
+        "Cluster1": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.21136581903211,
+          "trades": 1097,
+          "profit_dd": 4.173124484748557,
+          "fallback": false
+        },
+        "Cluster2": {
+          "exit_params": {
+            "stop": 160,
+            "target": 120,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": null,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.7172211350293543,
+          "trades": 22,
+          "profit_dd": 3.507177033492823,
+          "fallback": false
+        },
+        "Cluster3": {
+          "exit_params": {
+            "stop": 60,
+            "target": 200,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": null,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.052917442582247,
+          "trades": 141,
+          "profit_dd": 0.2795081967213115,
+          "fallback": false
+        },
+        "_cluster_k": 5,
+        "_centroids": [
+          [
+            3.4709113610425586,
+            0.007905541959008692
+          ],
+          [
+            -0.372099762554869,
+            -0.21601436417439257
+          ],
+          [
+            0.13880282660909898,
+            8.7094090433196
+          ],
+          [
+            -0.3829287308225364,
+            2.464370327082137
+          ],
+          [
+            1.1166274396478704,
+            -0.1609536298280559
+          ]
+        ]
+      }
+    },
+    "seg5_A-Eq": {
+      "seg_type": "seg5",
+      "model": "A-Eq",
+      "score_col": "score_aeq",
+      "threshold": 26.0,
+      "groups": {
+        "Cluster1": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.21136581903211,
+          "trades": 1097,
+          "profit_dd": 4.173124484748557,
+          "fallback": false
+        },
+        "Cluster2": {
+          "exit_params": {
+            "stop": 160,
+            "target": 120,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": null,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.7172211350293543,
+          "trades": 22,
+          "profit_dd": 3.507177033492823,
+          "fallback": false
+        },
+        "Cluster3": {
+          "exit_params": {
+            "stop": 60,
+            "target": 200,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": null,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.052917442582247,
+          "trades": 141,
+          "profit_dd": 0.2795081967213115,
+          "fallback": false
+        },
+        "_cluster_k": 5,
+        "_centroids": [
+          [
+            3.4709113610425586,
+            0.007905541959008701
+          ],
+          [
+            -0.372099762554869,
+            -0.21601436417439257
+          ],
+          [
+            0.13880282660909898,
+            8.7094090433196
+          ],
+          [
+            -0.3829287308225364,
+            2.4643703270821367
+          ],
+          [
+            1.1166274396478704,
+            -0.1609536298280559
+          ]
+        ]
+      }
+    },
+    "seg5_B-ZScore": {
+      "seg_type": "seg5",
+      "model": "B-ZScore",
+      "score_col": "score_bzscore",
+      "threshold": 0.7499999999999999,
+      "groups": {
+        "Cluster1": {
+          "exit_params": {
+            "stop": 120,
+            "target": 240,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 30
+          },
+          "filters": {
+            "seq_max": 2,
+            "tf_filter": true,
+            "width_min": 0
+          },
+          "pf_3t": 1.21136581903211,
+          "trades": 1097,
+          "profit_dd": 4.173124484748557,
+          "fallback": false
+        },
+        "Cluster2": {
+          "exit_params": {
+            "stop": 160,
+            "target": 120,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 50
+          },
+          "filters": {
+            "seq_max": null,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.7172211350293543,
+          "trades": 22,
+          "profit_dd": 3.507177033492823,
+          "fallback": false
+        },
+        "Cluster3": {
+          "exit_params": {
+            "stop": 60,
+            "target": 200,
+            "be_trigger": 0,
+            "trail_trigger": 0,
+            "time_cap": 120
+          },
+          "filters": {
+            "seq_max": null,
+            "tf_filter": false,
+            "width_min": 0
+          },
+          "pf_3t": 1.052917442582247,
+          "trades": 141,
+          "profit_dd": 0.2795081967213115,
+          "fallback": false
+        },
+        "_cluster_k": 5,
+        "_centroids": [
+          [
+            3.4709113610425595,
+            0.007905541959008687
+          ],
+          [
+            -0.37209976255486893,
+            -0.21601436417439257
+          ],
+          [
+            0.13880282660909898,
+            8.7094090433196
+          ],
+          [
+            -0.3829287308225365,
+            2.4643703270821367
+          ],
+          [
+            1.1166274396478704,
+            -0.1609536298280559
+          ]
+        ]
+      }
+    }
+  },
+  "generated_at": "2026-03-22T00:28:03.097588",
+  "p1_only": true,
+  "p2_loaded": false
+}

@@ -1,0 +1,39 @@
+{
+  "baseline_pf": 0.8984,
+  "winner": {
+    "run_key": "seg3_A-Cal",
+    "group": "ModeB",
+    "verdict": "Yes",
+    "scoring_model": "A-Cal",
+    "segmentation": "seg3",
+    "threshold": 16.66,
+    "exit_params": {
+      "stop": 190,
+      "target": 80,
+      "be_trigger": 0,
+      "trail_trigger": 0,
+      "time_cap": 120
+    },
+    "filters": {
+      "seq_max": null,
+      "tf_filter": true,
+      "width_min": 0
+    },
+    "features": [
+      "F10_PriorPenetration",
+      "F04_CascadeState",
+      "F01_Timeframe",
+      "F21_ZoneAge"
+    ],
+    "p1_pf": 30.57777777777778,
+    "p2a_pf": 4.721938775510204,
+    "p2b_pf": 5.476683937823834,
+    "combined_p2_pf": 5.096401028277635,
+    "combined_p2_pf4": 4.996168582375479,
+    "sharpe": 0.7874818692299859,
+    "max_dd": 193.0,
+    "profit_dd": 16.512953367875646,
+    "trades": 58,
+    "sbb_pct": 0.0
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "approach": "A-Eq",
+  "winning_features": [
+    "F10_PriorPenetration",
+    "F04_CascadeState",
+    "F01_Timeframe",
+    "F21_ZoneAge"
+  ],
+  "pts_per_feature": 10,
+  "bin_edges": {
+    "F10_PriorPenetration": [
+      220.0,
+      590.0
+    ],
+    "F21_ZoneAge": [
+      49.0,
+      831.8700000000001
+    ]
+  },
+  "categorical_mappings": {
+    "F04_CascadeState": {
+      "best": "NO_PRIOR",
+      "worst": "PRIOR_BROKE",
+      "cats": [
+        "PRIOR_BROKE",
+        "PRIOR_HELD",
+        "NO_PRIOR"
+      ]
+    },
+    "F01_Timeframe": {
+      "best": "30m",
+      "worst": "480m",
+      "cats": [
+        "15m",
+        "30m",
+        "60m",
+        "90m",
+        "120m",
+        "240m",
+        "360m",
+        "480m",
+        "720m"
+      ]
+    }
+  },
+  "max_score": 40,
+  "threshold": 26.0,
+  "pf_3t": 2.6939313984168867,
+  "trades": 103
+}
