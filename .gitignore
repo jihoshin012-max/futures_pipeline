@@ -1,4 +1,5 @@
 __pycache__/
+.pytest_cache/
 *.pyc
 *.pyo
 *.nbi
@@ -11,4 +12,9 @@ stages/01-data/data/**/*.txt
 # Large intermediate/output files
 *.pkl
 stages/01-data/output/zone_prep/NQ_bardata_*.csv
-__pycache__/
+
+# Calibration CSV moved from data/ to analysis/ (130M)
+stages/01-data/analysis/calibration_v1_1/NQ_calibration_*.csv
+
+# Archived data snapshots
+archive/data_snapshots/**/*.csv

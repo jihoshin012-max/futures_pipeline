@@ -1,5 +1,5 @@
 ---
-last_reviewed: 2026-03-13
+last_reviewed: 2026-03-22
 reviewed_by: Ji
 ---
 # CONTEXT.md — Pipeline Router
@@ -15,12 +15,12 @@ reviewed_by: Ji
 ## STAGE STATUS
 | Stage | Status | Notes |
 |-------|--------|-------|
-| 01-data | Active | Scaffold complete; awaiting data validation |
-| 02-features | Not started | Pending Pass 2 |
-| 03-hypothesis | Not started | Pending Pass 3 |
-| 04-backtest | Not started | Pending Pass 2 |
-| 05-assessment | Not started | |
-| 06-deployment | Not started | |
+| 01-data | Complete | Data validated; zone_prep outputs ready; HMM regime labels generated |
+| 02-features | Complete (zone_touch) | Feature engine + evaluator built; features frozen |
+| 03-hypothesis | Complete (zone_touch) | Hypothesis configs generated; P1b replication passed |
+| 04-backtest | Complete (zone_touch), Active (rotational) | Zone touch: P2 holdout run, exit sweeps done. Rotational: phase1-2 sweeps done, P2a validated |
+| 05-assessment | Active (rotational) | P2a validation run with cycle logs; zone touch verdict produced |
+| 06-deployment | Scaffolded | assemble_context.sh ready; awaiting promoted strategy |
 | 07-live | Active — monitor only | Paper trades accumulating |
 
 ## HUMAN CHECKPOINTS (never skip)
