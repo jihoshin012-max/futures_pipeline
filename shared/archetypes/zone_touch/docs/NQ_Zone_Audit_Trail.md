@@ -73,6 +73,16 @@
 - **Time cap exits on P2:** Average PnL = +10.7t (profitable). Better than P1 time caps (-22.0t).
 - **All 4 Yes groups:** 89-91% target rate across the board. Clean.
 
+### VP Ray Investigation (2026-03-22)
+- **MaxVPProfiles** was set to 50 (should be 0/500) — fixed
+- **ZBV4 and ZRA proximity filters added** — stale values zeroed (>3x zone width from edge)
+- **Root cause:** V4 subgraph 14 retains stale VP prices because SC purges VolumeAtPriceForBars data on historical bars
+- V4 draws rays correctly from memory but subgraph is stale on recalc
+- **P1:** 0% legitimate VP data. **P2:** 2.3%. Unusable for screening.
+- **Resolution:** persist ImbalancePrice in ZoneData (queued item #11)
+- **Pipeline v3.1 unaffected** — VP never used in scoring
+- Full investigation: `acsil/VP_RAY_INVESTIGATION.md`
+
 ---
 
 ## Bugs Found & Fixed
@@ -88,6 +98,11 @@
 | Stale "6 scoring models" in Prompt 1b | Prompt 1b | Should be 3 | Fixed to 3 |
 | F18 references in downstream prompts | Prompts 1b, 2, 3 | Referenced nonexistent threshold | Removed all F18 refs except definition |
 | Broken markdown table in Prompt 3 | Prompt 3 inputs | Incomplete table row | Fixed |
+| F10 spec said "Penetration / Zone Width" (ratio) | Build spec Part A | Would have caused wrong bin assignments | Corrected to raw PenetrationTicks. Bin edges [220, 590] confirmed as raw ticks. C++ build was already correct. |
+| TrendSlope spec said "linear regression over 50 bars" | Build spec Part A | Wrong scale — pipeline uses ZBV4 pre-computed values | Corrected: C++ reads sig.TrendSlope from SignalRecord. |
+| Trend classification spec said "direction-aware" | Build spec Part A | Would route demand CT wrong (pipeline is non-direction-aware) | Corrected: slope ≤ P33 → CT regardless of touch type. Confirmed on 79/79 trades. |
+| VP subgraph 14 stale values | V4 + ZRA + ZBV4 | HasVPRay=1 always (stale), F19/F20 screened on garbage | VAP data purged on recalc. ZRA/ZBV4 proximity filter added. V4 persistence fix queued. |
+| MaxVPProfiles set to 50 | V4 SC settings | Only 50/500 slots got VP profiles | Changed to 0 (=500). Not primary cause but compounded. |
 
 ---
 
