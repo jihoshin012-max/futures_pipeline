@@ -1,7 +1,7 @@
 # Pipeline Restructure Plan
 
 **Date:** 2026-03-22
-**Status:** Phase 1 EXECUTED 2026-03-22 — Phase 2+ pending
+**Status:** Phases 1-2 EXECUTED 2026-03-22 — Phase 3+ pending
 
 ---
 
@@ -87,15 +87,19 @@ pipeline/
 
 See `docs/RESTRUCTURE_LOG.md` for full action log.
 
-### Phase 2: Archive completed sweeps (~420M freed from active tree)
+### Phase 2: Archive completed sweeps — EXECUTED 2026-03-22
 
-| # | Action | Risk | Command |
+421M moved, 840 files archived. Summary files preserved in `stages/04-backtest/references/sweep_summaries/`.
+
+| # | Action | Status | Notes |
 |---|---|---|---|
-| 2.1 | Archive frozen_anchor_sweep | Low — sweep is complete, referenced only in docs | `mv stages/04-backtest/rotational/frozen_anchor_sweep archive/sweeps/` |
-| 2.2 | Archive sweep_results | Low — same rationale | `mv stages/04-backtest/rotational/sweep_results archive/sweeps/` |
-| 2.3 | Archive decoupled_seed_test | Low | `mv stages/04-backtest/rotational/decoupled_seed_test archive/sweeps/` |
-| 2.4 | Archive pullback_test | Low | `mv stages/04-backtest/rotational/pullback_test archive/sweeps/` |
-| 2.5 | Keep summary CSVs accessible | None | Copy `config_summary.csv` and `*_analysis.md` back to `stages/04-backtest/rotational/references/` |
+| 2.1 | Archive frozen_anchor_sweep | DONE | 379M, 423 files |
+| 2.2 | Archive sweep_results | DONE | 30M, 367 files |
+| 2.3 | Archive decoupled_seed_test | DONE | 6.4M, 22 files |
+| 2.4 | Archive pullback_test | DONE | 6.1M, 28 files |
+| 2.5 | Preserve summaries in active tree | DONE | 8 files → `stages/04-backtest/references/sweep_summaries/` |
+
+See `docs/RESTRUCTURE_LOG.md` for full action log.
 
 ### Phase 3: Script organization
 
@@ -230,8 +234,10 @@ archive-sweep:
 4. ~~Move calibration CSV out of production data dir~~ DONE
 5. ~~Add `stages/01-data/data/README.md` with data provenance~~ DONE
 
-### Do Soon (low risk, high value)
-6. Archive completed rotational sweeps (~420M)
+### ~~Do Soon (low risk, high value)~~ Phase 2 DONE — 2026-03-22
+6. ~~Archive completed rotational sweeps (~420M)~~ DONE
+
+### Do Next
 7. Create initial `Makefile` with `validate`, `check-p2`, `archive-sweep`
 
 ### Do Later (requires path updates)

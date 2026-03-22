@@ -16,5 +16,8 @@ stages/01-data/output/zone_prep/NQ_bardata_*.csv
 # Calibration CSV moved from data/ to analysis/ (130M)
 stages/01-data/analysis/calibration_v1_1/NQ_calibration_*.csv
 
-# Archived data snapshots
+# Archived data snapshots and sweep results (large CSVs + parquet)
 archive/data_snapshots/**/*.csv
+archive/sweeps/**/cycle_logs/
+archive/sweeps/**/*.csv
+archive/sweeps/**/*.parquet
