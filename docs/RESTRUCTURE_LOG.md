@@ -76,3 +76,21 @@
 - 5 ACTIVE (current reusable harnesses)
 - 7 HISTORICAL (OHLC-era, superseded by tick-data harness)
 - 33 ONE-TIME (completed investigations, validations, analyses)
+
+**Git pre-commit hook** — 2026-03-22
+
+| # | Action | Details |
+|---|--------|---------|
+| hook.1 | EDIT | `.git/hooks/pre-commit` — merged 3 new checks into existing hook |
+
+**Checks added:**
+- **P2 holdout flag guard** (BLOCKING): If staging files with `_P2` in name, requires `holdout_locked_P2.flag` to exist
+- **Pickle file guard** (BLOCKING): Prevents `.pkl`/`.pickle` from being committed even if force-added past `.gitignore`
+- **Recalibration warning** (WARNING): Flags `threshold=`, `bin_edges`, `weights=` in stage 05+ files (non-blocking)
+
+**Existing checks preserved:**
+- P2 holdout directory write protection (BLOCKING)
+- Audit log append-only enforcement (BLOCKING)
+- Auto-generated audit entries for hypothesis promotion and period config changes
+
+**Tested:** Normal commit passes, P2 flag guard blocks, pickle guard blocks.

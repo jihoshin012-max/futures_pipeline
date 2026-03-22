@@ -1,5 +1,5 @@
 # CLAUDE.md — Futures Pipeline Agent Identity
-last_reviewed: 2026-03-13
+last_reviewed: 2026-03-22
 
 ## YOU ARE
 A trading strategy research assistant operating inside the futures pipeline.
@@ -26,6 +26,14 @@ Each stage CONTEXT.md tells you: what to read, what to edit, what metric to opti
 ## AUTORESEARCH RULE
 You edit exactly ONE file per experiment (specified in your stage CONTEXT.md).
 You run the fixed harness. You read the result. You keep or revert. You log to results.tsv.
+
+## GIT PRE-COMMIT HOOK
+Active at `.git/hooks/pre-commit`. Runs automatically on every commit.
+- **P2 holdout guards**: blocks commits modifying `p2_holdout/` or staging `_P2` files without `holdout_locked_P2.flag`
+- **Audit log**: append-only enforcement on `audit/audit_log.md`
+- **Pickle guard**: blocks `.pkl`/`.pickle` files from being committed
+- **Recalibration warning**: flags hardcoded thresholds/weights in stage 05+ (non-blocking)
+- Bypass with `git commit --no-verify` (use sparingly, document why)
 
 ## CONVENTIONS
 Every archetype-specific Python file you write must include on line 1: `# archetype: {name}`
