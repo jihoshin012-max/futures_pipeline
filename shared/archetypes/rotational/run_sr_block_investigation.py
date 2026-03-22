@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: SR-block watch price reset investigation
+# LAST RUN: 2026-03
+
 """SR-block watch price reset investigation for daily-flatten trading.
 
 Follow-up to seed optimization investigation. Tests whether resetting the watch

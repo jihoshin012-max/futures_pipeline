@@ -1,7 +1,7 @@
 # Pipeline Restructure Plan
 
 **Date:** 2026-03-22
-**Status:** Phases 1-2 EXECUTED 2026-03-22 — Phase 3+ pending
+**Status:** Phases 1-3 EXECUTED 2026-03-22 — Phase 4 optional (naming normalization)
 
 ---
 
@@ -101,14 +101,20 @@ See `docs/RESTRUCTURE_LOG.md` for full action log.
 
 See `docs/RESTRUCTURE_LOG.md` for full action log.
 
-### Phase 3: Script organization
+### Phase 3: Script organization — EXECUTED 2026-03-22
 
-| # | Action | Risk | Notes |
+| # | Action | Status | Notes |
 |---|---|---|---|
-| 3.1 | Create `stages/01-data/scripts/` | None | |
-| 3.2 | Move `hmm_regime_fitter.py` to `scripts/` | **MEDIUM** — imported by tests | Update import path in `tests/test_hmm_regime_fitter.py` |
-| 3.3 | Move `run_zone_prep.py` from `output/zone_prep/` to `scripts/` | **MEDIUM** — may be referenced in docs | Update any doc references |
-| 3.4 | Create `Makefile` with initial targets | None | New file, additive only |
+| 3.1 | Create `stages/01-data/scripts/` | DONE | |
+| 3.2 | Move `hmm_regime_fitter.py` to `scripts/` | DONE | Updated test import, data README, strategy_archetypes.md |
+| 3.3 | Move `run_zone_prep.py` to `scripts/` | DONE | Zero stale references |
+| 3.4 | Loose scripts at stage roots | REPORTED | `validate.py`, `freeze_features.py`, `assess.py` — kept as stage entry points |
+| 3.5 | Status headers on 45 `run_*.py` files | DONE | 5 ACTIVE, 7 HISTORICAL, 33 ONE-TIME |
+| 3.6 | Create `Makefile` | DONE | Targets: help, check-p2, validate, zone-prep, archive-sweep |
+
+Note: `_config/regime_definitions.md` still references old path — protected file, requires human update.
+
+See `docs/RESTRUCTURE_LOG.md` for full action log.
 
 ### Phase 4: Naming normalization (LOWEST PRIORITY — high effort, moderate risk)
 
@@ -116,7 +122,6 @@ See `docs/RESTRUCTURE_LOG.md` for full action log.
 |---|---|---|
 | ACSIL file naming (PascalCase) | KEEP AS-IS — matches Sierra Chart convention | N/A |
 | Data file naming (mixed) | KEEP AS-IS — files are SC exports, renaming breaks `.gitignore` patterns | N/A |
-| `run_*.py` proliferation | Add header comments with status (ACTIVE / HISTORICAL / ONE-TIME) | Low |
 | Period identifier casing (P1a vs p1a) | Standardize to lowercase in new code only | Low |
 
 ---
@@ -237,13 +242,14 @@ archive-sweep:
 ### ~~Do Soon (low risk, high value)~~ Phase 2 DONE — 2026-03-22
 6. ~~Archive completed rotational sweeps (~420M)~~ DONE
 
-### Do Next
-7. Create initial `Makefile` with `validate`, `check-p2`, `archive-sweep`
+### ~~Do Next~~ Phase 3 DONE — 2026-03-22
+7. ~~Create initial `Makefile`~~ DONE
+8. ~~Organize scripts into `scripts/` subdirs (stage 01)~~ DONE
+9. ~~Add status headers to `run_*.py` files~~ DONE (45 files)
 
-### Do Later (requires path updates)
-8. Organize scripts into `scripts/` subdirs per stage
-9. Add status headers to `run_*.py` files (ACTIVE vs HISTORICAL)
+### Remaining (optional)
 10. Standardize period identifier casing in new code
+11. Update `_config/regime_definitions.md` path (requires human instruction)
 
 ### Do Not Do
 - Rename data files (31G of data, massive .gitignore impact, 40+ script references)

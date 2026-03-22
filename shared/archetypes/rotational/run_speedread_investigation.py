@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: SpeedRead filter investigation for FRC SD=25
+# LAST RUN: 2026-03
+
 """SpeedRead filter investigation for FRC SD=25 cap=2.
 
 Computes SpeedRead composite on 250-tick bar data, maps to tick data,

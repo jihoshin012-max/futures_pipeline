@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# STATUS: ONE-TIME
+# PURPOSE: First-passage from completion point (reversion vs continuation)
+# LAST RUN: 2026-03
+
 """First-passage from completion point: does reversion target hit before stop?
 
 For each parent-scale completion at 40pt, walk RAW 1-tick bars from the

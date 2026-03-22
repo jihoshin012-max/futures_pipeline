@@ -20,7 +20,7 @@ import pandas as pd
 import pytest
 
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent / "stages" / "01-data"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "stages" / "01-data" / "scripts"))
 
 from hmm_regime_fitter import (
     aggregate_to_daily,

@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# STATUS: ONE-TIME
+# PURPOSE: Structural verification checks for rotation sweep
+# LAST RUN: 2026-03
+
 """Structural verification checks for the rotation sweep.
 
 Check 1: P1-only structural alignment -- compare 25->10 completion rates and

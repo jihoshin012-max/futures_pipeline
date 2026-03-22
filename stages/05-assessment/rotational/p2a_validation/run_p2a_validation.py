@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: P2a replication validation of frozen-anchor SD40/RT0.8
+# LAST RUN: 2026-03-21
+
 """P2a Replication Validation — Frozen-Anchor SD40/RT0.8 on holdout data.
 
 Usage:

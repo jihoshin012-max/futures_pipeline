@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: P1b validation of seed-optimized config
+# LAST RUN: 2026-03
+
 """ONE-SHOT P1b validation of seed-optimized rotational config.
 
 Frozen config: SeedDist=15, Variant D (9:30 watch price), daily flatten 16:00 ET,

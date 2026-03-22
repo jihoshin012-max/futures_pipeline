@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: P2a failure diagnostic (four-prong analysis)
+# LAST RUN: 2026-03
+
 """P2a Failure Diagnostic — Four-prong analysis.
 
 Prong 1: Base config (SR OFF) on P2a — isolate SpeedRead contribution

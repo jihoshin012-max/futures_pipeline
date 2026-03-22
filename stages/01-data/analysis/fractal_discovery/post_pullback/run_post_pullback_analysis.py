@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# STATUS: ONE-TIME
+# PURPOSE: Post-pullback displacement and completion by depth
+# LAST RUN: 2026-03
+
 """Post-pullback displacement + completion by depth analysis.
 
 Runs on P1 RTH 1-tick data using zigzag infrastructure from fractal_01_prepare.

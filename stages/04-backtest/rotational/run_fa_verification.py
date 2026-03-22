@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Pre-sweep structural verification gate (3 configs)
+# LAST RUN: 2026-03-21
+
 """Frozen-anchor structural verification — 3 configs on P1 1-tick data.
 
 Runs before the full sweep as a go/no-go gate:

@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Decoupled seed test (small detection, large target)
+# LAST RUN: 2026-03-21
+
 """Decoupled Seed Test — Small detection (seed_dist), large target (step_dist).
 
 Usage:

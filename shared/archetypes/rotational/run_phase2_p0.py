@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Phase 2 P0 priority investigations (window, start time, SR block)
+# LAST RUN: 2026-03
+
 """Phase 2 P0: Priority investigations before standard Phase 2.
 
 P0-1: Clock-time rolling window (60 min) vs 200-swing count window

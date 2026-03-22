@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: V1.1 test battery (4 tests, 32 runs on P1a tick data)
+# LAST RUN: unknown
+
 """V1.1 test battery: 4 tests, 32 runs on P1a tick data.
 Exclude hours 1, 19, 20. Directional seed. All V1.1 calibrated path."""
 

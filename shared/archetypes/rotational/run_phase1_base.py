@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Phase 1 base parameter calibration (SD/AD/cap sweep)
+# LAST RUN: 2026-03
+
 """Phase 1: Base Parameter Calibration.
 
 Step 1:  Simulator enhancement verification (AddDist decoupling, session window, cap-walk).

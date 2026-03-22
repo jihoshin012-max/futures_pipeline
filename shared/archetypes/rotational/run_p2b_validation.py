@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: P2b final holdout validation (one run, no re-runs)
+# LAST RUN: 2026-03
+
 """P2b Validation: One-shot V1.4 + 4C stop (max_cap_walks=2) on P2b holdout.
 
 P2b = Feb 2, 2026 to Mar 13, 2026 (30 sessions).

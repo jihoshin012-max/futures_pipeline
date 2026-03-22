@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ACTIVE
+# PURPOSE: Current tick-data sweep harness for rotational archetype
+# LAST RUN: 2026-03
+
 """Tick-data sweep harness for rotational archetype.
 
 Runs all candidate configs on P1a 1-tick data. Supports:

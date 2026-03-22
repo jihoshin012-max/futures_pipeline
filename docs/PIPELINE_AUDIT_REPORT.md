@@ -90,8 +90,8 @@ pipeline/                          (32+ GB total, ~1500 files)
 | `NQ_BarData_250vol_P1.txt`, `NQ_BarData_250vol_P2.txt` | `stages/01-data/data/bar_data/volume/` | Legacy `.txt` format alongside newer `.csv` format of same data | Archive or delete if `.csv` versions are canonical |
 | `ZoneBounceSignalsV4_aligned_v31.cpp`, `ZoneReactionAnalyzer_v31.cpp` | `shared/archetypes/zone_touch/acsil/` | Superseded v31 backup copies alongside active versions | Move to `archive/acsil_snapshots/v31/` or delete |
 | `zone_bounce_config.h` | `shared/archetypes/zone_touch/acsil/` | Header file violates SC remote build constraint (no custom .h files, single .cpp only per feedback_acsil_build memory) | Should be inlined or documented as local-build-only |
-| `run_zone_prep.py` | `stages/01-data/output/zone_prep/` | Script mixed with its own output directory | Move to `stages/01-data/` or a `scripts/` subdir |
-| `hmm_regime_fitter.py` | `stages/01-data/` (root) | Loose script at stage root, not in analysis/ or scripts/ | Move to `stages/01-data/analysis/` or a `scripts/` subdir |
+| `run_zone_prep.py` | `stages/01-data/output/zone_prep/` | Script mixed with its own output directory | **MOVED** to `stages/01-data/scripts/` (Phase 3) |
+| `hmm_regime_fitter.py` | `stages/01-data/` (root) | Loose script at stage root, not in analysis/ or scripts/ | **MOVED** to `stages/01-data/scripts/` (Phase 3) |
 | `zigzag_results.pkl` (74M) | `stages/01-data/analysis/fractal_discovery/` | Large binary intermediate file in analysis folder | Should be gitignored (already covered by `*.pkl` in .gitignore) |
 | `.pytest_cache/` directories | `stages/04-backtest/rotational/`, `shared/archetypes/rotational/` | Test cache artifacts committed/present | Should be in .gitignore |
 | `ATEAM_ROTATION_V1_OG_V2803.cpp`, `ATEAM_ROTATION_V1_OG_analysis.md` | `xtra/` | Original rotation code mixed with design docs, prompts, and specs | Separate: code to archive, specs stay |

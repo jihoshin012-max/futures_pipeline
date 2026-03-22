@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ACTIVE
+# PURPOSE: General parameter sweep runner for rotational backtest
+# LAST RUN: 2026-03-20
+
 """Phase 1 Prompt 2 — Generate configs and run the full parameter sweep.
 
 Usage:

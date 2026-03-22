@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: V2 mode and ATR-normalized asymmetric tests
+# LAST RUN: unknown
+
 """Test 1: V2 modes at SD=25. Test 2: ATR-normalized asymmetric (V1.1)."""
 
 import sys

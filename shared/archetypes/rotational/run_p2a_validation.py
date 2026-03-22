@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: P2a one-shot validation of frozen V1.4 config
+# LAST RUN: 2026-03
+
 """P2a Validation: One-shot frozen V1.4 config on P2a holdout.
 
 Three steps (run in order):

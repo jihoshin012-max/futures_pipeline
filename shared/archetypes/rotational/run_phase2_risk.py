@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Phase 2 risk mitigation (adaptive stop, daily loss)
+# LAST RUN: 2026-03
+
 """Phase 2 Step 4: Risk Mitigation.
 
 4A: Adaptive cycle stop (MAE > N * rolling zigzag std)

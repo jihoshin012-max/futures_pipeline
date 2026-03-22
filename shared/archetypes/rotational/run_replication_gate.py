@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ACTIVE
+# PURPOSE: C++ vs Python replication gate for rotational V1.4
+# LAST RUN: 2026-03
+
 """Replication Gate (Section 7): Compare C++ ATEAM_ROTATION_V14 log vs Python simulator.
 
 Loads the NQ1T.csv from SierraChart Data directory, runs the Python simulator

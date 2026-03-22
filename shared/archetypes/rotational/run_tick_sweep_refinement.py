@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Refinement sweep around ATR R=2.0x/A=4.0x winner
+# LAST RUN: unknown
+
 """Refinement sweep: 17 runs around ATR R=2.0x/A=4.0x winner."""
 
 import sys

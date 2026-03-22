@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# STATUS: ONE-TIME
+# PURPOSE: Corrected first-passage from actual entry point
+# LAST RUN: 2026-03
+
 """Corrected first-passage from ACTUAL ENTRY POINT after parent completion.
 
 The strategy can't enter at the completion extreme — it enters AFTER the

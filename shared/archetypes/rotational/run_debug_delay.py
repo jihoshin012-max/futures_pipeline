@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Debug re-entry delay verification
+# LAST RUN: unknown
+
 """Debug re-entry delay: verify implementation, re-run with corrected logic."""
 
 import sys

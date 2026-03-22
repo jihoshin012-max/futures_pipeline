@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Regime-adaptive risk sweep using ZZ regime
+# LAST RUN: 2026-03
+
 """Regime-Adaptive Risk Sweep — ZZ regime for dynamic risk mitigation.
 
 Tests variations of using the rolling zigzag regime to adjust risk parameters

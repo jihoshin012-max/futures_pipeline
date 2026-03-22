@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Phase 0 re-verification on March 20 RTH tick data
+# LAST RUN: 2026-03-20
+
 """Phase 0 re-verification: run the new multi-approach simulator with
 Phase 0 calibration settings on the March 20, 2026 RTH tick data.
 

@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Filter screening (SpeedRead, time-of-day, ATR/volume)
+# LAST RUN: 2026-03
+
 """Filter screening: SpeedRead, H11 time-of-day, H13 ATR/volume conditions.
 
 Tests on/off filters against 3 Mode B profiles on 250tick P1a.

@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Seed optimization for daily-flatten trading
+# LAST RUN: 2026-03
+
 """Seed optimization investigation for daily-flatten trading.
 
 Investigates optimal seed mechanics when daily flatten at 16:00 ET is modeled.

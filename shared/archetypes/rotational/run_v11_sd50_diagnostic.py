@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: V1.1 SD=50 exploratory diagnostic
+# LAST RUN: 2026-03
+
 """Exploratory diagnostic: V1.1 config with SD=50, INIT_QTY=2, ML=4.
 
 No optimization — diagnostic runs on P1, P2a, P2b with block analysis.

@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Pullback entry test (9 configs on P1 1-tick)
+# LAST RUN: 2026-03-21
+
 """Pullback Entry Test — 9 configs (3 SD/RT × 3 re-entry options) on P1 1-tick data.
 
 Usage:

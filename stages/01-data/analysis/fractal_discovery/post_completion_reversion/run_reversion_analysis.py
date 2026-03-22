@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# STATUS: ONE-TIME
+# PURPOSE: Post-completion reversion depth analysis
+# LAST RUN: 2026-03
+
 """Post-completion reversion depth analysis.
 
 Measures how far price reverses AFTER a parent-scale move completes its threshold.

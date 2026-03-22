@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Phase 1 StepDist x AddDist sweep (fixed + adaptive)
+# LAST RUN: 2026-03
+
 """Phase 1 Step 2: StepDist x AddDist Sweep (Fixed AND Adaptive).
 
 Runs 30 fixed configs + 9 adaptive configs on full P1, no SpeedRead,

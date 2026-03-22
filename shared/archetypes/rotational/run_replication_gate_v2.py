@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ACTIVE
+# PURPOSE: Replication gate V2 with improved cycle matching
+# LAST RUN: 2026-03
+
 """Replication Gate V2 (Section 7): C++ vs Python cycle-by-cycle comparison.
 
 Data sources (all from E:\SierraChart\Data):

@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Stop parameter sweep (max_adverse_sigma, max_cap_walks)
+# LAST RUN: 2026-03
+
 """Task 2: Stop parameter sweep on P1.
 
 2A: Independent sweeps for 4A (max_adverse_sigma) and 4C (max_cap_walks)

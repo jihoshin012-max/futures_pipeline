@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Combo test: asymmetric Rev/Add + position cap + SpeedRead
+# LAST RUN: unknown
+
 """Combo test: Asymmetric Rev=15/Add=40 + position cap + SpeedRead 10sec."""
 
 import sys

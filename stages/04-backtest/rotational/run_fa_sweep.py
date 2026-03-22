@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ACTIVE
+# PURPOSE: Frozen-anchor sweep runner (generates configs, runs on P1 1-tick)
+# LAST RUN: 2026-03-21
+
 """Frozen-Anchor Sweep — Generate 210 configs and run on P1 1-tick data.
 
 Usage:

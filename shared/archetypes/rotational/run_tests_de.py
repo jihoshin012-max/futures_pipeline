@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Tests D (hard stop) and E (direction fade) on ATR configs
+# LAST RUN: unknown
+
 """Tests D (hard stop) and E (direction fade) on ATR R=2.0x/A=4.0x."""
 
 import sys

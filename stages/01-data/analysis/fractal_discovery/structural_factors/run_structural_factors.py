@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# STATUS: ONE-TIME
+# PURPOSE: Structural factor analysis (7 queries on fractal inflection points)
+# LAST RUN: 2026-03
+
 """Structural Factor Analysis — 7 queries on fractal inflection points.
 
 Measures INTENSITY, SPEED, TIME, VOLATILITY, and MULTI-SCALE CONTEXT

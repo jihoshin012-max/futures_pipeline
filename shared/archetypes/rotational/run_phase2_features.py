@@ -1,4 +1,8 @@
 # archetype: rotational
+# STATUS: ONE-TIME
+# PURPOSE: Phase 2 feature discovery on base cycles
+# LAST RUN: 2026-03
+
 """Phase 2 Step 3: Feature Discovery on 10:00-16:00 base cycles.
 
 Computes 17 entry-time features on Phase 1 base cycles and screens via
