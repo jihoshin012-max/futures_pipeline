@@ -1,25 +1,17 @@
 # NQ Zone Touch — Session Transfer
 
 > **Last updated:** 2026-03-23
-> **Current state:** C++ replication gate PASSED. Pre-paper-trading checklist in progress.
+> **Current state:** C++ replication PASSED. Throughput CONFIRMED. Visual spot-check next.
 
 ---
 
 ## IMMEDIATE NEXT STEPS
 
-### 1. Throughput Re-examination (REQUIRED before paper trading)
+### ~~1. Throughput Re-examination~~ — DONE
 
-Throughput analysis used 120 trades (pre-scored from `p1_scored_touches_acal.csv`).
-Replication harness produces 77 trades (runtime scoring from merged CSV features).
-The 51-trade difference is due to F10 (PriorPenetration) values diverging between
-pre-scored CSV and runtime computation — 51 touches scored above threshold in the
-pre-scored data but below threshold when scored at runtime.
-
-**Action:** Re-run Section 1 (signal density) and Section 7 (summary table) of
-`throughput_analysis_part1.py` on the 77-trade population to verify conclusions
-hold. Full 12-section re-run not needed unless signal density changes materially.
-
-**Files:** `stages/04-backtest/zone_touch/output/p1_replication_answer_key_zr.csv` (77 trades)
+All 6 conclusions CONFIRMED on 77-trade population. Signal density sparser
+(median gap 756 bars, 0% clustering). Baseline quality higher (WR 92%, PF 12.0).
+See `output/throughput_reexamination.md`.
 
 ### 2. Visual Spot-Check (REQUIRED before paper trading)
 

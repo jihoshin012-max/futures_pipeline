@@ -1,7 +1,7 @@
 # NQ Zone Touch — Audit Trail & Session Journal
 
 > **Date range:** 2026-03-20 through 2026-03-23
-> **Status:** Pipeline COMPLETE. C++ replication gate PASSED (FIXED 85/85, ZONEREL 77/77).
+> **Status:** C++ replication PASSED. Throughput re-examined and CONFIRMED. Visual spot-check next.
 > **Last updated:** 2026-03-23
 
 ---
@@ -279,15 +279,28 @@ throughput_prompt_1_v2.md, throughput_prompt_2_v2.md
   - TIMECAP leg_open not closed (END_OF_DATA overwrite)
   - TIMECAP off-by-one (bh > tc → bh >= tc)
 - **Tags:** v1.0-pre-merge (FIXED), v3.0-pre-merge (ZONEREL)
-- **Flag:** Throughput analysis used 120 ZR trades (pre-scored) vs 77 from replication harness — 36% population difference. Throughput conclusions need revisiting.
+- **Tags:** v1.0-pre-merge (FIXED), v3.0-pre-merge (ZONEREL)
+
+### Throughput Re-examination — CONFIRMED
+- **Date:** 2026-03-23
+- **Trigger:** Throughput analysis used 120 ZR trades (pre-scored) vs 77 from replication harness — 36% population difference. 43 trades scored above threshold in pre-scored data but below threshold at runtime (F10 PriorPenetration divergence).
+- **Method:** Re-ran 5 targeted checks on 77-trade population (signal density, T2 marginal, baseline stats, fixed comparison, dynamic T2). Sequential simulation with no-overlap and kill-switch.
+- **Results:**
+  - Signal density: median gap 756 bars (was 194), 0% clustering (was 12.4%) — sparser
+  - Baseline: WR 92.2% (was ~84%), PF 11.96 (was ~7.25) — higher quality
+  - Fixed vs ZR: ZR wins by 40.8% total PnL (6,541t vs 3,872t)
+  - Dynamic T2: 0 early closes triggered (was 7) — no signal overlap on this population
+- **Verdict:** All 6 original conclusions CONFIRMED. Dropped trades were disproportionately clustered and lower quality. No full re-run needed.
+- **Files:** `throughput_reexamination.py`, `output/throughput_reexamination.md`
 
 ---
 
 ## Next Steps (in order)
 
-1. **Build C++ autotrader** — use `NQ_Zone_Autotrader_Build_Spec.md` as the authoritative spec
-2. **Add SpeedRead export** to Sierra Chart bar data (for future feature screening during paper trading)
-3. **Pre-populate macro calendar** for Mar–Jun 2026
-4. **Paper trade P3** (Mar–Jun 2026) — both variants (full + RTH-only)
-5. **Weekly review cadence** — Friday summaries during paper trading
-6. **After P3:** Decide ETH filter, run autoresearch (10 items), investigate zone break strategy
+1. ~~Build C++ autotrader~~ — DONE (FIXED v1.0 + ZONEREL v3.0)
+2. ~~C++ replication gate~~ — DONE (85/85 FIXED, 77/77 ZONEREL)
+3. ~~Throughput re-examination~~ — DONE (all conclusions CONFIRMED)
+4. **Visual spot-check** — pick 10 trades, verify on SC chart (zone, entry, exit)
+5. **ZRA+ZB4 consolidation** — merge study chain, re-test both variants
+6. **Paper trade P3** (Mar–Jun 2026) — both variants, weekly Friday reviews
+7. **After P3:** Decide ETH filter, run autoresearch (10 items), investigate zone break strategy

@@ -4,6 +4,14 @@ Every modification to any study in this directory gets an entry.
 Newest first. Update this file with EVERY commit that touches
 a .cpp, .h, or SC setting.
 
+## 2026-03-23 — Throughput re-examination CONFIRMED
+
+- All 6 throughput conclusions hold on correct 77-trade population
+- Signal density sparser (median gap 756 vs 194 bars, 0% clustering)
+- Baseline quality higher (WR 92.2%, PF 11.96)
+- ZR beats fixed by 40.8% total PnL; dynamic T2 has 0 triggers
+- Added: throughput_reexamination.py, throughput_reexamination.md
+
 ## 2026-03-23 — C++ replication gate PASSED
 
 - **ZONEREL:** 77/77 match on P1 (C++ vs Python replication harness)
