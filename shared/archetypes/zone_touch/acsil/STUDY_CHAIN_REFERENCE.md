@@ -54,7 +54,7 @@ All studies and config files in this directory are snapshots from 2026-03-22. Th
 
 | File | Version | Date | sc.GraphName | Notes |
 |------|---------|------|-------------|-------|
-| SupplyDemandZonesV4.cpp | v3.1 | 2026-03-08 | SD Zones V4 [v3.1] | Unchanged |
+| SupplyDemandZonesV4.cpp | v3.2 | 2026-03-22 | SD Zones V4 [v3.2] | MaxVPProfiles + MaxRays defaults 50 → 0 |
 | SupplyDemandZonesV4_history.cpp | v3.1 | 2026-03-18 | SD Zones V4 History [v3.1] | Unchanged |
 | ZoneReactionAnalyzer.cpp | v3.2 | 2026-03-22 | Zone Reaction Analyzer [v3.2] | VP proximity filter |
 | ZoneBounceSignalsV4_aligned.cpp | v3.2 | 2026-03-22 | ZBV4 Aligned [v3.2] | VP proximity filter |
@@ -65,7 +65,8 @@ All studies and config files in this directory are snapshots from 2026-03-22. Th
 
 | Setting | Value | Changed from |
 |---------|-------|-------------|
-| V4 MaxVPProfiles (Input[11]) | 0 (=500) | Was 50 |
+| V4 MaxRays (Input[8]) | 0 (=unlimited) | Was 50 (now default in code) |
+| V4 MaxVPProfiles (Input[11]) | 0 (=500) | Was 50 (now default in code) |
 
 ## Backups (do not deploy — rollback only)
 

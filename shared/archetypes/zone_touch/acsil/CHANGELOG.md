@@ -4,6 +4,15 @@ Every modification to any study in this directory gets an entry.
 Newest first. Update this file with EVERY commit that touches
 a .cpp, .h, or SC setting.
 
+## 2026-03-22 — V4 MaxVPProfiles default (Commit 5)
+
+| File | Change |
+|------|--------|
+| SupplyDemandZonesV4.cpp | MaxVPProfiles default 50 → 0, MaxRays default 50 → 0 |
+
+Impact: New V4 instances default to unlimited VP profiles and rays.
+No logic change — only default values.
+
 ## 2026-03-22 — sc.GraphName + Version Headers (Commit 4)
 
 | File | Change |

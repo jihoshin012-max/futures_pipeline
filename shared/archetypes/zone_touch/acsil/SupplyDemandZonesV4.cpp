@@ -1,6 +1,6 @@
 // STUDY VERSION LOG
-// Current: v3.1 (2026-03-08) — Pipeline snapshot
-// No modifications since snapshot
+// Current: v3.2 (2026-03-22) — MaxVPProfiles + MaxRays defaults changed to 0
+// Prior:   v3.1 (2026-03-08) — Pipeline snapshot
 
 /*===========================================================================*\
  * Supply and Demand Zones Study for Sierra Chart
@@ -303,7 +303,7 @@ SCSFExport scsf_SupplyDemandZones(SCStudyInterfaceRef sc)
 
 	if (sc.SetDefaults)
 	{
-		sc.GraphName = "SD Zones V4 [v3.1]";
+		sc.GraphName = "SD Zones V4 [v3.2]";
 		sc.GraphRegion = 0;
 		sc.AutoLoop = 1;
 		sc.CalculationPrecedence = LOW_PREC_LEVEL;
@@ -398,7 +398,8 @@ SCSFExport scsf_SupplyDemandZones(SCStudyInterfaceRef sc)
 		Input_EnableDemand.SetYesNo(1);
 
 		Input_MaxRays.Name = "Max Rays to Show (0 = unlimited)";
-		Input_MaxRays.SetInt(50);
+		// Default 0 = unlimited. Changed from 50 (2026-03-22).
+		Input_MaxRays.SetInt(0);
 		Input_MaxRays.SetIntLimits(0, MAX_ZONE_CAPACITY);
 
 		Input_EnableRays.Name = "Enable Rays on Broken Zones";
@@ -408,6 +409,8 @@ SCSFExport scsf_SupplyDemandZones(SCStudyInterfaceRef sc)
 		Input_EnableVP.SetYesNo(1);
 
 		Input_MaxVPProfiles.Name = "Max VP Profiles (0 = unlimited)";
+		// Default 0 = MAX_VP_PROFILES (500). Ensures all active zones
+		// get VP imbalance profiles. Changed from 50 (2026-03-22).
 		Input_MaxVPProfiles.SetInt(0);
 		Input_MaxVPProfiles.SetIntLimits(0, MAX_ZONE_CAPACITY);
 
