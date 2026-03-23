@@ -50,6 +50,8 @@ The zone touch strategy requires 4 separate ACSIL studies working together. Each
 
 **Why two variants:** Both are P1-frozen final builds. FIXED is the original baseline; ZONEREL adapts exits to zone geometry. Both are retained for comparison and potential deployment.
 
+**Test modes:** Both FIXED and ZONEREL have CSV test modes (Input[14] = "CSV Test Mode") that run batch replication against Python answer keys. Test mode pending validation — not yet executed.
+
 **Why separate from the data chain:** The autotrader consumes zone data — it doesn't create or measure zones. Keeping it separate means V4/ZRA can be updated independently (with re-validation) without touching trading logic, and vice versa.
 
 ## Version lock rule
