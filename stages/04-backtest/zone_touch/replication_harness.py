@@ -1,16 +1,27 @@
+# archetype: zone_touch
 """
-Replication Harness — ATEAM_ZONE_BOUNCE_V1 standalone CSV test.
+Replication Harness v3.0 — ATEAM_ZONE_BOUNCE_V1 (zone-relative exits).
+
+Zone-relative exit framework:
+  T1 = 0.5 × zone_width_ticks from entry
+  T2 = 1.0 × zone_width_ticks from entry
+  Stop = max(1.5 × zone_width_ticks, 120) from entry
+  Time cap = 160 bars
+  2-leg: 67/33 split, cost 3t per trade
+
+CT entry: 5t limit inside zone edge (20-bar fill window)
+WT entry: market at next bar open
 
 Reads P2 bar data + merged zone touches, runs identical scoring + 2-leg exit
-logic as the C++ autotrader, outputs trade_log.csv with ALL Part A columns.
+logic as the C++ autotrader, outputs trade_log and skipped_signals CSVs.
 
 Usage:
     python replication_harness.py
 
 Outputs:
-    output/replication_trade_log.csv   — full Part A trade log
-    output/replication_signal_log.csv  — all signals (traded + skipped)
-    stdout                             — aggregate stats + answer key comparison
+    output/p2_twoleg_answer_key_zr.csv   — full Part A trade log (zone-relative)
+    output/p2_skipped_signals_zr.csv     — all skipped signals with reasons
+    stdout                               — aggregate stats + verification
 """
 import csv, json, sys, math
 from datetime import datetime
@@ -37,12 +48,18 @@ TREND_P33 = FCFG['trend_slope_p33']   # -0.30755...
 TREND_P67 = FCFG['trend_slope_p67']   #  0.34030...
 TREND_LOOKBACK = 50
 
-# Exit params
-EXIT = {
-    'CT':   {'t1': 40, 't2': 80, 'stop': 190, 'tcap': 160},
-    'WTNT': {'t1': 60, 't2': 80, 'stop': 240, 'tcap': 160},
-}
+# Zone-relative exit multipliers (Part A v3.0)
+T1_MULT = 0.5
+T2_MULT = 1.0
+STOP_MULT = 1.5
+STOP_FLOOR = 120      # ticks — protects narrow zones
+TCAP = 160             # bars
 LEG1_W, LEG2_W = 0.67, 0.33
+
+# CT limit entry
+CT_LIMIT_TICKS = 5     # 5t inside zone edge
+CT_LIMIT_WINDOW = 20   # bars to scan for fill
+
 TF_MAX_MINUTES = 120
 WTNT_SEQ_MAX = 5
 
@@ -51,7 +68,7 @@ KS_CONSEC = 3
 KS_DAILY = -400.0
 KS_WEEKLY = -800.0
 
-# EOD flatten
+# EOD flatten (live only — disabled for backtest replication fidelity)
 FLATTEN_HHMM = 1655
 
 # =========================================================================
@@ -116,19 +133,69 @@ def classify_trend(slope, touch_type):
     return 'NT'
 
 # =========================================================================
-#  2-leg simulator (matches exit_sweep_phase1.py exactly)
+#  CT limit fill scanner (20-bar window)
 # =========================================================================
 
-def sim_2leg(bar_data, entry_bar, direction, params):
+def scan_ct_limit_fill(bar_data, touch_bar, direction, zone_top, zone_bot):
+    """
+    CT 5t limit entry: place limit order 5 ticks inside zone edge.
+      DEMAND (LONG):  limit = ZoneTop - 5 × tick_size
+      SUPPLY (SHORT): limit = ZoneBot + 5 × tick_size
+
+    Scan bars 1..20 after touch bar for fill.
+      LONG fill:  first bar where Low <= limit_price
+      SHORT fill: first bar where High >= limit_price
+      Fill price: min(Open, limit) for LONG, max(Open, limit) for SHORT
+
+    Returns: (fill_bar, fill_price, bars_to_fill) or None if expired.
+    """
+    n_bars = len(bar_data)
+
+    if direction == 1:
+        limit_price = zone_top - CT_LIMIT_TICKS * TICK_SIZE
+    else:
+        limit_price = zone_bot + CT_LIMIT_TICKS * TICK_SIZE
+
+    for offset in range(1, CT_LIMIT_WINDOW + 1):
+        bar_idx = touch_bar + offset
+        if bar_idx >= n_bars:
+            break
+        o, h, l, c, dt = bar_data[bar_idx]
+
+        if direction == 1:
+            if l <= limit_price:
+                fill_price = min(o, limit_price)
+                return (bar_idx, fill_price, offset)
+        else:
+            if h >= limit_price:
+                fill_price = max(o, limit_price)
+                return (bar_idx, fill_price, offset)
+
+    return None  # LIMIT_EXPIRED
+
+# =========================================================================
+#  2-leg simulator (zone-relative version)
+# =========================================================================
+
+def sim_2leg_zr(bar_data, entry_bar, entry_price, direction,
+                zone_width_ticks):
+    """
+    Zone-relative 2-leg exit simulator.
+
+    Exit levels computed from entry_price (not zone edge):
+      T1 = 0.5 × zone_width_ticks
+      T2 = 1.0 × zone_width_ticks
+      Stop = max(1.5 × zone_width_ticks, 120)
+      Time cap = 160 bars
+    """
     n_bars = len(bar_data)
     if entry_bar >= n_bars:
         return None
 
-    ep = bar_data[entry_bar][0]  # Open
-    t1_ticks = params['t1']
-    t2_ticks = params['t2']
-    stop_ticks = params['stop']
-    tcap = params['tcap']
+    ep = entry_price
+    t1_ticks = max(1, round(T1_MULT * zone_width_ticks))
+    t2_ticks = max(1, round(T2_MULT * zone_width_ticks))
+    stop_ticks = max(round(STOP_MULT * zone_width_ticks), STOP_FLOOR)
 
     if direction == 1:
         stop_px = ep - stop_ticks * TICK_SIZE
@@ -162,13 +229,8 @@ def sim_2leg(bar_data, entry_bar, direction, params):
         if bmfe > mfe: mfe = bmfe
         if bmae > mae: mae = bmae
 
-        # NOTE: EOD flatten (16:55 ET) is a live-trading safety feature in the
-        # C++ autotrader. The pipeline backtests do NOT use it. Disabled here
-        # for replication fidelity. The C++ autotrader will implement it for
-        # live paper trading, tested separately via SC replay.
-
         # Time cap
-        if bh >= tcap:
+        if bh >= TCAP:
             pnl = (c - ep) / TICK_SIZE if direction == 1 else (ep - c) / TICK_SIZE
             if leg1_open:
                 leg1_pnl = pnl; leg1_exit = 'TIMECAP'
@@ -225,6 +287,7 @@ def sim_2leg(bar_data, entry_bar, direction, params):
     return dict(
         entry_price=ep, stop_price=stop_px,
         t1_target=t1_px, t2_target=t2_px,
+        stop_ticks=stop_ticks, t1_ticks=t1_ticks, t2_ticks=t2_ticks,
         leg1_exit=leg1_exit, leg1_pnl=leg1_pnl,
         leg1_exit_bar=leg1_exit_bar, leg1_exit_px=leg1_exit_px,
         leg2_exit=leg2_exit, leg2_pnl=leg2_pnl,
@@ -280,6 +343,22 @@ for fname in ['NQ_merged_P2a.csv', 'NQ_merged_P2b.csv']:
 # Sort by RotBarIndex (chronological)
 touches.sort(key=lambda r: int(r['RotBarIndex']))
 print(f"  {len(touches)} touches (RotBarIndex >= 0)")
+
+# ---- Population assertion: detect multi-group duplicates ----
+seen_keys = {}
+n_dupes = 0
+for t in touches:
+    key = (t['DateTime'], t['TouchType'], t['ZoneTop'], t['ZoneBot'])
+    if key in seen_keys:
+        n_dupes += 1
+    else:
+        seen_keys[key] = True
+if n_dupes > 0:
+    print(f"  WARNING: {n_dupes} duplicate trade keys (DateTime+TouchType+Zone).")
+    print("  This file may contain multi-group rows, not unique trades.")
+    print("  Deduplicate before using as a trade population.")
+else:
+    print(f"  Population check: {len(touches)} unique trade keys (OK)")
 
 # Build zone history for F10 (prior penetration lookup)
 # Key = (ZoneTop, ZoneBot, SourceLabel) -> list of touches in order
@@ -366,18 +445,27 @@ def get_session(bar_idx):
     return 'RTH' if 930 <= hhmm < 1615 else 'ETH'
 
 # =========================================================================
-#  Main simulation loop (with no-overlap + kill-switch)
+#  Main simulation loop
+#  - Zone-relative exits (0.5x/1.0x/1.5x zone_width, stop floor 120t)
+#  - CT: 5t limit entry with 20-bar fill window
+#  - WT: market at next bar open
+#  - LIMIT_PENDING: while CT limit is active, ALL new signals are blocked
+#  - No-overlap: if in position, skip new signals
+#  - Kill-switch: consecutive loss / daily / weekly limits
 # =========================================================================
 
-print("\nRunning replication simulation...")
+print("\nRunning replication simulation (zone-relative v3.0)...")
 
 trade_log = []
-signal_log = []
+signal_log = []    # ALL signals (traded + skipped) — for comprehensive log
+skipped_log = []   # Skipped signals only — separate output file
 
 # Position state
-in_trade = False
-in_trade_until = -1  # bar index when current trade exits
-current_mode = None
+in_trade_until = -1       # bar index when current trade fully exits
+
+# CT limit pending state
+ct_limit_pending = False
+ct_limit_expires_at = -1  # bar index when limit expires (touch_bar + 20)
 
 # Kill-switch state
 ks_consec = 0
@@ -391,10 +479,20 @@ ks_last_week = ''
 
 trade_counter = 0
 
+# CT limit fill tracking
+ct_limit_signals = 0
+ct_limit_fills = 0
+ct_limit_expired = 0
+ct_fill_bars = []        # bars to fill for filled orders
+ct_price_improvements = 0  # fills better than limit price
+
 for touch in touches:
     rbi = int(touch['RotBarIndex'])
-    entry_bar = rbi + 1
-    if entry_bar >= n_bars:
+    touch_bar = rbi
+    # For WT: entry at next bar open (rbi + 1)
+    # For CT: entry determined by limit fill scan
+    wt_entry_bar = rbi + 1
+    if wt_entry_bar >= n_bars:
         continue
 
     touch_type = touch['TouchType'].strip()
@@ -409,6 +507,15 @@ for touch in touches:
     if not sbb:
         sbb = 'NORMAL'
 
+    # Zone data
+    zone_top = float(touch['ZoneTop'])
+    zone_bot = float(touch['ZoneBot'])
+    zw_str = touch.get('ZoneWidthTicks', '').strip()
+    if zw_str:
+        zone_width_ticks = float(zw_str)
+    else:
+        zone_width_ticks = (zone_top - zone_bot) / TICK_SIZE
+
     # Score
     sc = score_touch(touch)
     acal_score = sc['total']
@@ -422,8 +529,12 @@ for touch in touches:
     # Session
     session = get_session(rbi)
 
-    # Entry bar datetime for logging
-    entry_dt = bar_data[entry_bar][4]
+    # Entry bar datetime for logging (use touch bar + 1 as reference)
+    entry_dt = bar_data[wt_entry_bar][4]
+
+    # ---- Check if CT limit has expired ----
+    if ct_limit_pending and rbi >= ct_limit_expires_at:
+        ct_limit_pending = False
 
     # ---- Determine action ----
     skip_reason = None
@@ -468,16 +579,20 @@ for touch in touches:
             else:
                 mode = 'WTNT'
 
-    # No-overlap
-    if skip_reason is None and entry_bar <= in_trade_until:
+    # No-overlap: in active position
+    if skip_reason is None and wt_entry_bar <= in_trade_until:
         skip_reason = 'IN_POSITION'
+
+    # LIMIT_PENDING: CT limit order is active (placed but not filled/expired)
+    if skip_reason is None and ct_limit_pending:
+        skip_reason = 'LIMIT_PENDING'
 
     # Kill-switch
     if skip_reason is None:
         if ks_session_halted or ks_daily_halted or ks_weekly_halted:
             skip_reason = 'KILL_SWITCH'
 
-    # ---- Log signal ----
+    # ---- Log signal (comprehensive) ----
     sig_entry = dict(
         datetime=entry_dt,
         touch_type=touch_type,
@@ -493,18 +608,89 @@ for touch in touches:
     signal_log.append(sig_entry)
 
     if skip_reason:
+        # Log to skipped signals output
+        skipped_log.append(dict(
+            datetime=entry_dt,
+            touch_type=touch_type,
+            source_label=tf_str,
+            acal_score=f"{acal_score:.4f}",
+            trend_label=trend_label,
+            skip_reason=skip_reason
+        ))
         continue
 
-    # ---- Execute trade ----
-    params = EXIT[mode]
-    result = sim_2leg(bar_data, entry_bar, direction, params)
+    # ---- Execute trade (mode-dependent entry) ----
+
+    if mode == 'CT':
+        # CT: 5t limit entry with 20-bar fill window
+        ct_limit_signals += 1
+
+        # Mark limit as pending BEFORE scanning for fill.
+        # Subsequent touches with rbi < expires_at will see LIMIT_PENDING.
+        ct_limit_pending = True
+        ct_limit_expires_at = touch_bar + CT_LIMIT_WINDOW
+
+        fill_result = scan_ct_limit_fill(
+            bar_data, touch_bar, direction, zone_top, zone_bot)
+
+        if fill_result is None:
+            # LIMIT_EXPIRED — no fill within 20 bars.
+            # Leave ct_limit_pending = True so signals with rbi in
+            # [touch_bar+1, touch_bar+19] see LIMIT_PENDING.
+            # The expiry check at loop top clears it when rbi >= expires_at.
+            ct_limit_expired += 1
+            skipped_log.append(dict(
+                datetime=entry_dt,
+                touch_type=touch_type,
+                source_label=tf_str,
+                acal_score=f"{acal_score:.4f}",
+                trend_label=trend_label,
+                skip_reason='LIMIT_EXPIRED'
+            ))
+            continue
+
+        fill_bar, fill_price, bars_to_fill = fill_result
+        ct_limit_fills += 1
+        ct_fill_bars.append(bars_to_fill)
+
+        # Check price improvement
+        if direction == 1:
+            limit_px = zone_top - CT_LIMIT_TICKS * TICK_SIZE
+            if fill_price < limit_px:
+                ct_price_improvements += 1
+        else:
+            limit_px = zone_bot + CT_LIMIT_TICKS * TICK_SIZE
+            if fill_price > limit_px:
+                ct_price_improvements += 1
+
+        # Filled — clear pending. in_trade_until covers blocking from
+        # fill_bar onward (IN_POSITION). Signals between touch_bar+1 and
+        # fill_bar-1 are covered by in_trade_until too since
+        # final_exit_bar >= fill_bar and wt_entry_bar = rbi+1 <= final_exit_bar.
+        ct_limit_pending = False
+
+        entry_bar = fill_bar
+        entry_price = fill_price
+        entry_type = 'LIMIT_5T'
+        entry_dt = bar_data[entry_bar][4]
+
+    else:
+        # WT/NT: market at next bar open
+        entry_bar = wt_entry_bar
+        entry_price = bar_data[entry_bar][0]  # Open
+        entry_type = 'MARKET'
+        entry_dt = bar_data[entry_bar][4]
+
+    # Simulate 2-leg exit
+    result = sim_2leg_zr(bar_data, entry_bar, entry_price, direction,
+                         zone_width_ticks)
     if result is None:
         continue
 
     trade_counter += 1
     trade_id = f"ZB_{trade_counter:04d}"
 
-    # Update in_trade_until
+    # Update position state
     final_exit_bar = max(result['leg1_exit_bar'], result['leg2_exit_bar'])
     in_trade_until = final_exit_bar
 
@@ -524,7 +710,6 @@ for touch in touches:
         ks_weekly_halted = True
 
     # Build full trade_log row
-    BIN_LABELS = {-1: 'NULL', 0: 'Low', 1: 'Mid', 2: 'High'}
     row = dict(
         trade_id=trade_id,
         mode=mode,
@@ -532,44 +717,25 @@ for touch in touches:
         direction='LONG' if direction == 1 else 'SHORT',
         touch_type=touch_type,
         source_label=tf_str,
-        touch_sequence=seq,
-        F10_raw=f"{sc['f10_raw']:.4f}" if not sc['f10_nan'] else '',
-        F04_raw=sc['f04_raw'],
-        F01_raw=sc['f01_raw'],
-        F21_raw=f"{sc['f21_raw']:.4f}",
-        F10_bin=sc['f10_bin'],
-        F04_bin=sc['f04_bin'],
-        F01_bin=sc['f01_bin'],
-        F21_bin=sc['f21_bin'],
-        F10_points=f"{sc['f10_pts']:.4f}",
-        F04_points=f"{sc['f04_pts']:.4f}",
-        F01_points=f"{sc['f01_pts']:.4f}",
-        F21_points=f"{sc['f21_pts']:.4f}",
-        acal_score=f"{acal_score:.4f}",
-        score_margin=f"{score_margin:.4f}",
-        trend_slope=f"{trend_slope:.6f}",
-        trend_label=trend_label,
-        sbb_label=sbb,
-        session=session,
-        entry_bar_index=entry_bar,
+        zone_top=f"{zone_top:.2f}",
+        zone_bot=f"{zone_bot:.2f}",
+        zone_width_ticks=f"{zone_width_ticks:.1f}",
+        entry_type=entry_type,
         entry_price=f"{result['entry_price']:.2f}",
+        stop_ticks=result['stop_ticks'],
+        t1_ticks=result['t1_ticks'],
+        t2_ticks=result['t2_ticks'],
         stop_price=f"{result['stop_price']:.2f}",
         t1_target_price=f"{result['t1_target']:.2f}",
         t2_target_price=f"{result['t2_target']:.2f}",
         leg1_exit_type=result['leg1_exit'],
-        leg1_exit_price=f"{result['leg1_exit_px']:.2f}",
-        leg1_exit_bar=result['leg1_exit_bar'],
         leg1_pnl_ticks=f"{result['leg1_pnl']:.2f}",
         leg2_exit_type=result['leg2_exit'],
-        leg2_exit_price=f"{result['leg2_exit_px']:.2f}",
-        leg2_exit_bar=result['leg2_exit_bar'],
         leg2_pnl_ticks=f"{result['leg2_pnl']:.2f}",
         weighted_pnl=f"{wpnl:.4f}",
         bars_held=result['bars_held'],
         mfe_ticks=f"{result['mfe']:.2f}",
         mae_ticks=f"{result['mae']:.2f}",
-        slippage_ticks='0.0',
-        latency_ms='0'
     )
     trade_log.append(row)
 
@@ -579,17 +745,18 @@ for touch in touches:
 
 TRADE_COLS = [
     'trade_id', 'mode', 'datetime', 'direction', 'touch_type', 'source_label',
-    'touch_sequence', 'F10_raw', 'F04_raw', 'F01_raw', 'F21_raw',
-    'F10_bin', 'F04_bin', 'F01_bin', 'F21_bin',
-    'F10_points', 'F04_points', 'F01_points', 'F21_points',
-    'acal_score', 'score_margin', 'trend_slope', 'trend_label',
-    'sbb_label', 'session',
-    'entry_bar_index', 'entry_price', 'stop_price',
-    't1_target_price', 't2_target_price',
-    'leg1_exit_type', 'leg1_exit_price', 'leg1_exit_bar', 'leg1_pnl_ticks',
-    'leg2_exit_type', 'leg2_exit_price', 'leg2_exit_bar', 'leg2_pnl_ticks',
+    'zone_top', 'zone_bot', 'zone_width_ticks',
+    'entry_type', 'entry_price',
+    'stop_ticks', 't1_ticks', 't2_ticks',
+    'stop_price', 't1_target_price', 't2_target_price',
+    'leg1_exit_type', 'leg1_pnl_ticks',
+    'leg2_exit_type', 'leg2_pnl_ticks',
     'weighted_pnl', 'bars_held', 'mfe_ticks', 'mae_ticks',
-    'slippage_ticks', 'latency_ms'
+]
+
+SKIPPED_COLS = [
+    'datetime', 'touch_type', 'source_label', 'acal_score', 'trend_label',
+    'skip_reason'
 ]
 
 SIGNAL_COLS = [
@@ -599,17 +766,23 @@ SIGNAL_COLS = [
 
 outdir = f'{BASE}/04-backtest/zone_touch/output'
 
-with open(f'{outdir}/replication_trade_log.csv', 'w', newline='') as f:
+with open(f'{outdir}/p2_twoleg_answer_key_zr.csv', 'w', newline='') as f:
     writer = csv.DictWriter(f, fieldnames=TRADE_COLS)
     writer.writeheader()
     writer.writerows(trade_log)
+
+with open(f'{outdir}/p2_skipped_signals_zr.csv', 'w', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=SKIPPED_COLS)
+    writer.writeheader()
+    writer.writerows(skipped_log)
 
 with open(f'{outdir}/replication_signal_log.csv', 'w', newline='') as f:
     writer = csv.DictWriter(f, fieldnames=SIGNAL_COLS)
     writer.writeheader()
     writer.writerows(signal_log)
 
-print(f"\nWrote {len(trade_log)} trades to replication_trade_log.csv")
+print(f"\nWrote {len(trade_log)} trades to p2_twoleg_answer_key_zr.csv")
+print(f"Wrote {len(skipped_log)} skipped signals to p2_skipped_signals_zr.csv")
 print(f"Wrote {len(signal_log)} signals to replication_signal_log.csv")
 
 # =========================================================================
@@ -643,12 +816,13 @@ def calc_stats(group, label):
     l1_target = sum(1 for r in group if r['leg1_exit_type'] == 'TARGET_1')
     l1_stop = sum(1 for r in group if r['leg1_exit_type'] == 'STOP')
     l1_tc = sum(1 for r in group if r['leg1_exit_type'] == 'TIMECAP')
-    l1_flat = sum(1 for r in group if r['leg1_exit_type'] == 'FLATTEN_EOD')
     print(f"  Leg1 rates: T1={100*l1_target/n:.1f}% Stop={100*l1_stop/n:.1f}% "
-          f"TC={100*l1_tc/n:.1f}% Flat={100*l1_flat/n:.1f}%")
+          f"TC={100*l1_tc/n:.1f}%")
 
 print("\n" + "=" * 60)
-print("REPLICATION HARNESS — AGGREGATE RESULTS")
+print("REPLICATION HARNESS v3.0 — AGGREGATE RESULTS")
+print("  Zone-relative: T1=0.5x, T2=1.0x, Stop=max(1.5x, 120t)")
+print("  CT: 5t limit (20-bar window), WT: market")
 print("=" * 60)
 calc_stats(ct, "CT Mode")
 calc_stats(wt, "WT/NT Mode")
@@ -664,75 +838,67 @@ print(f"  Skipped: {actions.get('SKIP', 0)}")
 print(f"  Skip reasons: {dict(skips)}")
 
 # =========================================================================
-#  Compare against p2_twoleg_answer_key.csv
+#  CT 5t Limit Fill Verification
 # =========================================================================
 
 print("\n" + "=" * 60)
-print("COMPARISON vs p2_twoleg_answer_key.csv")
+print("CT 5T LIMIT FILL VERIFICATION")
 print("=" * 60)
+print(f"  CT signals (qualified):  {ct_limit_signals}")
+print(f"  CT fills (within 20b):   {ct_limit_fills}")
+print(f"  CT expired (no fill):    {ct_limit_expired}")
+if ct_limit_signals > 0:
+    fill_rate = 100 * ct_limit_fills / ct_limit_signals
+    print(f"  Fill rate:               {fill_rate:.1f}%  (target ~95%)")
+if ct_fill_bars:
+    mean_bars = sum(ct_fill_bars) / len(ct_fill_bars)
+    print(f"  Mean bars to fill:       {mean_bars:.1f}")
+    print(f"  Median bars to fill:     {sorted(ct_fill_bars)[len(ct_fill_bars)//2]}")
+    print(f"  Max bars to fill:        {max(ct_fill_bars)}")
+print(f"  Price improvement fills: {ct_price_improvements}")
 
-try:
-    with open(f'{outdir}/p2_twoleg_answer_key.csv') as f:
-        ak = list(csv.DictReader(f))
+# =========================================================================
+#  Verification vs Exit Investigation Benchmarks
+# =========================================================================
 
-    # Answer key has no overlap filtering — it simulates all 91 trades independently.
-    # Harness has overlap filtering — some trades are skipped.
-    # Compare: trades that appear in BOTH (matched by entry_price + direction).
-    ak_by_ep = {}
-    for r in ak:
-        key = (r['entry_price'], r['direction'])
-        ak_by_ep[key] = r
+print("\n" + "=" * 60)
+print("VERIFICATION vs EXIT INVESTIGATION (P2)")
+print("=" * 60)
+print("  NOTE: Exit investigation ran CT/WT independently (no LIMIT_PENDING).")
+print("  Small WT count differences expected.\n")
 
-    matched = 0
-    entry_match = 0
-    l1_exit_match = 0
-    l2_exit_match = 0
-    pnl_match = 0
-    mismatches = []
+all_pnls = [float(r['weighted_pnl']) for r in trade_log]
+all_wins = sum(1 for p in all_pnls if p > 0)
+all_gw = sum(p for p in all_pnls if p > 0)
+all_gl = sum(abs(p) for p in all_pnls if p < 0)
+all_pf = all_gw / all_gl if all_gl > 0 else float('inf')
+all_wr = 100 * all_wins / len(all_pnls) if all_pnls else 0
 
-    for r in trade_log:
-        key = (r['entry_price'], r['direction'])
-        if key not in ak_by_ep:
-            continue
-        a = ak_by_ep[key]
-        matched += 1
+n_ct = len(ct)
+n_wt = len(wt)
+lp_skips = sum(1 for s in skipped_log if s['skip_reason'] == 'LIMIT_PENDING')
+le_skips = sum(1 for s in skipped_log if s['skip_reason'] == 'LIMIT_EXPIRED')
 
-        if abs(float(r['entry_price']) - float(a['entry_price'])) < 0.01:
-            entry_match += 1
-        if r['leg1_exit_type'] == a['leg1_exit']:
-            l1_exit_match += 1
-        else:
-            mismatches.append(('leg1_exit', r['trade_id'], r['leg1_exit_type'], a['leg1_exit']))
-        if r['leg2_exit_type'] == a['leg2_exit']:
-            l2_exit_match += 1
-        else:
-            mismatches.append(('leg2_exit', r['trade_id'], r['leg2_exit_type'], a['leg2_exit']))
-        if abs(float(r['weighted_pnl']) - float(a['weighted_pnl'])) < 1.0:
-            pnl_match += 1
-        else:
-            mismatches.append(('wpnl', r['trade_id'],
-                             r['weighted_pnl'], a['weighted_pnl']))
+print(f"{'Metric':<24} {'Harness':>10} {'Exit Inv':>10} {'Match?':>8}")
+print("-" * 54)
+print(f"{'Total trades':<24} {len(trade_log):>10} {'~302':>10} {'':>8}")
+print(f"{'CT trades (filled)':<24} {n_ct:>10} {'~177':>10} {'':>8}")
+print(f"{'CT LIMIT_EXPIRED':<24} {ct_limit_expired:>10} {'~10':>10} {'':>8}")
+print(f"{'WT trades':<24} {n_wt:>10} {'<=125':>10} {'':>8}")
+print(f"{'LIMIT_PENDING skips':<24} {lp_skips:>10} {'small':>10} {'':>8}")
+print(f"{'WR':<24} {all_wr:>9.1f}% {'~92.0%':>10} {'':>8}")
+pf_str = f"{all_pf:.2f}" if all_pf < 9999 else "inf"
+print(f"{'PF':<24} {pf_str:>10} {'~28.69':>10} {'':>8}")
 
-    print(f"Answer key trades: {len(ak)}")
-    print(f"Harness trades: {len(trade_log)}")
-    print(f"Matched (by entry_price+direction): {matched}")
-    print(f"  Entry price match: {entry_match}/{matched}")
-    print(f"  Leg1 exit match:   {l1_exit_match}/{matched}")
-    print(f"  Leg2 exit match:   {l2_exit_match}/{matched}")
-    print(f"  Weighted PnL (±1t): {pnl_match}/{matched}")
+# =========================================================================
+#  Rename old answer key for reference
+# =========================================================================
 
-    if mismatches:
-        print(f"\nMismatches ({len(mismatches)}):")
-        for m in mismatches[:10]:
-            print(f"  {m}")
+import os, shutil
+old_ak = f'{outdir}/p2_twoleg_answer_key.csv'
+renamed_ak = f'{outdir}/p2_twoleg_answer_key_fixed.csv'
+if os.path.exists(old_ak) and not os.path.exists(renamed_ak):
+    shutil.copy2(old_ak, renamed_ak)
+    print(f"\nCopied old answer key to p2_twoleg_answer_key_fixed.csv")
 
-    # Trades in answer key but NOT in harness (skipped by overlap/kill-switch)
-    harness_keys = set((r['entry_price'], r['direction']) for r in trade_log)
-    ak_only = [r for r in ak if (r['entry_price'], r['direction']) not in harness_keys]
-    if ak_only:
-        print(f"\nAnswer key trades not in harness ({len(ak_only)}) — skipped by overlap/kill-switch:")
-        for r in ak_only[:5]:
-            print(f"  {r['trade_id']} {r['datetime']} {r['direction']} {r['mode']} ep={r['entry_price']}")
-
-except FileNotFoundError:
-    print("  p2_twoleg_answer_key.csv not found — skipping comparison")
+print("\nReplication harness v3.0 complete.")

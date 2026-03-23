@@ -1,0 +1,68 @@
+{
+  "description": "Chain of custody: raw source files -> zone_prep merge -> output CSVs",
+  "generated_at": "2026-03-20T13:46:17",
+  "verified_at": "2026-03-23T00:00:00",
+  "zone_prep_script": "stages/01-data/scripts/run_zone_prep.py",
+  "source_files": {
+    "zra_p1": {
+      "file": "NQ_ZRA_Hist_P1.csv",
+      "path": "stages/01-data/data/touches/NQ_ZRA_Hist_P1.csv",
+      "sha256": "21626926e80ab0796066541f5bd67062da56b2a96ee55ba463dadaa872ac1980",
+      "rows": 4964
+    },
+    "zra_p2": {
+      "file": "NQ_ZRA_Hist_P2.csv",
+      "path": "stages/01-data/data/touches/NQ_ZRA_Hist_P2.csv",
+      "sha256": "615bc3bcd24d7d17585418b87c80ba744c7ab77667a7aac2e7dbeaddf27b0374",
+      "rows": 4660
+    },
+    "zb4_p1": {
+      "file": "NQ_ZB4_signals_P1.csv",
+      "path": "stages/01-data/data/touches/NQ_ZB4_signals_P1.csv",
+      "sha256": "bfac6366a938d108d31a9bd469f13f0f83e58f7a35f6203d1e6ae57dd74d77cd",
+      "rows": 4964
+    },
+    "zb4_p2": {
+      "file": "NQ_ZB4_signals_P2.csv",
+      "path": "stages/01-data/data/touches/NQ_ZB4_signals_P2.csv",
+      "sha256": "e7309235eee2baba1b33489503361eddf5090fc3944e78d32398bebf385c4a72",
+      "rows": 4653
+    },
+    "bardata_p1": {
+      "file": "NQ_bardata_P1.csv",
+      "path": "stages/01-data/output/zone_prep/NQ_bardata_P1.csv",
+      "sha256": "5439f0528ae78d6d9f5af597f413ba06e022ce3f8054e45322598e4c70d013bf",
+      "rows": 138704
+    },
+    "bardata_p2": {
+      "file": "NQ_bardata_P2.csv",
+      "path": "stages/01-data/output/zone_prep/NQ_bardata_P2.csv",
+      "sha256": "d2183fced2d1373dca30393b7089e1025dcc5ad979fddaead99204540bd36fd8",
+      "rows": 131709
+    }
+  },
+  "merged_outputs": {
+    "merged_p1a": {
+      "file": "NQ_merged_P1a.csv",
+      "sha256": "b4c07c24179718076fc1d872bc0eb57127115b976b3b4772a3d34276757e3299",
+      "rows": 2334
+    },
+    "merged_p1b": {
+      "file": "NQ_merged_P1b.csv",
+      "sha256": "196546b91a04c70e6386a9b11865b2389d47ac00c35965117fb6a8c43631d9d0",
+      "rows": 2367
+    },
+    "merged_p2a": {
+      "file": "NQ_merged_P2a.csv",
+      "sha256": "f01f3283820a0c81208c070e3de499298754a20ab03b2634f2b6fadda0da0a9a",
+      "rows": 2304
+    },
+    "merged_p2b": {
+      "file": "NQ_merged_P2b.csv",
+      "sha256": "d1c81a0572e8e196a0134a437cc4d868e3acd108a45f010def1b9054d2b10b60",
+      "rows": 2356
+    }
+  },
+  "qualifying_touches_p2": 186,
+  "notes": "Source files are v3.1 SC exports. HasVPRay=1 for all (pre-proximity-filter). CascadeState from ZB4 merge (80% PRIOR_BROKE). 7 unmatched P2 touches (UNKNOWN CascadeState)."
+}
