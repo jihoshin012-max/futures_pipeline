@@ -1138,7 +1138,7 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
         // ---------- Write output CSVs ----------
         {
             SCString tradePath;
-            tradePath.Format("%s\\ATEAM_CSV_TEST_trades.csv",
+            tradePath.Format("%s\\ATEAM_CSV_TEST_ZONEREL_trades.csv",
                              sc.DataFilesFolder().GetChars());
             FILE* f = fopen(tradePath.GetChars(), "w");
             if (f)
@@ -1179,7 +1179,7 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
         }
         {
             SCString skipPath;
-            skipPath.Format("%s\\ATEAM_CSV_TEST_skipped.csv",
+            skipPath.Format("%s\\ATEAM_CSV_TEST_ZONEREL_skipped.csv",
                              sc.DataFilesFolder().GetChars());
             FILE* f = fopen(skipPath.GetChars(), "w");
             if (f)
@@ -1201,12 +1201,12 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
         {
             SCString akPath;
             akPath.Format("%s..\\..\\..\\04-backtest\\zone_touch\\output\\"
-                          "p2_twoleg_answer_key_zr.csv",
+                          "p1_twoleg_answer_key_zr.csv",
                           basePath.GetChars());
             FILE* ak = fopen(akPath.GetChars(), "r");
 
             SCString rptPath;
-            rptPath.Format("%s\\ATEAM_CSV_TEST_report.txt",
+            rptPath.Format("%s\\ATEAM_CSV_TEST_ZONEREL_report.txt",
                            sc.DataFilesFolder().GetChars());
             FILE* rpt = fopen(rptPath.GetChars(), "w");
 
@@ -1368,7 +1368,7 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
         {
             SCString msg;
             msg.Format("CSV TEST MODE: Complete. %d trades, %d skips. "
-                       "See ATEAM_CSV_TEST_report.txt", nTrades, nSkips);
+                       "See ATEAM_CSV_TEST_ZONEREL_report.txt", nTrades, nSkips);
             sc.AddMessageToLog(msg, 0);
         }
         return;  // CSV test mode done — skip normal operation
