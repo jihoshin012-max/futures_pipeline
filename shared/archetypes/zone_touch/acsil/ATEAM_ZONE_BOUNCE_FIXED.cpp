@@ -410,7 +410,7 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
         int nBars = 0;
         {
             SCString barPath;
-            barPath.Format("%sNQ_bardata_P2.csv", basePath.GetChars());
+            barPath.Format("%sNQ_bardata_P1.csv", basePath.GetChars());
             FILE* bf = fopen(barPath.GetChars(), "r");
             if (!bf)
             {
@@ -546,8 +546,8 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
             fclose(f);
         };
 
-        LoadMergedCSV("NQ_merged_P2a.csv");
-        LoadMergedCSV("NQ_merged_P2b.csv");
+        LoadMergedCSV("NQ_merged_P1a.csv");
+        LoadMergedCSV("NQ_merged_P1b.csv");
 
         // Sort touches by RotBarIndex (bubble sort — n is small)
         for (int i = 0; i < nTouches - 1; i++)
