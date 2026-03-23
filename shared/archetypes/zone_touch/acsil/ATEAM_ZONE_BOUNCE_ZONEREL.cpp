@@ -1279,33 +1279,31 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
                                 if (*p == ',') p++;
                             }
                         }
-                        if (nPyF < 20) { pyIdx++; continue; }
+                        if (nPyF < 16) { pyIdx++; continue; }
 
-                        // Answer key columns: trade_id(0), mode(1), datetime(2),
-                        // direction(3), touch_type(4), source_label(5),
-                        // zone_top(6), zone_bot(7), zone_width_ticks(8),
-                        // entry_type(9), entry_price(10),
-                        // stop_ticks(11), t1_ticks(12), t2_ticks(13),
-                        // stop_price(14), t1_target_price(15), t2_target_price(16),
-                        // leg1_exit_type(17), leg1_pnl_ticks(18),
-                        // leg2_exit_type(19), leg2_pnl_ticks(20),
-                        // weighted_pnl(21), bars_held(22), mfe_ticks(23), mae_ticks(24)
+                        // Answer key columns (Python replication harness format):
+                        // 0:rbi, 1:mode, 2:direction, 3:zone_width,
+                        // 4:entry_price, 5:weighted_pnl, 6:bars_held,
+                        // 7:leg1_exit, 8:leg1_pnl, 9:leg2_exit, 10:leg2_pnl,
+                        // 11:mfe, 12:mae, 13:t1_ticks, 14:t2_ticks,
+                        // 15:stop_ticks, 16:entry_bar, 17:exit_bar,
+                        // 18:score, 19:trend, 20:tf
 
                         const TradeOut& ct = tradeLog[pyIdx];
-                        float pyEp = (float)atof(pyFields[10]);
-                        float pyWpnl = (float)atof(pyFields[21]);
-                        int pyZw = atoi(pyFields[8]);
-                        int pySt = atoi(pyFields[11]);
-                        int pyT1 = atoi(pyFields[12]);
-                        int pyT2 = atoi(pyFields[13]);
+                        float pyEp = (float)atof(pyFields[4]);
+                        float pyWpnl = (float)atof(pyFields[5]);
+                        int pyZw = atoi(pyFields[3]);
+                        int pySt = atoi(pyFields[15]);
+                        int pyT1 = atoi(pyFields[13]);
+                        int pyT2 = atoi(pyFields[14]);
 
                         bool epOk = fabs(ct.entryPrice - pyEp) < 0.02f;
                         bool zwOk = ct.zoneWidthTicks == pyZw;
                         bool stOk = ct.stopTicks == pySt;
                         bool t1Ok = ct.t1Ticks == pyT1;
                         bool t2Ok = ct.t2Ticks == pyT2;
-                        bool l1Ok = (strcmp(ExitTypeStr[ct.leg1Exit], pyFields[17]) == 0);
-                        bool l2Ok = (strcmp(ExitTypeStr[ct.leg2Exit], pyFields[19]) == 0);
+                        bool l1Ok = (strcmp(ExitTypeStr[ct.leg1Exit], pyFields[7]) == 0);
+                        bool l2Ok = (strcmp(ExitTypeStr[ct.leg2Exit], pyFields[9]) == 0);
                         bool pnlOk = fabs(ct.weightedPnl - pyWpnl) < 1.0f;
 
                         if (epOk && zwOk && stOk && t1Ok && t2Ok && l1Ok && l2Ok && pnlOk)
@@ -1327,9 +1325,9 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
                                 if (!t2Ok) fprintf(rpt, "  t2_ticks:    C++=%d  Py=%d\n",
                                                    ct.t2Ticks, pyT2);
                                 if (!l1Ok) fprintf(rpt, "  leg1_exit:   C++=%s  Py=%s\n",
-                                                   ExitTypeStr[ct.leg1Exit], pyFields[17]);
+                                                   ExitTypeStr[ct.leg1Exit], pyFields[7]);
                                 if (!l2Ok) fprintf(rpt, "  leg2_exit:   C++=%s  Py=%s\n",
-                                                   ExitTypeStr[ct.leg2Exit], pyFields[19]);
+                                                   ExitTypeStr[ct.leg2Exit], pyFields[9]);
                                 if (!pnlOk) fprintf(rpt, "  weighted_pnl: C++=%.4f  Py=%.4f\n",
                                                     ct.weightedPnl, pyWpnl);
                                 fprintf(rpt, "\n");
