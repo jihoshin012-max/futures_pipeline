@@ -38,14 +38,23 @@ The zone touch strategy requires 4 separate ACSIL studies working together. Each
 
 ## The autotrader's role
 
-### 5. ATEAM_ZONE_BOUNCE_V1 (new — built from Part A spec)
-**What it does:** Reads zone touch events (from V4/ZRA), computes the A-Cal score using 4 features, routes to CT or WT/NT mode, and manages 2-leg exits.
+### 5a. ATEAM_ZONE_BOUNCE_FIXED (fixed exits)
+**What it does:** Reads zone touch events (from V4/ZRA), computes the A-Cal score using 4 features, routes to CT or WT/NT mode, and manages 2-leg exits with fixed tick targets and stops. Market-only entries.
 
-**Why it's separate:** The autotrader consumes zone data — it doesn't create or measure zones. Keeping it separate means V4/ZRA can be updated independently (with re-validation) without touching trading logic, and vice versa.
+**Exit config:** Fixed exits — T1/T2/Stop are constant tick values regardless of zone width.
+
+### 5b. ATEAM_ZONE_BOUNCE_ZONEREL (zone-relative exits)
+**What it does:** Same A-Cal scoring and 2-mode routing as FIXED, but exits scale with zone width. CT mode uses a 5-tick limit entry inside the zone edge instead of market entry.
+
+**Exit config:** Zone-relative — T1=0.5x, T2=1.0x zone width; Stop=1.5x zone width (floor=120t). CT limit entry at 5 ticks inside edge, 20-bar fill window.
+
+**Why two variants:** Both are P1-frozen final builds. FIXED is the original baseline; ZONEREL adapts exits to zone geometry. Both are retained for comparison and potential deployment.
+
+**Why separate from the data chain:** The autotrader consumes zone data — it doesn't create or measure zones. Keeping it separate means V4/ZRA can be updated independently (with re-validation) without touching trading logic, and vice versa.
 
 ## Version lock rule
 
-All studies and config files in this directory are snapshots from 2026-03-22. They produced the data that Pipeline v3.1 validated. If you modify any study in C:\Projects\sierrachart\, the pipeline results may no longer be valid. Before deploying a modified study:
+All studies and config files in this directory are snapshots frozen as of 2026-03-23. They produced the data that Pipeline v3.1 validated. If you modify any study in C:\Projects\sierrachart\, the pipeline results may no longer be valid. Before deploying a modified study:
 1. Re-export data with the modified study
 2. Re-run at minimum Prompt 0 (baseline) to check for data drift
 3. If baseline changes materially, re-run full pipeline
@@ -58,8 +67,10 @@ All studies and config files in this directory are snapshots from 2026-03-22. Th
 | SupplyDemandZonesV4_history.cpp | v3.1 | 2026-03-18 | SD Zones V4 History [v3.1] | Unchanged |
 | ZoneReactionAnalyzer.cpp | v3.2 | 2026-03-22 | Zone Reaction Analyzer [v3.2] | VP proximity filter |
 | ZoneBounceSignalsV4_aligned.cpp | v3.2 | 2026-03-22 | ZBV4 Aligned [v3.2] | VP proximity filter |
-| zone_bounce_config.h | v1.0 | 2026-03-22 | — | Autotrader config |
-| ATEAM_ZONE_BOUNCE_V1.cpp | v1.0 | 2026-03-22 | ATEAM Zone Bounce V1 [v1.0] | Autotrader |
+| zone_bounce_config_FIXED.h | v1.0 | 2026-03-22 | — | Fixed-exit config |
+| zone_bounce_config_ZONEREL.h | v3.0 | 2026-03-23 | — | Zone-relative config |
+| ATEAM_ZONE_BOUNCE_FIXED.cpp | v1.0 | 2026-03-22 | ATEAM Zone Bounce V1 [v1.0] | Fixed exits, market entry |
+| ATEAM_ZONE_BOUNCE_ZONEREL.cpp | v3.0 | 2026-03-23 | ATEAM Zone Bounce V1 [v3.0] | Zone-relative exits, CT limit entry |
 
 ## Sierra Chart Settings
 
@@ -81,6 +92,8 @@ All studies and config files in this directory are snapshots from 2026-03-22. Th
 |------|---------|
 | scoring_model_acal.json | A-Cal weights + threshold |
 | feature_config.json | Bin edges + TrendSlope cutoffs |
+| zone_bounce_config_FIXED.h | Autotrader config — fixed exits (v1.0) |
+| zone_bounce_config_ZONEREL.h | Autotrader config — zone-relative exits (v3.0) |
 
 ## Documentation
 
