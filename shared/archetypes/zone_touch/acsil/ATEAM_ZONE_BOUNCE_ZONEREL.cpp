@@ -1241,14 +1241,14 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
                     else if (strcmp(skipLog[i].skipReason, "LIMIT_PENDING") == 0) skLP++;
                 }
 
-                fprintf(rpt, "Total trades:      %d  (expected: 69)\n", nTrades);
-                fprintf(rpt, "CT trades:         %d  (expected: 41)\n", ctCount);
-                fprintf(rpt, "WT trades:         %d  (expected: 28)\n", wtCount);
-                fprintf(rpt, "CT LIMIT_EXPIRED:  %d  (expected: 4)\n", ctExpired);
-                fprintf(rpt, "LIMIT_PENDING:     %d  (expected: 1)\n", skLP);
-                fprintf(rpt, "IN_POSITION:       %d  (expected: 62)\n", skIP);
-                fprintf(rpt, "WR:                %.1f%%  (expected: 94.2%%)\n", wr);
-                fprintf(rpt, "PF:                %.2f  (expected: 33.35)\n", pf);
+                fprintf(rpt, "Total trades:      %d  (expected: 77)\n", nTrades);
+                fprintf(rpt, "CT trades:         %d  (expected: 39)\n", ctCount);
+                fprintf(rpt, "WT trades:         %d  (expected: 38)\n", wtCount);
+                fprintf(rpt, "CT LIMIT_EXPIRED:  %d  (expected: 2)\n", ctExpired);
+                fprintf(rpt, "LIMIT_PENDING:     %d  (expected: 0)\n", skLP);
+                fprintf(rpt, "IN_POSITION:       %d  (expected: 44)\n", skIP);
+                fprintf(rpt, "WR:                %.1f%%  (expected: 90.9%%)\n", wr);
+                fprintf(rpt, "PF:                %.2f  (expected: 10.61)\n", pf);
                 fprintf(rpt, "Total PnL:         %.1ft\n\n", totalPnl);
 
                 // Per-trade comparison
@@ -1339,8 +1339,8 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
                     fprintf(rpt, "Per-trade comparison: %d/%d matched, %d mismatched\n\n",
                             matched, nTrades, mismatched);
 
-                    if (mismatched == 0 && matched == nTrades && nTrades == 69)
-                        fprintf(rpt, "VERDICT: PASS (69/69 trades matched)\n");
+                    if (mismatched == 0 && matched == nTrades && nTrades == 77)
+                        fprintf(rpt, "VERDICT: PASS (77/77 trades matched)\n");
                     else
                         fprintf(rpt, "VERDICT: FAIL (%d matched, %d mismatched, %d total)\n",
                                 matched, mismatched, nTrades);

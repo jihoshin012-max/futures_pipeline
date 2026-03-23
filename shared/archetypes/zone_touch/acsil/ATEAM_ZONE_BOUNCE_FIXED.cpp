@@ -332,7 +332,7 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
 
         Input_CSVTestPath.Name = "CSV Test Path";
         Input_CSVTestPath.SetString(
-            "C:\\Projects\\pipeline\\stages\\04-backtest\\zone_touch\\");
+            "C:\\Projects\\pipeline\\stages\\01-data\\output\\zone_prep\\");
 
         SG_Signal.Name     = "Signal";
         SG_Signal.DrawStyle = DRAWSTYLE_ARROW_UP;
@@ -702,6 +702,8 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
 
         // ---------- Simulation state ----------
         int  inTradeUntil = -1;     // bar index when current trade exits
+        bool limitPending = false;
+        int  limitExpiresAt = -1;
 
         // Kill-switch
         int   ksConsec = 0;
@@ -712,6 +714,9 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
         bool  ksWeeklyHalt = false;
         int   ksLastDay = 0;
 
+        // CT limit tracking
+        int ctSignals = 0, ctFills = 0, ctExpired = 0;
+
         int tradeCounter = 0;
         const float TS = ZoneBounceConfig::TICK_SIZE;
 
@@ -720,8 +725,8 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
         {
             const TouchRow& t = touches[ti];
             int touchBar = t.RotBarIndex;
-            int entryBar = touchBar + 1;  // all entries are market at next bar
-            if (entryBar >= nBars) continue;
+            int wtEntryBar = touchBar + 1;
+            if (wtEntryBar >= nBars) continue;
 
             int direction = (t.TouchType == 0) ? 1 : -1;
             int tfMin = CSVGetTFMin(t.SourceLabel);
@@ -741,6 +746,10 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
             float score = f10Pts + f04Pts + f01Pts + f21Pts;
 
             TrendLabel trend = ClsTrend(t.TrendSlope);
+
+            // Check limit expiry
+            if (limitPending && touchBar >= limitExpiresAt)
+                limitPending = false;
 
             // --- Determine action ---
             const char* skipReason = nullptr;
@@ -781,8 +790,12 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
             }
 
             // No-overlap
-            if (!skipReason && entryBar <= inTradeUntil)
+            if (!skipReason && wtEntryBar <= inTradeUntil)
                 skipReason = "IN_POSITION";
+
+            // Limit pending
+            if (!skipReason && limitPending)
+                skipReason = "LIMIT_PENDING";
 
             // Kill-switch
             if (!skipReason && (ksSessionHalt || ksDailyHalt || ksWeeklyHalt))
@@ -809,8 +822,84 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
                 continue;
             }
 
-            // --- Execute trade (all market entries) ---
-            float entryPrice = barData[entryBar].Open;
+            // --- Execute trade ---
+            int entryBar = -1;
+            float entryPrice = 0.0f;
+
+            if (mode == MODE_CT)
+            {
+                ctSignals++;
+                // Place limit: 5t inside zone edge
+                limitPending = true;
+                limitExpiresAt = touchBar + ZoneBounceConfig::CT_FILL_WINDOW_BARS;
+
+                float limitPrice;
+                if (direction == 1)
+                    limitPrice = t.ZoneTop - ZoneBounceConfig::CT_LIMIT_DEPTH_TICKS * TS;
+                else
+                    limitPrice = t.ZoneBot + ZoneBounceConfig::CT_LIMIT_DEPTH_TICKS * TS;
+
+                // Scan bars 1..20 for fill
+                bool filled = false;
+                for (int off = 1; off <= ZoneBounceConfig::CT_FILL_WINDOW_BARS; off++)
+                {
+                    int bi = touchBar + off;
+                    if (bi >= nBars) break;
+                    if (direction == 1)
+                    {
+                        if (barData[bi].Low <= limitPrice)
+                        {
+                            entryPrice = (barData[bi].Open < limitPrice)
+                                ? barData[bi].Open : limitPrice;
+                            entryBar = bi;
+                            filled = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (barData[bi].High >= limitPrice)
+                        {
+                            entryPrice = (barData[bi].Open > limitPrice)
+                                ? barData[bi].Open : limitPrice;
+                            entryBar = bi;
+                            filled = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!filled)
+                {
+                    ctExpired++;
+                    if (nSkips < MAX_SKIPS)
+                    {
+                        SkipOut& sk = skipLog[nSkips++];
+                        strncpy(sk.datetime, t.DateTime, 31);
+                        sk.datetime[31] = '\0';
+                        strncpy(sk.touchType,
+                            (t.TouchType == 0) ? "DEMAND_EDGE" : "SUPPLY_EDGE", 15);
+                        sk.touchType[15] = '\0';
+                        strncpy(sk.sourceLabel, t.SourceLabel, 15);
+                        sk.sourceLabel[15] = '\0';
+                        sk.acalScore = score;
+                        strncpy(sk.trendLabel, TrendLabelStr[trend], 3);
+                        sk.trendLabel[3] = '\0';
+                        strncpy(sk.skipReason, "LIMIT_EXPIRED", 23);
+                        sk.skipReason[23] = '\0';
+                    }
+                    continue;
+                }
+
+                ctFills++;
+                limitPending = false;
+            }
+            else
+            {
+                // WT/NT: market at next bar open
+                entryBar = wtEntryBar;
+                entryPrice = barData[entryBar].Open;
+            }
 
             // --- Compute fixed exits ---
             int t1Ticks, t2Ticks, stopTicks;
@@ -962,7 +1051,8 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
                 tr.zoneTop = t.ZoneTop;
                 tr.zoneBot = t.ZoneBot;
                 tr.zoneWidthTicks = zw;
-                strncpy(tr.entryType, "MARKET", 15);
+                strncpy(tr.entryType,
+                    (mode == MODE_CT) ? "LIMIT_5T" : "MARKET", 15);
                 tr.entryType[15] = '\0';
                 tr.entryPrice = entryPrice;
                 tr.stopTicks = stopTicks;
@@ -1088,7 +1178,7 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
                     else if (strcmp(skipLog[i].skipReason, "IN_POSITION") == 0) skIP++;
                 }
 
-                fprintf(rpt, "Total trades:      %d  (expected: 130)\n", nTrades);
+                fprintf(rpt, "Total trades:      %d  (expected: 85)\n", nTrades);
                 fprintf(rpt, "CT trades:         %d\n", ctCount);
                 fprintf(rpt, "WT trades:         %d\n", wtCount);
                 fprintf(rpt, "IN_POSITION:       %d\n", skIP);
@@ -1178,8 +1268,8 @@ SCSFExport scsf_ATEAM_ZONE_BOUNCE_V1(SCStudyInterfaceRef sc)
                     fprintf(rpt, "Per-trade comparison: %d/%d matched, %d mismatched\n\n",
                             matched, nTrades, mismatched);
 
-                    if (mismatched == 0 && matched == nTrades && nTrades == 130)
-                        fprintf(rpt, "VERDICT: PASS (130/130 trades matched)\n");
+                    if (mismatched == 0 && matched == nTrades && nTrades == 85)
+                        fprintf(rpt, "VERDICT: PASS (85/85 trades matched)\n");
                     else
                         fprintf(rpt, "VERDICT: FAIL (%d matched, %d mismatched, %d total)\n",
                                 matched, mismatched, nTrades);

@@ -108,6 +108,10 @@ namespace ZoneBounceConfig
     constexpr float LEG1_WEIGHT = 0.67f;
     constexpr float LEG2_WEIGHT = 0.33f;
 
+    // CT limit entry (5t inside zone edge, 20-bar fill window)
+    constexpr int CT_LIMIT_DEPTH_TICKS = 5;    // 5 ticks inside zone edge
+    constexpr int CT_FILL_WINDOW_BARS  = 20;   // cancel after 20 bars
+
     // No BE trigger, no trail trigger (sweep found no improvement)
 
     // =====================================================================
