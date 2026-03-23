@@ -21,3 +21,12 @@ archive/data_snapshots/**/*.csv
 archive/sweeps/**/cycle_logs/
 archive/sweeps/**/*.csv
 archive/sweeps/**/*.parquet
+
+# Backup files
+*.bak
+
+# Claude Code settings
+.claude/
+
+# P2 holdout lock flag
+stages/04-backtest/p2_holdout/holdout_locked_P2.flag
