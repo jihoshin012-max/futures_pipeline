@@ -215,10 +215,10 @@ def sim_2leg(bar_data, entry_bar, entry_price, direction,
             pnl = (c - ep) / TICK_SIZE if direction == 1 else (ep - c) / TICK_SIZE
             if leg1_open:
                 leg1_pnl = pnl; leg1_exit = 'TIMECAP'
-                leg1_exit_bar = i
+                leg1_exit_bar = i; leg1_open = False
             if leg2_open:
                 leg2_pnl = pnl; leg2_exit = 'TIMECAP'
-                leg2_exit_bar = i
+                leg2_exit_bar = i; leg2_open = False
             break
 
         # Stop-first
@@ -461,9 +461,9 @@ def run_simulation(exit_mode):
 
         # Compute exit ticks
         if exit_mode == 'zonerel':
-            t1 = max(1, round(ZR_T1_MULT * zone_width_ticks))
-            t2 = max(1, round(ZR_T2_MULT * zone_width_ticks))
-            st = max(round(ZR_STOP_MULT * zone_width_ticks), ZR_STOP_FLOOR)
+            t1 = max(1, int(ZR_T1_MULT * zone_width_ticks + 0.5))
+            t2 = max(1, int(ZR_T2_MULT * zone_width_ticks + 0.5))
+            st = max(int(ZR_STOP_MULT * zone_width_ticks + 0.5), ZR_STOP_FLOOR)
             tc = ZR_TCAP
         else:  # fixed
             if mode == 'CT':
