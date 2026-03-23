@@ -24,7 +24,7 @@
 //  CONFIG_VERSION = "P1_2026-03-22"
 //  Source of truth: scoring_model_acal.json + feature_config.json
 //  Do NOT modify without re-running replication gate (Part B).
-//  Keep zone_bounce_config.h in sync for pipeline version tracking.
+//  Keep zone_bounce_config_FIXED.h in sync for pipeline version tracking.
 // =========================================================================
 namespace ZoneBounceConfig
 {
