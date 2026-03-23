@@ -4,6 +4,20 @@ Every modification to any study in this directory gets an entry.
 Newest first. Update this file with EVERY commit that touches
 a .cpp, .h, or SC setting.
 
+## 2026-03-23 — C++ replication gate PASSED
+
+- **ZONEREL:** 77/77 match on P1 (C++ vs Python replication harness)
+- **FIXED:** 85/85 match on P1
+- 7 bugs fixed: P2/P1 path mismatch, column mapping, TIMECAP
+  off-by-one, rounding method, CT entry mechanism, inline
+  constants, answer key source (pre-scored → replication harness)
+- Answer keys regenerated from replication harness (authoritative)
+- Old throughput answer keys (.bak) removed
+- Tags updated: v1.0-pre-merge, v3.0-pre-merge
+- Added: generate_p1_answer_keys.py
+- Added: p1_replication_answer_key_fixed.csv, p1_replication_answer_key_zr.csv
+- Added: p1_replication_skipped_fixed.csv, p1_replication_skipped_zr.csv
+
 ## 2026-03-23 — Throughput analysis complete
 
 - Tested 20+ exit configurations across 12 analysis sections
