@@ -4,6 +4,19 @@ Every modification to any study in this directory gets an entry.
 Newest first. Update this file with EVERY commit that touches
 a .cpp, .h, or SC setting.
 
+## 2026-03-23 — Throughput analysis complete
+
+- Tested 20+ exit configurations across 12 analysis sections
+- Compared zone-relative vs fixed exits with full sequential
+  freed signal simulation (including kill-switch in cascade)
+- Current ZR 2-leg confirmed optimal on both P1 and P2
+- Dynamic T2 exit (only ACTIONABLE finding) deferred to v3.1
+- No parameter changes — exit config frozen for C++ test mode
+- Added: throughput_analysis_part1.md, throughput_analysis_part2.md
+- Added: p1_twoleg_answer_key_zr.csv, p1_twoleg_answer_key_fixed.csv
+- Added: p1_twoleg_skipped_signals_zr.csv, p1_twoleg_skipped_signals_fixed.csv
+- Added: throughput_prompt_1_v2.md, throughput_prompt_2_v2.md
+
 ## 2026-03-22 — V4 MaxVPProfiles default (Commit 5)
 
 | File | Change |

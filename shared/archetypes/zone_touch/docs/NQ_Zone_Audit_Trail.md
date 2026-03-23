@@ -1,8 +1,8 @@
 # NQ Zone Touch — Audit Trail & Session Journal
 
-> **Date range:** 2026-03-20 through 2026-03-22
-> **Status:** Pipeline COMPLETE. Autotrader build spec ready.
-> **Last updated:** 2026-03-22
+> **Date range:** 2026-03-20 through 2026-03-23
+> **Status:** Pipeline COMPLETE. Throughput gate passed. Autotrader build spec ready.
+> **Last updated:** 2026-03-23
 
 ---
 
@@ -226,6 +226,43 @@
 | 11 | Zone autoresearch candidates (10 items) | Queued — post paper trading |
 | 12 | Zone break strategy | Queued — post bounce deployment |
 | 13 | Zone touch strategy status | Active — pipeline complete, build next |
+
+---
+
+## Throughput Analysis — 2026-03-23
+
+**Purpose:** Determine whether faster exits could increase total
+profit by freeing position capacity for additional trades.
+
+**Scope:** 12 sections across 2 prompts, 20+ configurations
+tested on P1 (primary) with P2 cross-validation.
+
+**Data:** P1 = 120 ZR trades / 130 fixed trades / 58-48 blocked.
+P2 = 69 trades / 63 blocked.
+
+**Key findings:**
+1. Signal density too sparse for throughput gains (194-bar median
+   gap, 12.4% clustering, 71% same-zone blocking)
+2. Zone width is the only speed predictor — no secondary signal
+3. Every stop/BE modification hurts PnL
+4. Fixed exits lose throughput comparison (6,736 vs 8,803)
+5. T2 runner adds 106t/trade on wide zones, only 20t on narrow
+6. Hybrids (zone-width-based exit routing) all below baseline
+7. Dynamic T2 exit: only config beating both periods (+0.4% P1,
+   +1.4% P2) — deferred to v3.1, marginal improvement
+
+**Decision:** Current ZR 2-leg confirmed optimal. No changes.
+- T1 = 0.5 x zone_width_ticks (67%)
+- T2 = 1.0 x zone_width_ticks (33%)
+- Stop = max(1.5 x zone_width_ticks, 120t)
+- TC = 160 bars
+
+**Deferred:** Dynamic T2 exit queued for v3.1 post-paper-trading.
+Stronger on P2 (+1.4%) — revisit if P3 zone distribution is
+wider than P1.
+
+**Files:** throughput_analysis_part1.md, throughput_analysis_part2.md,
+throughput_prompt_1_v2.md, throughput_prompt_2_v2.md
 
 ---
 
