@@ -210,8 +210,8 @@ def sim_2leg(bar_data, entry_bar, entry_price, direction,
 
         last_i = i
 
-        # Time cap
-        if bh > time_cap:
+        # Time cap (>= matches C++ barsHeld >= timeCap)
+        if bh >= time_cap:
             pnl = (c - ep) / TICK_SIZE if direction == 1 else (ep - c) / TICK_SIZE
             if leg1_open:
                 leg1_pnl = pnl; leg1_exit = 'TIMECAP'
