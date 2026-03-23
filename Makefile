@@ -2,7 +2,7 @@
 SHELL := /bin/bash
 PYTHON := python
 
-.PHONY: help check-p2 validate zone-prep replication-gate archive-sweep verify-data
+.PHONY: help check-p2 validate zone-prep replication-gate archive-sweep verify-data reconcile
 
 help:
 	@echo "Pipeline targets:"
@@ -13,6 +13,7 @@ help:
 	@echo "  replication-gate — Run zone touch replication gate (79/79)"
 	@echo "  archive-sweep  — Archive a completed sweep (NAME=<dir>)"
 	@echo "  verify-data    — Verify source data integrity (SHA256)"
+	@echo "  reconcile      — Pre-cleanup reconciliation (untracked, modified, paths)"
 
 check-p2:
 	@if [ -f stages/04-backtest/p2_holdout/holdout_locked_P2.flag ]; then \
@@ -37,3 +38,6 @@ verify-data:
 archive-sweep:
 	@test -n "$(NAME)" || { echo "Usage: make archive-sweep NAME=<sweep_dir>"; exit 1; }
 	$(PYTHON) stages/04-backtest/scripts/archive_sweep.py $(NAME)
+
+reconcile:
+	@$(PYTHON) scripts/reconcile.py $(if $(DETAIL),--detail,)

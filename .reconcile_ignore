@@ -1,0 +1,5 @@
+# Files to ignore during pipeline reconciliation (gitignore format).
+# These are known untracked files that should NOT trigger cleanup warnings.
+
+# P2 holdout flag — intentionally untracked (pre-commit hook blocks commits)
+stages/04-backtest/p2_holdout/holdout_locked_P2.flag
