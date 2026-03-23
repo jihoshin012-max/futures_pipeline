@@ -1,19 +1,24 @@
 // STUDY VERSION LOG
-// Current: v1.0 (2026-03-22) — P1-frozen config
+// Current: v3.0 (2026-03-23) — Zone-relative exits, CT 5t limit entry
+// v1.0 (2026-03-22) — P1-frozen config (fixed exits)
 // Source: scoring_model_acal.json + feature_config.json
 
 // zone_bounce_config.h — P1-frozen configuration for ATEAM_ZONE_BOUNCE_V1
-// CONFIG_VERSION = "P1_2026-03-22"
+// CONFIG_VERSION = "P1_2026-03-23_v3"
 //
 // Source of truth: scoring_model_acal.json + feature_config.json
 // Do NOT modify without re-running replication gate (Part B).
+//
+// NOTE: This file is a PIPELINE COPY for version tracking.
+// The primary build inlines this config in ATEAM_ZONE_BOUNCE_V1.cpp.
+// SC remote build only sends the .cpp file (no custom .h files).
 // ---------------------------------------------------------------
 #pragma once
 
 namespace ZoneBounceConfig
 {
     // ---- Version tag ----
-    static const char* CONFIG_VERSION = "P1_2026-03-22";
+    static const char* CONFIG_VERSION = "P1_2026-03-23_v3";
 
     // ---- Instrument ----
     constexpr float TICK_SIZE     = 0.25f;   // NQ E-mini
@@ -74,41 +79,34 @@ namespace ZoneBounceConfig
     //  Segmentation: Seg3 (Score + Trend Context)
     // =====================================================================
 
-    // TrendSlope: linear regression slope of Last price over trailing 50 bars
-    // y = mx + b, TrendSlope = m. Equivalent to np.polyfit(x, y, 1)[0].
-    constexpr int   TREND_LOOKBACK   = 50;
+    // TrendSlope: pre-computed by ZBV4 study (NOT from bar regression).
+    // Non-direction-aware classification:
+    //   slope <= P33 -> CT (counter-trend)
+    //   slope >= P67 -> WT (with-trend)
+    //   else         -> NT (neutral)
+    // Same thresholds regardless of DEMAND_EDGE vs SUPPLY_EDGE.
     constexpr float TREND_P33        = -0.30755102040803795f;
     constexpr float TREND_P67        =  0.34030804321728640f;
 
-    // Direction-aware trend labels:
-    //   Demand CT = slope < P33 (falling into demand)
-    //   Supply CT = slope > P67 (rising into supply)
-    //   Demand WT = slope > P67 (rising, with-trend for demand)
-    //   Supply WT = slope < P33 (falling, with-trend for supply)
-    //   Everything else = NT
-
     // =====================================================================
-    //  Exit Parameters (from exit sweep — supersedes pipeline defaults)
+    //  Zone-Relative Exit Parameters (v3.0 — replaces fixed exits)
+    //  Targets and stops scale with zone width. Multipliers are P1-frozen.
     // =====================================================================
 
-    // CT Mode (ModeB): counter-trend, highest conviction
-    constexpr int CT_T1_TICKS  = 40;      // leg 1 target
-    constexpr int CT_T2_TICKS  = 80;      // leg 2 target
-    constexpr int CT_STOP_TICKS = 190;    // shared stop
-    constexpr int CT_TIMECAP   = 160;     // bars
+    constexpr float T1_MULT    = 0.5f;    // leg 1 target = 0.5 x zone_width_ticks
+    constexpr float T2_MULT    = 1.0f;    // leg 2 target = 1.0 x zone_width_ticks
+    constexpr float STOP_MULT  = 1.5f;    // stop = 1.5 x zone_width_ticks
+    constexpr int   STOP_FLOOR = 120;     // min stop = 120 ticks (protects narrow zones < 80t)
+    constexpr int   TIMECAP    = 160;     // bars (both modes)
 
-    // WT/NT Mode (ModeA): with-trend or neutral
-    constexpr int WTNT_T1_TICKS  = 60;    // leg 1 target
-    constexpr int WTNT_T2_TICKS  = 80;    // leg 2 target
-    constexpr int WTNT_STOP_TICKS = 240;  // shared stop
-    constexpr int WTNT_TIMECAP   = 160;   // bars
+    // CT Limit Entry (v3.0)
+    constexpr int CT_LIMIT_DEPTH_TICKS = 5;    // 5 ticks inside zone edge
+    constexpr int CT_FILL_WINDOW_BARS  = 20;   // cancel after 20 bars
 
     // Position sizing: 67% leg1, 33% leg2
     // Base = 3 contracts: leg1 = 2ct, leg2 = 1ct
     constexpr float LEG1_WEIGHT = 0.67f;
     constexpr float LEG2_WEIGHT = 0.33f;
-
-    // No BE trigger, no trail trigger (sweep found no improvement)
 
     // =====================================================================
     //  Filters
@@ -119,12 +117,12 @@ namespace ZoneBounceConfig
     // CT mode: no seq gate
 
     // =====================================================================
-    //  Kill-Switch
+    //  Kill-Switch (v3.0: increased for wider zone-relative stops)
     // =====================================================================
 
-    constexpr int KILLSWITCH_CONSEC_LOSSES = 3;     // halt for session
-    constexpr int KILLSWITCH_DAILY_TICKS   = -400;  // halt for day
-    constexpr int KILLSWITCH_WEEKLY_TICKS  = -800;  // halt for week
+    constexpr int KILLSWITCH_CONSEC_LOSSES = 3;      // halt for session
+    constexpr int KILLSWITCH_DAILY_TICKS   = -600;   // halt for day
+    constexpr int KILLSWITCH_WEEKLY_TICKS  = -1200;  // halt for week
 
     // =====================================================================
     //  EOD Flatten
