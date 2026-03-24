@@ -1,32 +1,20 @@
 {
   "description": "Chain of custody: raw source files -> zone_prep merge -> output CSVs",
-  "generated_at": "2026-03-20T13:46:17",
-  "verified_at": "2026-03-23T00:00:00",
+  "generated_at": "2026-03-23T21:30:00",
+  "verified_at": "2026-03-23T21:30:00",
   "zone_prep_script": "stages/01-data/scripts/run_zone_prep.py",
   "source_files": {
-    "zra_p1": {
-      "file": "NQ_ZRA_Hist_P1.csv",
-      "path": "stages/01-data/data/touches/NQ_ZRA_Hist_P1.csv",
-      "sha256": "21626926e80ab0796066541f5bd67062da56b2a96ee55ba463dadaa872ac1980",
-      "rows": 4964
+    "zte_raw_p1": {
+      "file": "NQ_ZTE_raw_P1.csv",
+      "path": "stages/01-data/data/touches/NQ_ZTE_raw_P1.csv",
+      "sha256": "ca6287f769cdc74f216144a7f0dce69d30747f7a874ff50429f37f9dd6ac45bf",
+      "rows": 325
     },
-    "zra_p2": {
-      "file": "NQ_ZRA_Hist_P2.csv",
-      "path": "stages/01-data/data/touches/NQ_ZRA_Hist_P2.csv",
-      "sha256": "615bc3bcd24d7d17585418b87c80ba744c7ab77667a7aac2e7dbeaddf27b0374",
-      "rows": 4660
-    },
-    "zb4_p1": {
-      "file": "NQ_ZB4_signals_P1.csv",
-      "path": "stages/01-data/data/touches/NQ_ZB4_signals_P1.csv",
-      "sha256": "bfac6366a938d108d31a9bd469f13f0f83e58f7a35f6203d1e6ae57dd74d77cd",
-      "rows": 4964
-    },
-    "zb4_p2": {
-      "file": "NQ_ZB4_signals_P2.csv",
-      "path": "stages/01-data/data/touches/NQ_ZB4_signals_P2.csv",
-      "sha256": "e7309235eee2baba1b33489503361eddf5090fc3944e78d32398bebf385c4a72",
-      "rows": 4653
+    "zte_raw_p2": {
+      "file": "NQ_ZTE_raw_P2.csv",
+      "path": "stages/01-data/data/touches/NQ_ZTE_raw_P2.csv",
+      "sha256": "9557723012e7c05f551d8e7d1d0799962a65f15b95d1ff78fc493c35a8bbd01f",
+      "rows": 3537
     },
     "bardata_p1": {
       "file": "NQ_bardata_P1.csv",
@@ -64,5 +52,5 @@
     }
   },
   "qualifying_touches_p2": 186,
-  "notes": "Source files are v3.1 SC exports. HasVPRay=1 for all (pre-proximity-filter). CascadeState from ZB4 merge (80% PRIOR_BROKE). 7 unmatched P2 touches (UNKNOWN CascadeState)."
+  "notes": "ZTE v4.0 consolidated source (replaces ZRA+ZB4). Period-trimmed by import_zte.py from _config/period_config.md boundaries. Merged outputs pending re-run with trimmed source data."
 }
