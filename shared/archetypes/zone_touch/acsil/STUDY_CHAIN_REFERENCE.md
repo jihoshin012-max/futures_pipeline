@@ -2,12 +2,12 @@
 
 ## Why multiple studies exist
 
-The zone touch strategy requires 4 separate ACSIL studies working together. Each handles a different stage of the data pipeline. They must stay version-locked — if any one changes, the data changes and pipeline results are invalidated.
+The zone touch strategy requires 3 ACSIL studies working together (was 4 before ZRA+ZB4 consolidation). They must stay version-locked — if any one changes, the data changes and pipeline results are invalidated.
 
 ## The chain
 
 ### 1. SupplyDemandZonesV4 (V4)
-**What it does:** Creates supply/demand zones on the chart in real-time. Detects when price forms a zone structure (rally-base-rally, drop-base-drop, etc.) and draws the zone.
+**What it does:** Creates supply/demand zones on the chart in real-time. Detects when price forms a zone structure (rally-base-rally, drop-base-drop, etc.) and draws the zone. Exposes 15 subgraphs (SG 0-14) including zone boundaries, break signals, ray prices, and VP imbalance.
 
 **Why it's needed:** This is the foundation — no zones, no strategy. Every zone the autotrader trades was created by this study.
 
@@ -22,28 +22,31 @@ The zone touch strategy requires 4 separate ACSIL studies working together. Each
 
 **Why separate from V4:** V4 live manages zones for real-time trading. V4_history is a batch export tool for backtesting — it replays history and captures every zone that ever existed, including ephemeral ones.
 
-### 3. ZoneReactionAnalyzer (ZRA)
-**What it does:** Detects when price touches a zone and records the touch event with metadata: TouchType (DEMAND_EDGE, SUPPLY_EDGE), TouchSequence, Penetration, Reaction, ZoneWidth, CascadeState, SourceLabel, ZoneAgeBars, and all other fields the scoring model needs.
+### 3. ZoneTouchEngine (ZTE) — consolidated from ZRA + ZB4
+**What it does:** Consolidated study that replaces both ZoneReactionAnalyzer (ZRA) and ZoneBounceSignalsV4_aligned (ZB4). Single touch detection pass, A-Cal scoring, reaction/penetration measurement, and broken zone ray accumulation. Fetches all 15 V4 subgraphs (ZRA/ZB4 only fetched 7). Exports 52-column unified raw CSV + ray_context.csv long format.
 
-**Why it's needed:** V4 creates zones but doesn't track what happens when price returns to them. ZRA is the measurement tool — it watches for touches and records the outcome. The entire feature set (F10, F04, F01, F21) is computed from ZRA's output.
+**Why consolidated:** ZRA and ZB4 had overlapping touch detection logic — both fetched the same 7 V4 subgraphs, both detected zone touches using nearly identical code. Consolidation eliminates this duplication: one study, one touch detection pass, one CSV export, one place to maintain.
 
-**Input settings:** See zra_study_settings.txt. Controls touch detection thresholds and which touch types are recorded.
+**Persistent storage:** ZB4-compatible SignalStorage struct (magic `0x5A425634`). Autotraders read this unchanged via `GetPersistentPointerFromChartStudy`.
 
-### 4. ZoneBounceSignalsV4_aligned (ZB4)
-**What it does:** Aligns ZRA touch detection with V4 zone boundaries to ensure 100% edge touch match rate. Verified at 100% match (1487/1487 touches) on full recalculation (2026-03-07 audit).
+**Input settings:** Chart slot inputs match ZB4 layout (Input[0]=active count, Input[1+s*2]=chart number, Input[2+s*2]=study ID). Scoring, trend, and display inputs at Input[19-48]. ZRA-specific inputs (observation window, VP threshold) at Input[49-52].
 
-**Why it's needed:** V4 and ZRA can drift slightly in how they define zone edges (floating point, bar timing). ZB4 ensures that when ZRA says "DEMAND_EDGE touch at 24850.0", V4 agrees that 24850.0 is the demand zone bottom. Without alignment, some touches would score against the wrong zone.
+**Validation (2026-03-23):** Phase 1 touch count 3808/3808 edge match vs ZB4. Scoring 3808/3808 all columns identical. Ray completeness 99.7% (8 boundary rays at chart start). Phase 2 autotrader replication PASS (FIXED 85/85, ZONEREL 77/77).
 
-**Input settings:** See zb4_study_settings.txt. Controls alignment tolerances.
+### ~~3a. ZoneReactionAnalyzer (ZRA) — DEPRECATED~~
+Moved to `_deprecated/`. Replaced by ZoneTouchEngine. Original: multi-TF reaction/penetration measurement, VP_RAY detection, threshold-crossing bar tracking.
+
+### ~~3b. ZoneBounceSignalsV4_aligned (ZB4) — DEPRECATED~~
+Moved to `_deprecated/`. Replaced by ZoneTouchEngine. Original: A-Cal scoring, mode routing, cascade awareness, signal drawings, persistent storage for autotrader.
 
 ## The autotrader's role
 
-### 5a. ATEAM_ZONE_BOUNCE_FIXED (fixed exits)
-**What it does:** Reads zone touch events (from V4/ZRA), computes the A-Cal score using 4 features, routes to CT or WT/NT mode, and manages 2-leg exits with fixed tick targets and stops. CT uses 5-tick limit entry (20-bar fill window), WT uses market entry.
+### 4a. ATEAM_ZONE_BOUNCE_FIXED (fixed exits)
+**What it does:** Reads zone touch events from ZTE persistent storage, computes the A-Cal score using 4 features, routes to CT or WT/NT mode, and manages 2-leg exits with fixed tick targets and stops. CT uses 5-tick limit entry (20-bar fill window), WT uses market entry.
 
 **Exit config:** Fixed exits — CT: T1=40, T2=80, Stop=190, TC=160. WT: T1=60, T2=80, Stop=240, TC=160.
 
-### 5b. ATEAM_ZONE_BOUNCE_ZONEREL (zone-relative exits)
+### 4b. ATEAM_ZONE_BOUNCE_ZONEREL (zone-relative exits)
 **What it does:** Same A-Cal scoring, 2-mode routing, and CT limit entry as FIXED, but exits scale with zone width.
 
 **Exit config:** Zone-relative — T1=0.5x, T2=1.0x zone width; Stop=max(1.5x zone width, 120t); TC=160. CT limit entry at 5 ticks inside edge, 20-bar fill window.
@@ -52,7 +55,7 @@ The zone touch strategy requires 4 separate ACSIL studies working together. Each
 
 **Test modes:** Both have CSV test modes (Input[14] = "CSV Test Mode"). Replication gate PASSED 2026-03-23: FIXED 85/85, ZONEREL 77/77 on P1 data. Answer keys generated by `generate_p1_answer_keys.py`.
 
-**Why separate from the data chain:** The autotrader consumes zone data — it doesn't create or measure zones. Keeping it separate means V4/ZRA can be updated independently (with re-validation) without touching trading logic, and vice versa.
+**Why separate from the data chain:** The autotrader consumes zone data — it doesn't create or measure zones. Keeping it separate means V4/ZTE can be updated independently (with re-validation) without touching trading logic, and vice versa.
 
 ## Version lock rule
 
@@ -67,8 +70,8 @@ All studies and config files in this directory are snapshots frozen as of 2026-0
 |------|---------|------|-------------|-------|
 | SupplyDemandZonesV4.cpp | v3.2 | 2026-03-22 | SD Zones V4 [v3.2] | MaxVPProfiles + MaxRays defaults 50 → 0 |
 | SupplyDemandZonesV4_history.cpp | v3.1 | 2026-03-18 | SD Zones V4 History [v3.1] | Unchanged |
-| ZoneReactionAnalyzer.cpp | v3.2 | 2026-03-22 | Zone Reaction Analyzer [v3.2] | VP proximity filter |
-| ZoneBounceSignalsV4_aligned.cpp | v3.2 | 2026-03-22 | ZBV4 Aligned [v3.2] | VP proximity filter |
+| ZoneTouchEngine.cpp | v4.0 | 2026-03-23 | Zone Touch Engine [v4.0] | Consolidated ZRA+ZB4. All 15 V4 SGs. Ray accumulation. |
+| RayValidator.cpp | v1.1 | 2026-03-23 | Ray Validator [v1.1] | Test tool — V4 SG 12/13 reference export |
 | zone_bounce_config_FIXED.h | v1.0 | 2026-03-22 | — | Fixed-exit config |
 | zone_bounce_config_ZONEREL.h | v3.0 | 2026-03-23 | — | Zone-relative config |
 | ATEAM_ZONE_BOUNCE_FIXED.cpp | v1.0 | 2026-03-23 | ATEAM Zone Bounce V1 [v1.0] | Fixed exits, CT limit + WT market. PASS 85/85 |
@@ -81,12 +84,16 @@ All studies and config files in this directory are snapshots frozen as of 2026-0
 | V4 MaxRays (Input[8]) | 0 (=unlimited) | Was 50 (now default in code) |
 | V4 MaxVPProfiles (Input[11]) | 0 (=500) | Was 50 (now default in code) |
 
-## Backups (do not deploy — rollback only)
+## Deprecated (do not deploy — rollback only)
 
-| File | Version | Purpose |
-|------|---------|---------|
-| ZoneReactionAnalyzer_v31.cpp | v3.1 | Pre-VP-filter |
-| ZoneBounceSignalsV4_aligned_v31.cpp | v3.1 | Pre-VP-filter |
+| File | Location | Version | Purpose |
+|------|----------|---------|---------|
+| ZoneReactionAnalyzer.cpp | _deprecated/ | v3.2 | Replaced by ZoneTouchEngine v4.0 |
+| ZoneBounceSignalsV4_aligned.cpp | _deprecated/ | v3.2 | Replaced by ZoneTouchEngine v4.0 |
+| ZoneReactionAnalyzer_v31.cpp | acsil/ | v3.1 | Pre-VP-filter backup |
+| ZoneBounceSignalsV4_aligned_v31.cpp | acsil/ | v3.1 | Pre-VP-filter backup |
+| M1A_AutoTrader.cpp | SC workspace | — | Dead code, not on any chart |
+| M1B_AutoTrader.cpp | SC workspace | — | Dead code, not on any chart |
 
 ## Config Files (P1-frozen — do not modify)
 
