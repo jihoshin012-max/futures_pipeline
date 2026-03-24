@@ -1507,43 +1507,313 @@ def run_step0():
                f"L:W={c['lw']:.2f}, WR={c['wr']:.1f}%")
 
     # ═══════════════════════════════════════════════════════════
-    # SURFACE A: ENTRY EXECUTION — REJECTED
+    # SURFACE A: ENTRY EXECUTION (zone-fixed stop/target levels)
     # ═══════════════════════════════════════════════════════════
     rprint("\n" + "=" * 72)
-    rprint("SURFACE A: ENTRY EXECUTION — REJECTED (architectural limitation)")
+    rprint("SURFACE A: ENTRY EXECUTION MODIFICATIONS")
     rprint("=" * 72)
-    rprint("")
-    rprint("  VERDICT: REJECTED")
-    rprint("")
-    rprint("  The simulator (zone_touch_simulator.py) and the holdout backtest")
-    rprint("  (prompt3_holdout_v32.py) both compute stop and target relative to")
-    rprint("  ENTRY PRICE, not zone geometry:")
-    rprint("    stop_price = entry_price +/- stop_ticks * tick_size")
-    rprint("    target_price = entry_price +/- target_ticks * tick_size")
-    rprint("")
-    rprint("  Under this architecture, deeper entry does NOT change R:R. The stop")
-    rprint("  remains 190t from entry, the target remains 60t from entry, and the")
-    rprint("  loss:win ratio is unchanged regardless of where within the zone the")
-    rprint("  entry occurs. Deeper entry only affects fill rate (fewer trades).")
-    rprint("")
-    rprint("  The R:R benefit described in the prompt requires ZONE-FIXED levels:")
-    rprint("    stop_level = zone_edge - 190t  (fixed to zone, not entry)")
-    rprint("    target_level = zone_edge + 60t  (fixed to zone, not entry)")
-    rprint("  Under zone-fixed levels, deeper entry shrinks stop distance and")
-    rprint("  grows target distance, improving R:R.")
-    rprint("")
-    rprint("  C++ IMPLEMENTATION NOTE FOR AUTOTRADER:")
-    rprint("  The autotrader could implement zone-fixed stop/target levels,")
-    rprint("  which would capture the R:R benefit of deeper entries. However,")
-    rprint("  this changes the baseline exit structure and requires its own")
-    rprint("  P1-calibrate / P2-one-shot validation cycle. It is a separate")
-    rprint("  investigation — not a modification to the current v3.2 baseline.")
-    rprint("")
-    rprint("  Penetration data from Step 0f is preserved for that future work:")
-    rprint(f"    M1 penetration: mean={m1_p1_results['max_penetration'].mean():.1f}t, "
-           f"median={m1_p1_results['max_penetration'].median():.1f}t")
-    rprint(f"    M2 penetration: mean={m2_p1_results['max_penetration'].mean():.1f}t, "
-           f"median={m2_p1_results['max_penetration'].median():.1f}t")
+    rprint("  Stop and target are ZONE-FIXED levels (not entry-relative):")
+    rprint("    DEMAND: stop = zone_top - stop_ticks*tick, target = zone_top + target_ticks*tick")
+    rprint("    SUPPLY: stop = zone_bot + stop_ticks*tick, target = zone_bot - target_ticks*tick")
+    rprint("  Deeper entry shrinks stop distance and grows target distance.")
+    rprint("  NOTE: This differs from the baseline simulator which uses entry-relative")
+    rprint("  levels. Zone-fixed levels change the baseline, so P2 validation is required.")
+
+    def sim_zone_fixed(qualifying_df, mode, bar_arr_local, n_bars_local,
+                       depth_ticks, stop_ticks_from_edge, target_ticks_from_edge,
+                       tcap, zonerel_stop_fn=None, zonerel_target_fn=None):
+        """Simulate with zone-fixed stop/target levels and deeper entry.
+
+        Entry: limit order at zone_edge + depth_ticks INTO the zone.
+        Fill window: touch bar + next 3 bars (4 bars total).
+        If price doesn't reach the limit, the trade is SKIPPED (not filled).
+
+        Stop/target levels are fixed to zone_edge, not entry_price.
+        For M1: stop_ticks_from_edge and target_ticks_from_edge are fixed.
+        For M2: zonerel_stop_fn(zw) and zonerel_target_fn(zw) compute per-trade.
+        """
+        subset = qualifying_df.sort_values("RotBarIndex").copy()
+        results = []
+        in_trade_until = -1
+        n_missed_fill = 0
+
+        for idx, row in subset.iterrows():
+            rbi = int(row["RotBarIndex"])
+            if rbi + 1 <= in_trade_until:
+                continue  # position overlap
+
+            direction = 1 if "DEMAND" in str(row["TouchType"]) else -1
+            zw = int(row.get("ZoneWidthTicks", 100))
+            zt = float(row["ZoneTop"])
+            zb = float(row["ZoneBot"])
+
+            # Zone edge = the touched boundary
+            if direction == 1:  # DEMAND: touched edge = zone top
+                zone_edge = zt
+            else:  # SUPPLY: touched edge = zone bot
+                zone_edge = zb
+
+            # Limit order price: deeper into the zone
+            if direction == 1:
+                limit_price = zone_edge - depth_ticks * TICK
+            else:
+                limit_price = zone_edge + depth_ticks * TICK
+
+            # Check fill: does price reach limit within fill window?
+            fill_window = min(4, n_bars_local - rbi)
+            filled = False
+            fill_bar = -1
+            for bi in range(rbi, rbi + fill_window):
+                if bi >= n_bars_local:
+                    break
+                if direction == 1:
+                    if bar_arr_local[bi, 2] <= limit_price:  # Low <= limit
+                        filled = True
+                        fill_bar = bi
+                        break
+                else:
+                    if bar_arr_local[bi, 1] >= limit_price:  # High >= limit
+                        filled = True
+                        fill_bar = bi
+                        break
+
+            if not filled:
+                n_missed_fill += 1
+                continue
+
+            # Entry at limit price (not bar open)
+            ep = limit_price
+            # Entry bar for simulation: the fill bar
+            entry_bar = fill_bar
+
+            # Zone-fixed stop/target levels
+            if zonerel_stop_fn is not None:
+                s_ticks = zonerel_stop_fn(zw)
+                t_ticks = zonerel_target_fn(zw)
+            else:
+                s_ticks = stop_ticks_from_edge
+                t_ticks = target_ticks_from_edge
+
+            if direction == 1:
+                stop_price = zone_edge - s_ticks * TICK
+                target_price = zone_edge + t_ticks * TICK
+            else:
+                stop_price = zone_edge + s_ticks * TICK
+                target_price = zone_edge - t_ticks * TICK
+
+            # Actual distances from entry
+            if direction == 1:
+                eff_stop = (ep - stop_price) / TICK
+                eff_target = (target_price - ep) / TICK
+            else:
+                eff_stop = (stop_price - ep) / TICK
+                eff_target = (ep - target_price) / TICK
+
+            # Simulate from fill bar onward
+            mfe = 0.0
+            mae = 0.0
+            pnl_out = None
+            bh_out = 0
+            etype_out = None
+            end = min(entry_bar + tcap, n_bars_local)
+
+            for i in range(entry_bar, end):
+                h, l, last = (bar_arr_local[i, 1], bar_arr_local[i, 2],
+                               bar_arr_local[i, 3])
+                bh = i - entry_bar + 1
+
+                if direction == 1:
+                    mfe = max(mfe, (h - ep) / TICK)
+                    mae = max(mae, (ep - l) / TICK)
+                    s_hit = l <= stop_price
+                    t_hit = h >= target_price
+                else:
+                    mfe = max(mfe, (ep - l) / TICK)
+                    mae = max(mae, (h - ep) / TICK)
+                    s_hit = h >= stop_price
+                    t_hit = l <= target_price
+
+                if s_hit:
+                    pnl_out = -eff_stop
+                    bh_out = bh
+                    etype_out = "STOP"
+                    break
+                if t_hit:
+                    pnl_out = eff_target
+                    bh_out = bh
+                    etype_out = "TARGET"
+                    break
+                if bh >= tcap:
+                    pnl_out = ((last - ep) / TICK if direction == 1
+                               else (ep - last) / TICK)
+                    bh_out = bh
+                    etype_out = "TIMECAP"
+                    break
+
+            if pnl_out is None:
+                if end > entry_bar:
+                    last = bar_arr_local[end - 1, 3]
+                    pnl_out = ((last - ep) / TICK if direction == 1
+                               else (ep - last) / TICK)
+                    bh_out = end - entry_bar
+                    etype_out = "TIMECAP"
+                else:
+                    continue
+
+            results.append({
+                "pnl": pnl_out, "bars_held": bh_out,
+                "exit_type": etype_out, "mfe": mfe, "mae": mae,
+                "stop_used": eff_stop, "target_used": eff_target,
+                "zw_ticks": zw, "direction": direction,
+                "win": pnl_out - COST_TICKS > 0,
+            })
+            in_trade_until = entry_bar + bh_out - 1
+
+        return pd.DataFrame(results), n_missed_fill
+
+    # ── A0: Geometry Verification ──
+    rprint("\n── A0: Geometry Verification ──")
+    m1_demand = m1_p1_results[
+        m1_p1_results["touch_type"].str.contains("DEMAND")].iloc[0]
+    m1_supply = m1_p1_results[
+        m1_p1_results["touch_type"].str.contains("SUPPLY")].iloc[0]
+
+    for label, trade in [("DEMAND (long)", m1_demand),
+                          ("SUPPLY (short)", m1_supply)]:
+        zt = trade["zone_top"]
+        zb = trade["zone_bot"]
+        d = trade["direction"]
+        zone_edge = zt if d == 1 else zb
+
+        if d == 1:
+            stop_level = zone_edge - 190 * TICK
+            target_level = zone_edge + 60 * TICK
+            baseline_entry = zone_edge  # edge entry (depth=0)
+            deeper_entry = zone_edge - 20 * TICK
+            base_stop_dist = (baseline_entry - stop_level) / TICK
+            base_tgt_dist = (target_level - baseline_entry) / TICK
+            new_stop_dist = (deeper_entry - stop_level) / TICK
+            new_tgt_dist = (target_level - deeper_entry) / TICK
+        else:
+            stop_level = zone_edge + 190 * TICK
+            target_level = zone_edge - 60 * TICK
+            baseline_entry = zone_edge
+            deeper_entry = zone_edge + 20 * TICK
+            base_stop_dist = (stop_level - baseline_entry) / TICK
+            base_tgt_dist = (baseline_entry - target_level) / TICK
+            new_stop_dist = (stop_level - deeper_entry) / TICK
+            new_tgt_dist = (deeper_entry - target_level) / TICK
+
+        rprint(f"\n  {label}:")
+        rprint(f"    zone_edge={zone_edge}, stop_level={stop_level}, "
+               f"target_level={target_level}")
+        rprint(f"    Depth=0: stop_dist={base_stop_dist:.0f}t, "
+               f"target_dist={base_tgt_dist:.0f}t, "
+               f"L:W={base_stop_dist/base_tgt_dist:.2f}")
+        rprint(f"    Depth=20: stop_dist={new_stop_dist:.0f}t, "
+               f"target_dist={new_tgt_dist:.0f}t, "
+               f"L:W={new_stop_dist/new_tgt_dist:.2f}")
+        shrinks = new_stop_dist < base_stop_dist
+        grows = new_tgt_dist > base_tgt_dist
+        rprint(f"    Stop {'SHRINKS' if shrinks else 'GROWS!!!'} "
+               f"({base_stop_dist:.0f}->{new_stop_dist:.0f}), "
+               f"Target {'GROWS' if grows else 'SHRINKS!!!'} "
+               f"({base_tgt_dist:.0f}->{new_tgt_dist:.0f})")
+        if not shrinks or not grows:
+            rprint("    !!! GEOMETRY ERROR")
+
+    # ── A1: Deeper Fixed Entry (Mode 1) ──
+    rprint("\n── A1: Deeper Fixed Entry (Mode 1) — zone-fixed simulation ──")
+
+    # Baseline at depth=0 with zone-fixed levels
+    m1_a1_rows = []
+    r_base, _ = sim_zone_fixed(
+        m1_p1, "M1", bar_arr_p1, n_bars_p1,
+        depth_ticks=0, stop_ticks_from_edge=190,
+        target_ticks_from_edge=60, tcap=120)
+    m1_a0_row = surface_row("depth=0 (zone-fixed baseline)", r_base, 107)
+    m1_a1_rows.append(m1_a0_row)
+    rprint(f"  Zone-fixed baseline (depth=0): PF={m1_a0_row['pf']:.2f}, "
+           f"trades={m1_a0_row['trades']}")
+    rprint(f"  NOTE: zone-fixed baseline differs from entry-relative baseline "
+           f"(PF={m1_base_pf:.2f}) because stop/target anchored to zone edge, "
+           f"not bar Open.")
+
+    # Pick depths from 0f fill rate data
+    m1_pen = m1_p1_results["max_penetration"]
+    fill_90 = max(1, int(np.percentile(m1_pen, 10)))
+    fill_75 = max(1, int(np.percentile(m1_pen, 25)))
+    fill_60 = max(1, int(np.percentile(m1_pen, 40)))
+    depths_m1 = sorted(set([fill_90, fill_75, fill_60, 5, 10, 15, 20]))
+    rprint(f"  Fill-rate-derived depths: 90%={fill_90}t, 75%={fill_75}t, "
+           f"60%={fill_60}t")
+
+    for depth in depths_m1:
+        r, missed = sim_zone_fixed(
+            m1_p1, "M1", bar_arr_p1, n_bars_p1,
+            depth_ticks=depth, stop_ticks_from_edge=190,
+            target_ticks_from_edge=60, tcap=120)
+        if len(r) == 0:
+            continue
+        eff_stop = r["stop_used"].mean()
+        eff_tgt = r["target_used"].mean()
+        lw = eff_stop / eff_tgt if eff_tgt > 0 else 0
+        row = surface_row(f"depth={depth}t (fill={len(r)}, miss={missed})",
+                           r, m1_a0_row["trades"])
+        row["label"] = (f"depth={depth}t fill={len(r)} "
+                        f"S={eff_stop:.0f} T={eff_tgt:.0f} L:W={lw:.1f}")
+        m1_a1_rows.append(row)
+    print_surface_table(m1_a1_rows, "M1 Deeper Entry (zone-fixed sim)")
+
+    # ── A2: Deeper Fixed Entry (Mode 2) ──
+    rprint("\n── A2: Deeper Fixed Entry (Mode 2) — zone-fixed simulation ──")
+
+    m2_a2_rows = []
+    r_base_m2, _ = sim_zone_fixed(
+        m2_p1, "M2", bar_arr_p1, n_bars_p1,
+        depth_ticks=0, stop_ticks_from_edge=0,
+        target_ticks_from_edge=0, tcap=80,
+        zonerel_stop_fn=lambda zw: max(round(1.5 * zw), 120),
+        zonerel_target_fn=lambda zw: max(1, round(1.0 * zw)))
+    m2_a0_row = surface_row("depth=0 (zone-fixed baseline)", r_base_m2, 239)
+    m2_a2_rows.append(m2_a0_row)
+    rprint(f"  Zone-fixed baseline (depth=0): PF={m2_a0_row['pf']:.2f}, "
+           f"trades={m2_a0_row['trades']}")
+
+    m2_pen = m2_p1_results["max_penetration"]
+    fill_90_m2 = max(1, int(np.percentile(m2_pen, 10)))
+    fill_75_m2 = max(1, int(np.percentile(m2_pen, 25)))
+    fill_60_m2 = max(1, int(np.percentile(m2_pen, 40)))
+    depths_m2 = sorted(set([fill_90_m2, fill_75_m2, fill_60_m2, 5, 10, 15, 20]))
+    rprint(f"  Fill-rate-derived depths: 90%={fill_90_m2}t, 75%={fill_75_m2}t, "
+           f"60%={fill_60_m2}t")
+
+    for depth in depths_m2:
+        r, missed = sim_zone_fixed(
+            m2_p1, "M2", bar_arr_p1, n_bars_p1,
+            depth_ticks=depth, stop_ticks_from_edge=0,
+            target_ticks_from_edge=0, tcap=80,
+            zonerel_stop_fn=lambda zw: max(round(1.5 * zw), 120),
+            zonerel_target_fn=lambda zw: max(1, round(1.0 * zw)))
+        if len(r) == 0:
+            continue
+        eff_stop = r["stop_used"].mean()
+        eff_tgt = r["target_used"].mean()
+        lw = eff_stop / eff_tgt if eff_tgt > 0 else 0
+        row = surface_row(f"depth={depth}t (fill={len(r)}, miss={missed})",
+                           r, m2_a0_row["trades"])
+        row["label"] = (f"depth={depth}t fill={len(r)} "
+                        f"S={eff_stop:.0f} T={eff_tgt:.0f} L:W={lw:.1f}")
+        m2_a2_rows.append(row)
+    print_surface_table(m2_a2_rows, "M2 Deeper Entry (zone-fixed sim)")
+
+    # Collect Surface A candidates for stacking
+    all_m1_a_tests = []
+    for r in m1_a1_rows[1:]:  # skip baseline
+        all_m1_a_tests.append({**r, "surface": "A1-Depth"})
+    all_m2_a_tests = []
+    for r in m2_a2_rows[1:]:
+        all_m2_a_tests.append({**r, "surface": "A2-Depth"})
 
     # ═══════════════════════════════════════════════════════════
     # STEP 3: STACKING
@@ -1552,22 +1822,24 @@ def run_step0():
     rprint("STEP 3: STACKING — Best Combinations")
     rprint("=" * 72)
 
-    # Identify best single mods per mode
-    rprint("\n  Identifying best individual modifications...")
+    # Identify best single mods per mode (Surface B + Surface A combined)
+    rprint("\n  Identifying best individual modifications (B + A combined)...")
 
-    # M1: Sort all tests by PF improvement
-    m1_best = sorted(all_m1_tests, key=lambda x: -x["pf"])[:5]
-    rprint(f"\n  M1 top 5 individual mods:")
+    all_m1_combined = all_m1_tests + all_m1_a_tests
+    all_m2_combined = all_m2_tests + all_m2_a_tests
+
+    m1_best = sorted(all_m1_combined, key=lambda x: -x["pf"])[:8]
+    rprint(f"\n  M1 top 8 individual mods:")
     for t in m1_best:
         dpf = t["pf"] - m1_base_pf
-        rprint(f"    {t['surface']:12} {t['label']:<35} "
+        rprint(f"    {t['surface']:12} {t['label']:<45} "
                f"PF={t['pf']:.2f} (dPF={dpf:+.2f})")
 
-    m2_best = sorted(all_m2_tests, key=lambda x: -x["pf"])[:5]
-    rprint(f"\n  M2 top 5 individual mods:")
+    m2_best = sorted(all_m2_combined, key=lambda x: -x["pf"])[:8]
+    rprint(f"\n  M2 top 8 individual mods:")
     for t in m2_best:
         dpf = t["pf"] - m2_base_pf
-        rprint(f"    {t['surface']:12} {t['label']:<35} "
+        rprint(f"    {t['surface']:12} {t['label']:<45} "
                f"PF={t['pf']:.2f} (dPF={dpf:+.2f})")
 
     # Stack best M1 mods incrementally
@@ -1681,6 +1953,70 @@ def run_step0():
         passed = "PASS" if degrad <= 15 else "FAIL"
         rprint(f"  {plabel:<40} {pf:>9.2f} {n:>7} {degrad:>+7.1f}% "
                f"{passed:>6}")
+
+    # P2-validate M1 deeper entry (zone-fixed) — test key depths
+    rprint("\n  Applying M1 zone-fixed deeper entry to P2...")
+    # P2 zone-fixed baseline
+    r_p2_zf_base, _ = sim_zone_fixed(
+        m1_p2, "M1", bar_arr_p2, n_bars_p2,
+        depth_ticks=0, stop_ticks_from_edge=190,
+        target_ticks_from_edge=60, tcap=120)
+    pf_p2_zf_base = compute_pf(r_p2_zf_base["pnl"].tolist(), 4)
+    rprint(f"  P2 zone-fixed baseline: PF@4t={pf_p2_zf_base:.2f}, "
+           f"trades={len(r_p2_zf_base)}")
+    rprint(f"  Degradation floor (15%): {pf_p2_zf_base * 0.85:.2f}")
+
+    rprint(f"\n  {'Config':<40} {'P2 PF@4t':>9} {'Trades':>7} "
+           f"{'Degrad%':>8} {'Pass?':>6}")
+    rprint(f"  {'-'*40} {'-'*9} {'-'*7} {'-'*8} {'-'*6}")
+    rprint(f"  {'depth=0 (zone-fixed baseline)':<40} "
+           f"{pf_p2_zf_base:>9.2f} {len(r_p2_zf_base):>7} "
+           f"{'  +0.0%':>8} {'PASS':>6}")
+    for depth in [5, 8, 10, 15]:
+        r_p2, missed = sim_zone_fixed(
+            m1_p2, "M1", bar_arr_p2, n_bars_p2,
+            depth_ticks=depth, stop_ticks_from_edge=190,
+            target_ticks_from_edge=60, tcap=120)
+        if len(r_p2) == 0:
+            continue
+        pf = compute_pf(r_p2["pnl"].tolist(), 4)
+        degrad = (pf_p2_zf_base - pf) / pf_p2_zf_base * 100
+        passed = "PASS" if degrad <= 15 else "FAIL"
+        rprint(f"  {'depth=' + str(depth) + 't':<40} {pf:>9.2f} "
+               f"{len(r_p2):>7} {degrad:>+7.1f}% {passed:>6}")
+
+    # P2-validate M2 deeper entry (zone-fixed)
+    rprint("\n  Applying M2 zone-fixed deeper entry to P2...")
+    r_p2_m2_base, _ = sim_zone_fixed(
+        m2_p2, "M2", bar_arr_p2, n_bars_p2,
+        depth_ticks=0, stop_ticks_from_edge=0,
+        target_ticks_from_edge=0, tcap=80,
+        zonerel_stop_fn=lambda zw: max(round(1.5 * zw), 120),
+        zonerel_target_fn=lambda zw: max(1, round(1.0 * zw)))
+    pf_p2_m2_base = compute_pf(r_p2_m2_base["pnl"].tolist(), 4)
+    rprint(f"  P2 zone-fixed baseline: PF@4t={pf_p2_m2_base:.2f}, "
+           f"trades={len(r_p2_m2_base)}")
+
+    rprint(f"\n  {'Config':<40} {'P2 PF@4t':>9} {'Trades':>7} "
+           f"{'Degrad%':>8} {'Pass?':>6}")
+    rprint(f"  {'-'*40} {'-'*9} {'-'*7} {'-'*8} {'-'*6}")
+    rprint(f"  {'depth=0 (zone-fixed baseline)':<40} "
+           f"{pf_p2_m2_base:>9.2f} {len(r_p2_m2_base):>7} "
+           f"{'  +0.0%':>8} {'PASS':>6}")
+    for depth in [3, 7, 10, 15]:
+        r_p2, missed = sim_zone_fixed(
+            m2_p2, "M2", bar_arr_p2, n_bars_p2,
+            depth_ticks=depth, stop_ticks_from_edge=0,
+            target_ticks_from_edge=0, tcap=80,
+            zonerel_stop_fn=lambda zw: max(round(1.5 * zw), 120),
+            zonerel_target_fn=lambda zw: max(1, round(1.0 * zw)))
+        if len(r_p2) == 0:
+            continue
+        pf = compute_pf(r_p2["pnl"].tolist(), 4)
+        degrad = (pf_p2_m2_base - pf) / pf_p2_m2_base * 100
+        passed = "PASS" if degrad <= 15 else "FAIL"
+        rprint(f"  {'depth=' + str(depth) + 't':<40} {pf:>9.2f} "
+               f"{len(r_p2):>7} {degrad:>+7.1f}% {passed:>6}")
 
     # Apply best M2 stacks to P2
     rprint("\n  Applying best M2 modifications to P2...")
