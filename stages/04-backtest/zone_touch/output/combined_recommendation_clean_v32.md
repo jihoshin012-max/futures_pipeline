@@ -7,9 +7,9 @@ Supplements: `verdict_narrative_v32.md` (Prompt 3) and `cross_reference_report_c
 
 ## Executive Summary
 
-The v3.2 pipeline — run on warmup-enriched data with bottom-up methodology — confirms a tradeable zone touch edge on NQ futures. The recommended deployment is a **2-tier priority waterfall** combining A-Eq ModeA (high-conviction, 96 P2 trades, PF 6.26 @4t) with B-ZScore Seg2 RTH (balanced, 327 P2 trades, PF 4.25 @4t). Combined: 423 trades, PF 4.43 @4t, Profit/DD 47.6.
+The v3.2 pipeline — run on warmup-enriched data with bottom-up methodology — confirms a tradeable zone touch edge on NQ futures. The recommended deployment is a **2-tier priority waterfall** combining A-Eq ModeA (high-conviction, 96 P2 trades, PF 6.26 @4t baseline, 8.25 @4t with partials) with B-ZScore RTH (balanced, 309 P2 trades in non-overlapping waterfall, PF 4.18 @4t with tightened stop). Combined: 405 trades, PF 4.30 @4t.
 
-No group earned a full "Yes" verdict (24 Conditional, 0 Yes). Paper trading is the correct next step.
+Risk mitigation investigation (2026-03-24) validated M1 partial exits and M2 stop tightening + position sizing. No group earned a full "Yes" verdict (24 Conditional, 0 Yes). Paper trading is the correct next step.
 
 ---
 
@@ -30,7 +30,7 @@ No group earned a full "Yes" verdict (24 Conditional, 0 Yes). Paper trading is t
 
 ---
 
-## Deployment Configuration (Frozen)
+## Deployment Configuration (Frozen, updated 2026-03-24 with risk mitigation)
 
 ### Priority Waterfall
 
@@ -39,24 +39,51 @@ ON EACH ZONE TOUCH EVENT:
   1. Compute 7 features: F10, F01, F05, F09, F21, F13, F04
   2. Compute A-Eq score (equal-weight, 0-70 scale)
   3. IF A-Eq score >= 45.5:
-       → MODE 1: FIXED exit
-         Stop = 190 ticks
-         Target = 60 ticks
+       → MODE 1: FIXED exit with partial targets
+         Contracts = 3
+         Entry = market (next bar open), EntryOffset = 0 (configurable)
+         Stop = 190 ticks from entry
+         T1 = 60 ticks (1 contract)     ← exits first
+         T2 = 120 ticks (2 contracts)   ← runner, stop moves to entry after T1
          Time cap = 120 bars
-         No BE, no trail
+         Alternative config: 1+1+1 (1ct@60t, 1ct@120t, 1ct@180t, BE after T1)
   4. ELSE:
-       Compute B-ZScore (global StandardScaler, window=100)
+       Compute B-ZScore (global StandardScaler)
        IF B-ZScore >= 0.50
           AND session = RTH
           AND seq <= 2
           AND TF <= 120m:
-            → MODE 2: ZONEREL exit
-              Stop = max(1.5 × ZoneWidth, 120) ticks
-              Target = 1.0 × ZoneWidth ticks
+            → MODE 2: ZONEREL exit with position sizing
+              Contracts = 3 if ZW < 150t, 2 if ZW 150-250t, 1 if ZW >= 250t
+              Entry = market (next bar open), EntryOffset = 0 (configurable)
+              Stop = max(1.3 × ZoneWidth, 100) ticks from entry
+              Target = 1.0 × ZoneWidth ticks from entry
               Time cap = 80 bars
-              No BE, no trail
+              No BE, no trail, no partials
   5. ELSE: SKIP (no trade)
 ```
+
+### Risk Mitigation Modifications (validated 2026-03-24)
+
+Changes from the pre-mitigation baseline, all P2-validated:
+
+| Change | Mode | P1 Effect | P2 PF@4t | P2 Degrad | Source |
+|--------|------|-----------|---------|-----------|--------|
+| Partial exits (1+2) | M1 | PF 8.50 → 9.52 | 8.25 | -31.7% (improved) | B5 |
+| Partial exits (1+1+1) | M1 | PF 8.50 → 9.00 | 8.31 | -32.6% (improved) | B5 |
+| Stop 1.3xZW floor 100 | M2 | PF 4.61 → 4.67 | 4.18 | -2.0% (improved) | B2 |
+| Position sizing by ZW | M2 | -- | -- | -- | C |
+
+Rejected modifications (with evidence):
+- Zone-fixed stop/target: PF jump was single-trade artifact (1 of 4 losers flipped)
+- Deeper entries: fill rate too low (68% at 10t), selection bias in missed trades
+- BE stops: P2 PF drops >50% on both modes
+- M2 target reduction: 1.0xZW already optimal at every level tested
+- M1 stop reduction: PF drops at every stop level
+- M2 partials: degrade PF (4.61 to 4.27-4.54)
+- TC tightening: degrades PF on both modes
+
+See `shared/archetypes/zone_touch/output/risk_mitigation_investigation_v32.md`.
 
 ### Feature Bin Definitions (from P1, frozen)
 
@@ -89,8 +116,10 @@ A-Eq max score: 70. Threshold: 45.5 (65%).
 
 | Mode | P2 Trades | PF @4t | WR% | Max DD | Profit/DD | Perm p | Rand %ile | Verdict |
 |------|-----------|--------|-----|--------|-----------|--------|-----------|---------|
-| A-Eq ModeA | 96 | 6.26 | 94.8 | 193 | 22.5 | 0.002 | 99.7 | Conditional |
-| B-ZScore RTH | 327 | 4.25 | 77.3 | 647 | ~31 | 0.000 | 100.0 | Conditional |
+| A-Eq ModeA (baseline) | 96 | 6.26 | 94.8 | 193 | 22.5 | 0.002 | 99.7 | Conditional |
+| A-Eq ModeA (1+2 partial) | 92 | **8.25** | 95.7 | -- | -- | -- | -- | **P2 PASS** |
+| B-ZScore RTH (baseline)* | 309 | 4.10 | 76.4 | -- | -- | -- | -- | Conditional |
+| B-ZScore RTH (1.3xZW stop) | 309 | **4.18** | 76.4 | -- | -- | -- | -- | **P2 PASS** |
 | **Combined** | **423** | **4.43** | **—** | **647** | **47.6** | **—** | **—** | **DEPLOY COMBO** |
 
 ### P2a / P2b Consistency
@@ -175,7 +204,10 @@ This is a **single autotrader** with a priority waterfall, not two separate auto
 
 | Item | Priority | Description |
 |------|----------|-------------|
-| Deferred Test D | Medium | Replicate prior M1_A config on v3.2 data to confirm seq/TF gates unnecessary |
-| Deferred Test G | Medium | Compute A-Cal/A-Eq overlap for potential 3rd tier assessment |
+| C++ multileg implementation | High | Implement M1 1+2 partial exits in autotrader (stop-to-BE after T1) |
+| C++ M2 stop formula | High | Change M2 stop from max(1.5xZW,120) to max(1.3xZW,100) |
+| C++ position sizing | High | Add ZW-conditional contract sizing for M2 |
+| C++ EntryOffset param | Medium | Configurable deeper entry (default 0) for paper trade experimentation |
+| Zone-fixed stop/target | Low | Future investigation — changes baseline, needs own P1/P2 cycle |
+| Deferred Test D | Low | Replicate prior M1_A config on v3.2 data to confirm seq/TF gates unnecessary |
 | 3-tier evaluation | Low | After P3 validates 2-tier, evaluate B-only (669 trades, PF 2.34) as 3rd tier |
-| ZONEREL on A-Eq ModeA | Low | ZONEREL achieved PF 7.53 on P1 (vs FIXED 8.50). Viable fallback if FIXED exits underperform live. |
