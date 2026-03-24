@@ -23,11 +23,12 @@ from pathlib import Path
 
 import pandas as pd
 
-# Period boundaries — from _config/period_config.md
-PERIOD_BOUNDS = {
-    "P1": ("2025-09-21", "2025-12-14"),
-    "P2": ("2025-12-15", "2026-03-02"),
-}
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from shared.data_loader import parse_period_config
+
+# Period boundaries — read from _config/period_config.md (zone_touch archetype)
+PERIOD_BOUNDS = parse_period_config("zone_touch")
 
 # Files to import: (sc_filename, pipeline_prefix, datetime_column)
 IMPORT_FILES = [

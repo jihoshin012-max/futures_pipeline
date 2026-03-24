@@ -15,8 +15,12 @@ import shutil
 from pathlib import Path
 from datetime import datetime
 
-# === Configuration ===
+# Add project root to path for shared imports
 BASE = Path(r"c:/Projects/pipeline")
+sys.path.insert(0, str(BASE))
+from shared.data_loader import parse_period_config
+
+# === Configuration ===
 DATA = BASE / "stages/01-data/data"
 OUT = BASE / "stages/01-data/output/zone_prep"
 
@@ -24,13 +28,9 @@ TICK_SIZE = 0.25  # NQ — from _config/instruments.md
 TICK_VALUE = 5.00
 INSTRUMENT = "NQ"
 
-PERIODS = ["P1", "P2"]
-
-# Period boundaries from _config/period_config.md (zone_touch archetype)
-PERIOD_BOUNDS = {
-    "P1": ("2025-09-21", "2025-12-14"),
-    "P2": ("2025-12-15", "2026-03-02"),
-}
+# Period boundaries — read from _config/period_config.md (zone_touch archetype)
+PERIOD_BOUNDS = parse_period_config("zone_touch")
+PERIODS = sorted(PERIOD_BOUNDS.keys())
 
 # === ZTE Consolidation (Phase 3) ===
 # When USE_ZTE=True, read from ZoneTouchEngine's unified raw CSV (per-period,

@@ -5,7 +5,8 @@ No hardcoded paths — all paths come from function arguments.
 The engine resolves paths from config JSON; this module is a pure loader.
 
 Exports: load_bars, load_touches, load_data, load_zte_raw,
-         load_ray_context, load_ray_reference, parse_instruments_md
+         load_ray_context, load_ray_reference, parse_instruments_md,
+         parse_period_config
 """
 
 import re
@@ -123,6 +124,45 @@ def load_ray_reference(path: str) -> pd.DataFrame:
         df[col] = df[col].str.strip()
     df["DateTime"] = pd.to_datetime(df["DateTime"], format="mixed")
     return df
+
+
+def parse_period_config(archetype: str, config_path: str = "_config/period_config.md") -> dict:
+    """Parse period boundaries from _config/period_config.md.
+
+    Reads the Active Periods table and returns {period_id: (start_date, end_date)}
+    for the given archetype.
+
+    Args:
+        archetype: Archetype name (e.g. "zone_touch", "rotational").
+        config_path: Path to _config/period_config.md.
+
+    Returns:
+        Dict mapping period_id to (start_date_str, end_date_str).
+        Example: {"P1": ("2025-09-21", "2025-12-14"), "P2": ("2025-12-15", "2026-03-02")}
+
+    Raises:
+        ValueError: If no periods found for the given archetype.
+    """
+    with open(config_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Parse markdown table rows: | P1 | zone_touch | IS | 2025-09-21 | 2025-12-14 | notes |
+    row_pattern = re.compile(
+        r"\|\s*(\w+)\s*\|\s*(\w+)\s*\|\s*\w+\s*\|\s*([\d-]+)\s*\|\s*([\d-]+)\s*\|"
+    )
+    bounds = {}
+    for m in row_pattern.finditer(content):
+        period_id, arch, start, end = m.group(1), m.group(2), m.group(3), m.group(4)
+        if arch == archetype:
+            bounds[period_id] = (start, end)
+
+    if not bounds:
+        raise ValueError(
+            f"No periods found for archetype '{archetype}' in {config_path}. "
+            f"Check the Active Periods table."
+        )
+
+    return bounds
 
 
 def parse_instruments_md(instrument: str, config_path: str = "_config/instruments.md") -> dict:
