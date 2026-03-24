@@ -25,6 +25,9 @@ archive/sweeps/**/*.parquet
 # Backup files
 *.bak
 
+# ZTE/RayValidator SC output artifacts
+shared/archetypes/zone_touch/output/
+
 # Claude Code settings
 .claude/
 
