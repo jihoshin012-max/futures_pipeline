@@ -1,0 +1,75 @@
+{
+  "version": "3.2",
+  "baseline_pf": 1.3396,
+  "winning_features": [
+    "F10",
+    "F01",
+    "F05",
+    "F09",
+    "F21",
+    "F13",
+    "F04"
+  ],
+  "winner": {
+    "run_key": "seg1_A-Eq",
+    "group": "ModeA",
+    "verdict": "Conditional",
+    "scoring_model": "A-Eq",
+    "segmentation": "seg1",
+    "threshold": 45.49999999999999,
+    "exit_type": "FIXED",
+    "exit_params": {
+      "stop": 190,
+      "target": 60,
+      "be_trigger": 0,
+      "trail_trigger": 0,
+      "time_cap": 120,
+      "pf_3t": 8.496382054992765
+    },
+    "filters": {
+      "seq_max": null,
+      "tf_filter": false,
+      "width_min": 0
+    },
+    "features": [
+      "F10",
+      "F01",
+      "F05",
+      "F09",
+      "F21",
+      "F13",
+      "F04"
+    ],
+    "p1_pf": 8.496382054992765,
+    "p2a_pf": 4.797697368421052,
+    "p2b_pf": 11.518134715025907,
+    "combined_p2_pf": 6.416978776529338,
+    "combined_p2_pf4": 6.264267990074441,
+    "sharpe": 0.8877831138999664,
+    "max_dd": 193.0,
+    "profit_dd": 22.481865284974095,
+    "trades": 96,
+    "sbb_pct": 0.9259259259259258
+  },
+  "b_only_tier": {
+    "verdict": "Conditional",
+    "pf_4t": 2.34307040548719,
+    "trades": 669,
+    "p2a_pf": 2.053550640279395,
+    "p2b_pf": 2.654761017075535
+  },
+  "multi_mode": {
+    "primary_combo": {
+      "mode_a": "seg1_A-Eq/ModeA",
+      "mode_b": "seg2_B-ZScore/ModeA_RTH",
+      "combo_verdict": "DEPLOY COMBO",
+      "combo_pf_4t": 4.4289583568446
+    },
+    "secondary_combo": {
+      "mode_a": "seg1_A-Eq/ModeA",
+      "mode_b": "seg4_B-ZScore/ModeA_LowATR",
+      "combo_verdict": "DEPLOY COMBO",
+      "combo_pf_4t": 2.8533295335803173
+    }
+  }
+}

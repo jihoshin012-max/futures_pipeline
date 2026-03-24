@@ -646,3 +646,53 @@ The structure describes the shape of price movement, not its direction.
 - P2a consumed. P2b reserved (not used).
 
 **Status:** Research arc closed. Architecture fully explored.
+
+## 2026-03-24 — Zone Touch v3.2 Pipeline Complete (Prompts 0-4)
+
+**Context:** Re-ran the full zone touch pipeline (Prompts 0 through 4) on warmup-enriched
+data. The SC chart now loads 90+ days of history before each period starts, giving V4
+adequate zone warmup. This changes the touch population significantly vs the v3.1 cold-start
+data.
+
+**Data changes from v3.1:**
+- P1: 3,278 touches (was ~325 cold-start / 4,701 in v3.1 prompt text)
+- P2: 3,537 touches (P2a=1,767 + P2b=1,770)
+- SBB rate: 7.3% (was ~34% in cold-start)
+- Baseline PF @3t: 1.3396 (was 0.8984 cold-start)
+- VP Ray features dead: HasVPRay=0 for all warmup-enriched touches (F03, F19, F20 dropped)
+- 2-period structure (P1/P2) replaces 4-period (P1a/P1b/P2a/P2b); P2 split at midpoint for validation
+
+**Key structural findings (Prompt 4 cross-reference):**
+1. F10 (Prior Penetration) is #1 feature (R/P spread 1.371), displacing F04 (Cascade) which
+   dropped from prior weight 20 (#1) to v3.2 weight 1.93 (#7). Cascade was overweighted in
+   prior top-down simultaneous calibration.
+2. 7-feature elbow: F10, F01, F05, F09, F21, F13, F04. 5/7 STRUCTURAL, 2/7 LIKELY STRUCTURAL.
+3. F21 (Zone Age) is new — STRONG, STRUCTURAL. Young zones bounce better.
+4. A-Eq (equal weights) outperforms A-Cal (calibrated weights) on P2. Equal weights generalize
+   better with low SBB rate.
+5. Counter-trend structural inversion: CT + high score = viable (PF 2.74); CT + low score = dead
+   (PF 0.69). Prior M3 assumption overturned.
+
+**Pipeline results:**
+- Winner: A-Eq Seg1 ModeA — 96 P2 trades, PF 6.26 @4t, WR 94.8%, Perm p=0.002
+- Multi-mode combo validated: A-Eq ModeA + B-ZScore Seg2 RTH = 423 trades, PF 4.43 @4t,
+  Profit/DD 47.6, combo verdict DEPLOY COMBO
+- 0 Yes, 24 Conditional, 4 Conditional (combined only)
+- B-only tier: 669 trades, PF 2.34, Conditional — viable 3rd tier for future evaluation
+
+**Deployment recommendation:** 2-tier priority waterfall:
+1. A-Eq score >= 45.5 → FIXED 190t/60t/120-bar
+2. Else B-ZScore >= 0.50 AND RTH AND seq<=2 AND TF<=120m → ZONEREL exits
+3. Else skip
+
+**Artifacts (v3.2):**
+- Scripts: baseline_v32.py, feature_screening_v32.py, model_building_v32.py,
+  prompt2_segmentation_v32.py, mode_classification_v32.py, prompt3_holdout_v32.py,
+  bzscore_diagnostic_v32.py, bzscore_refit_v32.py
+- Prompt 3 outputs: verdict_report_clean_v32.md, verdict_narrative_v32.md,
+  p2_holdout_clean_v32.md, segmentation_comparison_clean_v32.md, deployment_spec_clean_v32.json
+- Prompt 4 outputs: cross_reference_report_clean_v32.md, gap_investigation_clean_v32.md,
+  combined_recommendation_clean_v32.md
+
+**Next step:** Paper trading (P3: Mar-Jun 2026). Autotrader C++ implementation.
+- human: Ji

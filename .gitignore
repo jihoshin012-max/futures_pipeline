@@ -31,5 +31,8 @@ shared/archetypes/zone_touch/output/
 # Claude Code settings
 .claude/
 
+# External research papers (PDFs, not project code)
+xtra/research papers/
+
 # P2 holdout lock flag
 stages/04-backtest/p2_holdout/holdout_locked_P2.flag
