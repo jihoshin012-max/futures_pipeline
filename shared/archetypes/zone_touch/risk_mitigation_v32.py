@@ -1386,6 +1386,13 @@ def run_step0():
             "trail_steps": [],
             "stop_move_after_leg": 0, "stop_move_destination": 0,
         }),
+        ("1+1+1: 1ct@60t, 1ct@120t, 1ct@180t BE", {
+            "stop_ticks": 190, "time_cap_bars": 120,
+            "leg_targets": [60, 120, 180],
+            "leg_weights": [0.333, 0.333, 0.334],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
     ]
     m1_b5_rows = [m1_baseline_row]
     for plabel, pcfg in m1_partial_configs:
@@ -1500,130 +1507,43 @@ def run_step0():
                f"L:W={c['lw']:.2f}, WR={c['wr']:.1f}%")
 
     # ═══════════════════════════════════════════════════════════
-    # SURFACE A: ENTRY EXECUTION
+    # SURFACE A: ENTRY EXECUTION — REJECTED
     # ═══════════════════════════════════════════════════════════
     rprint("\n" + "=" * 72)
-    rprint("SURFACE A: ENTRY EXECUTION MODIFICATIONS")
+    rprint("SURFACE A: ENTRY EXECUTION — REJECTED (architectural limitation)")
     rprint("=" * 72)
-
-    # ── A0: Geometry Verification ──
-    rprint("\n── A0: Geometry Verification ──")
-    # Pick one DEMAND and one SUPPLY trade from M1
-    m1_demand = m1_p1_results[m1_p1_results["touch_type"].str.contains("DEMAND")].iloc[0]
-    m1_supply = m1_p1_results[m1_p1_results["touch_type"].str.contains("SUPPLY")].iloc[0]
-
-    for label, trade in [("DEMAND (long)", m1_demand), ("SUPPLY (short)", m1_supply)]:
-        zt = trade["zone_top"]
-        zb = trade["zone_bot"]
-        ep = trade["entry_price"]
-        d = trade["direction"]
-        if d == 1:
-            touched_edge = zt
-            stop_level = ep - 190 * TICK
-            target_level = ep + 60 * TICK
-        else:
-            touched_edge = zb
-            stop_level = ep + 190 * TICK
-            target_level = ep - 60 * TICK
-        baseline_stop_dist = 190
-        baseline_target_dist = 60
-        depth = 20
-        if d == 1:
-            new_entry = touched_edge - depth * TICK
-            new_stop_dist = (new_entry - stop_level) / TICK
-            new_target_dist = (target_level - new_entry) / TICK
-        else:
-            new_entry = touched_edge + depth * TICK
-            new_stop_dist = (stop_level - new_entry) / TICK
-            new_target_dist = (new_entry - target_level) / TICK
-
-        rprint(f"\n  Verification: {label}")
-        rprint(f"    Zone: top={zt}, bot={zb}, touched_edge={touched_edge}")
-        rprint(f"    Baseline entry={ep}, stop_dist={baseline_stop_dist}t, "
-               f"target_dist={baseline_target_dist}t")
-        rprint(f"    At +{depth}t deeper: new_entry={new_entry}")
-        rprint(f"    New stop_dist={new_stop_dist:.0f}t "
-               f"({'SHRINKS' if new_stop_dist < baseline_stop_dist else 'GROWS!!!'}), "
-               f"new_target_dist={new_target_dist:.0f}t "
-               f"({'GROWS' if new_target_dist > baseline_target_dist else 'SHRINKS!!!'})")
-        if new_stop_dist >= baseline_stop_dist or new_target_dist <= baseline_target_dist:
-            rprint(f"    !!! GEOMETRY ERROR — deeper entry should shrink stop "
-                   f"and grow target for both zone types")
-
-    # ── A1: Deeper Fixed Entry (Mode 1) ──
-    rprint("\n── A1: Deeper Fixed Entry (Mode 1) ──")
-    rprint("  NOTE: Entry is already at bar Open (not zone edge). 'Deeper' means")
-    rprint("  a limit order further into the zone. Trades that don't reach the")
-    rprint("  limit within the fill window (4 bars) are MISSED (fill rate < 100%).")
-
-    # Use fill rate curve from 0f to pick depths at ~90%, 75%, 60% fill
-    m1_pen = m1_p1_results["max_penetration"]
-    fill_90 = int(np.percentile(m1_pen, 10))  # 90% fill = P10 of penetration
-    fill_75 = int(np.percentile(m1_pen, 25))
-    fill_60 = int(np.percentile(m1_pen, 40))
-    depths_m1 = sorted(set([0, fill_90, fill_75, fill_60, 10, 20]))
-    rprint(f"  Fill-rate-derived depths: 90%={fill_90}t, 75%={fill_75}t, 60%={fill_60}t")
-
-    m1_a1_rows = [m1_baseline_row]
-    for depth in depths_m1:
-        if depth == 0:
-            continue
-        # Filter to trades where penetration >= depth (filled)
-        filled = m1_p1_results[m1_p1_results["max_penetration"] >= depth]
-        fill_rate = len(filled) / len(m1_p1_results) * 100
-        if len(filled) == 0:
-            continue
-        # For filled trades, deeper entry changes effective stop/target
-        # Stop shrinks by depth, target grows by depth
-        adj_pnls = []
-        for _, t in filled.iterrows():
-            if t["exit_type"] == "TARGET":
-                adj_pnls.append(t["target_used"] + depth)  # target grows
-            elif t["exit_type"] == "STOP":
-                adj_pnls.append(-(t["stop_used"] - depth))  # stop shrinks
-            else:  # TIMECAP — PnL shifts by depth in favorable direction
-                adj_pnls.append(t["pnl"] + depth)
-        adj_df = pd.DataFrame({
-            "pnl": adj_pnls,
-            "win": [p - COST_TICKS > 0 for p in adj_pnls],
-        })
-        row = surface_row(f"+{depth}t (fill={fill_rate:.0f}%)", adj_df, 107)
-        m1_a1_rows.append(row)
-    print_surface_table(m1_a1_rows, "M1 Deeper Entry (analytical)")
-
-    # ── A2: Deeper Fixed Entry (Mode 2) ──
-    rprint("\n── A2: Deeper Fixed Entry (Mode 2) ──")
-    m2_pen = m2_p1_results["max_penetration"]
-    fill_90_m2 = int(np.percentile(m2_pen, 10))
-    fill_75_m2 = int(np.percentile(m2_pen, 25))
-    fill_60_m2 = int(np.percentile(m2_pen, 40))
-    depths_m2 = sorted(set([0, fill_90_m2, fill_75_m2, fill_60_m2, 10, 20]))
-    rprint(f"  Fill-rate-derived depths: 90%={fill_90_m2}t, 75%={fill_75_m2}t, "
-           f"60%={fill_60_m2}t")
-
-    m2_a2_rows = [m2_baseline_row]
-    for depth in depths_m2:
-        if depth == 0:
-            continue
-        filled = m2_p1_results[m2_p1_results["max_penetration"] >= depth]
-        fill_rate = len(filled) / len(m2_p1_results) * 100
-        if len(filled) == 0:
-            continue
-        adj_pnls = []
-        for _, t in filled.iterrows():
-            if t["exit_type"] == "TARGET":
-                adj_pnls.append(t["target_used"] + depth)
-            elif t["exit_type"] == "STOP":
-                adj_pnls.append(-(t["stop_used"] - depth))
-            else:
-                adj_pnls.append(t["pnl"] + depth)
-        adj_df = pd.DataFrame({
-            "pnl": adj_pnls,
-            "win": [p - COST_TICKS > 0 for p in adj_pnls],
-        })
-        row = surface_row(f"+{depth}t (fill={fill_rate:.0f}%)", adj_df, 239)
-        m2_a2_rows.append(row)
-    print_surface_table(m2_a2_rows, "M2 Deeper Entry (analytical)")
+    rprint("")
+    rprint("  VERDICT: REJECTED")
+    rprint("")
+    rprint("  The simulator (zone_touch_simulator.py) and the holdout backtest")
+    rprint("  (prompt3_holdout_v32.py) both compute stop and target relative to")
+    rprint("  ENTRY PRICE, not zone geometry:")
+    rprint("    stop_price = entry_price +/- stop_ticks * tick_size")
+    rprint("    target_price = entry_price +/- target_ticks * tick_size")
+    rprint("")
+    rprint("  Under this architecture, deeper entry does NOT change R:R. The stop")
+    rprint("  remains 190t from entry, the target remains 60t from entry, and the")
+    rprint("  loss:win ratio is unchanged regardless of where within the zone the")
+    rprint("  entry occurs. Deeper entry only affects fill rate (fewer trades).")
+    rprint("")
+    rprint("  The R:R benefit described in the prompt requires ZONE-FIXED levels:")
+    rprint("    stop_level = zone_edge - 190t  (fixed to zone, not entry)")
+    rprint("    target_level = zone_edge + 60t  (fixed to zone, not entry)")
+    rprint("  Under zone-fixed levels, deeper entry shrinks stop distance and")
+    rprint("  grows target distance, improving R:R.")
+    rprint("")
+    rprint("  C++ IMPLEMENTATION NOTE FOR AUTOTRADER:")
+    rprint("  The autotrader could implement zone-fixed stop/target levels,")
+    rprint("  which would capture the R:R benefit of deeper entries. However,")
+    rprint("  this changes the baseline exit structure and requires its own")
+    rprint("  P1-calibrate / P2-one-shot validation cycle. It is a separate")
+    rprint("  investigation — not a modification to the current v3.2 baseline.")
+    rprint("")
+    rprint("  Penetration data from Step 0f is preserved for that future work:")
+    rprint(f"    M1 penetration: mean={m1_p1_results['max_penetration'].mean():.1f}t, "
+           f"median={m1_p1_results['max_penetration'].median():.1f}t")
+    rprint(f"    M2 penetration: mean={m2_p1_results['max_penetration'].mean():.1f}t, "
+           f"median={m2_p1_results['max_penetration'].median():.1f}t")
 
     # ═══════════════════════════════════════════════════════════
     # STEP 3: STACKING
@@ -1710,19 +1630,57 @@ def run_step0():
     m2_p2_pf = compute_pf(m2_p2_results["pnl"].tolist(), 4)
     rprint(f"\n  P2 Baseline: M1 PF@4t={m1_p2_pf:.2f}, M2 PF@4t={m2_p2_pf:.2f}")
 
-    # Apply best M1 stack to P2
-    rprint("\n  Applying best M1 modifications to P2...")
-    # Test BE@30t (likely best from B3) on P2
-    for be_val in [0, 30]:
-        r = resim_with_params(
-            m1_p2, "M1", bar_arr_p2, n_bars_p2,
-            stop_fn=lambda row, zw: 190,
-            target_fn=lambda row, zw: 60,
-            tcap_fn=lambda row, zw: 120,
-            be_trigger_fn=(lambda row, zw: be_val) if be_val > 0 else None)
-        pf = compute_pf(r["pnl"].tolist(), 4)
-        label = f"BE@{be_val}t" if be_val > 0 else "Baseline"
-        rprint(f"    M1 {label}: PF@4t={pf:.2f}, trades={len(r)}")
+    # Apply ALL M1 partial configs to P2 (not just BE — test the actual winners)
+    rprint("\n  Applying M1 partial configs to P2...")
+    rprint(f"  Pass criterion: P2 PF must not degrade >15% vs P2 baseline "
+           f"({m1_p2_pf:.2f})")
+    rprint(f"  Degradation floor: {m1_p2_pf * 0.85:.2f}")
+
+    m1_p2_partial_configs = [
+        ("Baseline (single 60t)", None),
+        ("2+1: 2ct@60t, 1ct@120t BE", {
+            "stop_ticks": 190, "time_cap_bars": 120,
+            "leg_targets": [60, 120], "leg_weights": [0.667, 0.333],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+        ("2+1 wide: 2ct@60t, 1ct@180t BE", {
+            "stop_ticks": 190, "time_cap_bars": 120,
+            "leg_targets": [60, 180], "leg_weights": [0.667, 0.333],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+        ("1+2: 1ct@60t, 2ct@120t BE", {
+            "stop_ticks": 190, "time_cap_bars": 120,
+            "leg_targets": [60, 120], "leg_weights": [0.333, 0.667],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+        ("1+1+1: 1ct@60t, 1ct@120t, 1ct@180t BE", {
+            "stop_ticks": 190, "time_cap_bars": 120,
+            "leg_targets": [60, 120, 180],
+            "leg_weights": [0.333, 0.333, 0.334],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+    ]
+    rprint(f"\n  {'Config':<40} {'P2 PF@4t':>9} {'Trades':>7} "
+           f"{'Degrad%':>8} {'Pass?':>6}")
+    rprint(f"  {'-'*40} {'-'*9} {'-'*7} {'-'*8} {'-'*6}")
+    for plabel, pcfg in m1_p2_partial_configs:
+        if pcfg is None:
+            # Baseline — already computed
+            pf = m1_p2_pf
+            n = len(m1_p2_results)
+        else:
+            r = run_multileg_population(m1_p2, {"M1": pcfg}, bar_arr_p2,
+                                        n_bars_p2, "M1")
+            pf = compute_pf(r["pnl"].tolist(), 4)
+            n = len(r)
+        degrad = (m1_p2_pf - pf) / m1_p2_pf * 100
+        passed = "PASS" if degrad <= 15 else "FAIL"
+        rprint(f"  {plabel:<40} {pf:>9.2f} {n:>7} {degrad:>+7.1f}% "
+               f"{passed:>6}")
 
     # Apply best M2 stacks to P2
     rprint("\n  Applying best M2 modifications to P2...")
