@@ -33,11 +33,10 @@ PERIOD_BOUNDS = {
 }
 
 # === ZTE Consolidation (Phase 3) ===
-# When USE_ZTE=True, read from ZoneTouchEngine's unified raw CSV instead of
-# separate ZRA + ZB4 files. CascadeState and TFConfluence come from ZTE directly;
-# no ZB4 merge is needed. ZoneWidthTicks also comes from ZTE.
+# When USE_ZTE=True, read from ZoneTouchEngine's unified raw CSV (per-period,
+# in pipeline data folder) instead of separate ZRA + ZB4 files.
+# CascadeState and TFConfluence come from ZTE directly; no ZB4 merge needed.
 USE_ZTE = True
-ZTE_RAW_PATH = Path(r"C:/Projects/sierrachart/analysis/analyzer_zonereaction/ZTE_raw.csv")
 
 VALID_TOUCH_TYPES = {"DEMAND_EDGE", "SUPPLY_EDGE"}
 VALID_SOURCE_LABELS = {"15m", "30m", "60m", "90m", "120m", "240m", "360m", "480m", "720m"}
@@ -64,30 +63,23 @@ zb4_dfs = {}
 bar_dfs = {}
 
 if USE_ZTE:
-    rpt(f"**Mode: ZTE (consolidated)** — reading from {ZTE_RAW_PATH.name}")
-    rpt()
-    # Load single ZTE_raw.csv and split by period bounds
-    zte_full = pd.read_csv(ZTE_RAW_PATH)
-    zte_full.columns = zte_full.columns.str.strip()
-    for col in zte_full.select_dtypes(include="object").columns:
-        zte_full[col] = zte_full[col].str.strip()
-    zte_full["DateTime"] = pd.to_datetime(zte_full["DateTime"])
-    rpt(f"ZTE_raw loaded: {len(zte_full):,} rows, {zte_full['DateTime'].min()} — {zte_full['DateTime'].max()}")
+    rpt("**Mode: ZTE (consolidated)** — reading per-period NQ_ZTE_raw_*.csv from pipeline data folder")
     rpt()
 
 for p in PERIODS:
     bar_path = DATA / f"bar_data/volume/NQ_BarData_250vol_rot_{p}.csv"
 
     if USE_ZTE:
-        # Split ZTE by period bounds into ZRA-compatible DataFrames
-        p_start, p_end = PERIOD_BOUNDS[p]
-        mask = (zte_full["DateTime"] >= pd.Timestamp(p_start)) & \
-               (zte_full["DateTime"] <= pd.Timestamp(p_end) + pd.Timedelta(days=1))
-        zra = zte_full[mask].copy()
-
-        if len(zra) == 0:
-            rpt(f"⚠️ {p}: No ZTE data in period bounds ({p_start} — {p_end}), skipping")
+        zte_path = DATA / f"touches/NQ_ZTE_raw_{p}.csv"
+        if not zte_path.exists():
+            rpt(f"⚠️ {p}: {zte_path.name} not found, skipping")
             continue
+
+        zra = pd.read_csv(zte_path)
+        zra.columns = zra.columns.str.strip()
+        for col in zra.select_dtypes(include="object").columns:
+            zra[col] = zra[col].str.strip()
+        zra["DateTime"] = pd.to_datetime(zra["DateTime"])
 
         # ZTE has CascadeState and TFConfluence already — store them for later,
         # then keep only ZRA-compatible columns so the downstream pipeline works unchanged

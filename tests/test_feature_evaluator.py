@@ -124,7 +124,7 @@ class TestMWUSpread:
         import pandas as pd
         from shared.data_loader import load_touches
 
-        touches_path = _REPO_ROOT / "stages/01-data/data/touches/NQ_ZRA_Hist_P1.csv"
+        touches_path = _REPO_ROOT / "stages/01-data/data/touches/NQ_ZTE_raw_P1.csv"
         touch_df = load_touches(str(touches_path))
 
         p1a_end = pd.Timestamp('2025-10-31 23:59:59')

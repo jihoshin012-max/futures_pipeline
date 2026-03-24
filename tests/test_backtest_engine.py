@@ -26,9 +26,9 @@ sys.path.insert(0, str(REPO_ROOT))
 # Path constants
 HOLDOUT_FLAG_PATH = REPO_ROOT / "stages/04-backtest/p2_holdout/holdout_locked_P2.flag"
 ENGINE_PATH = REPO_ROOT / "stages/04-backtest/autoresearch/backtest_engine.py"
-P1_TOUCHES = str(REPO_ROOT / "stages/01-data/data/touches/NQ_ZRA_Hist_P1.csv")
+P1_TOUCHES = str(REPO_ROOT / "stages/01-data/data/touches/NQ_ZTE_raw_P1.csv")
 P1_BARS = str(REPO_ROOT / "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_P1.txt")
-P2_TOUCHES = str(REPO_ROOT / "stages/01-data/data/touches/NQ_ZRA_Hist_P2.csv")
+P2_TOUCHES = str(REPO_ROOT / "stages/01-data/data/touches/NQ_ZTE_raw_P2.csv")
 P2_BARS = str(REPO_ROOT / "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_P2.txt")
 SCORING_MODEL = str(REPO_ROOT / "shared/scoring_models/zone_touch_v1.json")
 QA_DOC = REPO_ROOT / "stages/04-backtest/references/backtest_engine_qa.md"

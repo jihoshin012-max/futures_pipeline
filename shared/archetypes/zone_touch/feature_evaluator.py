@@ -44,7 +44,7 @@ sys.path.insert(0, str(_REPO_ROOT))
 from shared.data_loader import load_bars, load_touches  # noqa: E402
 
 # Data paths
-_P1_TOUCHES_PATH = _REPO_ROOT / "stages/01-data/data/touches/NQ_ZRA_Hist_P1.csv"
+_P1_TOUCHES_PATH = _REPO_ROOT / "stages/01-data/data/touches/NQ_ZTE_raw_P1.csv"
 _P1_BARS_PATH = _REPO_ROOT / "stages/01-data/data/bar_data/volume/NQ_BarData_250vol_P1.txt"
 
 # P1a/P1b split boundaries (from _config/period_config.md)

@@ -2,7 +2,11 @@
 SHELL := /bin/bash
 PYTHON := python
 
-.PHONY: help check-p2 validate zone-prep replication-gate archive-sweep verify-data reconcile
+.PHONY: help check-p2 validate zone-prep replication-gate archive-sweep verify-data reconcile import-zte
+
+# SC output folder (override with: make import-zte SC_OUT=/path/to/folder)
+SC_OUT ?= C:/Projects/sierrachart/analysis/analyzer_zonereaction
+TOUCHES_DIR := stages/01-data/data/touches
 
 help:
 	@echo "Pipeline targets:"
@@ -14,6 +18,7 @@ help:
 	@echo "  archive-sweep  — Archive a completed sweep (NAME=<dir>)"
 	@echo "  verify-data    — Verify source data integrity (SHA256)"
 	@echo "  reconcile      — Pre-cleanup reconciliation (untracked, modified, paths)"
+	@echo "  import-zte     — Import ZTE/ray CSVs from SC, split by period"
 
 check-p2:
 	@if [ -f stages/04-backtest/p2_holdout/holdout_locked_P2.flag ]; then \
@@ -41,3 +46,7 @@ archive-sweep:
 
 reconcile:
 	@$(PYTHON) scripts/reconcile.py $(if $(DETAIL),--detail,)
+
+import-zte:
+	@echo "Importing ZTE data from SC output folder: $(SC_OUT)"
+	$(PYTHON) stages/01-data/scripts/import_zte.py --sc-out "$(SC_OUT)" --dest "$(TOUCHES_DIR)"

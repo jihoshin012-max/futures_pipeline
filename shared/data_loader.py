@@ -4,7 +4,8 @@
 No hardcoded paths — all paths come from function arguments.
 The engine resolves paths from config JSON; this module is a pure loader.
 
-Exports: load_bars, load_touches, load_data, parse_instruments_md
+Exports: load_bars, load_touches, load_data, load_zte_raw,
+         load_ray_context, load_ray_reference, parse_instruments_md
 """
 
 import re
@@ -72,6 +73,56 @@ def load_data(touches_csv: str, bars_path: str) -> tuple:
         Tuple of (touches_df, bars_df).
     """
     return load_touches(touches_csv), load_bars(bars_path)
+
+
+def load_zte_raw(path: str) -> pd.DataFrame:
+    """Load ZTE unified zone touch data (52-column format).
+
+    Args:
+        path: Path to NQ_ZTE_raw_*.csv file.
+
+    Returns:
+        DataFrame with 52 columns and DateTime parsed as datetime64.
+    """
+    df = pd.read_csv(path)
+    df.columns = [c.strip() for c in df.columns]
+    for col in df.select_dtypes(include="object").columns:
+        df[col] = df[col].str.strip()
+    df["DateTime"] = pd.to_datetime(df["DateTime"], format="mixed")
+    return df
+
+
+def load_ray_context(path: str) -> pd.DataFrame:
+    """Load ray context long-format CSV (7 columns).
+
+    Args:
+        path: Path to NQ_ray_context_*.csv file.
+
+    Returns:
+        DataFrame with 7 columns (TouchID, RayPrice, RaySide, etc.).
+    """
+    df = pd.read_csv(path)
+    df.columns = [c.strip() for c in df.columns]
+    for col in df.select_dtypes(include="object").columns:
+        df[col] = df[col].str.strip()
+    return df
+
+
+def load_ray_reference(path: str) -> pd.DataFrame:
+    """Load ray reference ground truth CSV (10 columns).
+
+    Args:
+        path: Path to NQ_ray_reference_*.csv file.
+
+    Returns:
+        DataFrame with 10 columns and DateTime parsed as datetime64.
+    """
+    df = pd.read_csv(path)
+    df.columns = [c.strip() for c in df.columns]
+    for col in df.select_dtypes(include="object").columns:
+        df[col] = df[col].str.strip()
+    df["DateTime"] = pd.to_datetime(df["DateTime"], format="mixed")
+    return df
 
 
 def parse_instruments_md(instrument: str, config_path: str = "_config/instruments.md") -> dict:
