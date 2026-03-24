@@ -1,1493 +1,105 @@
 # archetype: zone_touch
-"""Risk Mitigation Investigation v3.2 — Entry/Exit/Sizing Analysis.
+"""Risk Mitigation Investigation v3.2 — Step 0 Diagnostics.
 
-Scoring model FROZEN. Modifies only post-selection execution:
-  - Entry execution (where to enter within zone)
-  - Exit structure (stop, BE, trail, partials, time cap)
-  - Position sizing (contracts per trade)
+Rebuilds qualifying trade populations from scratch using frozen scoring models.
+Simulates all trades with baseline exits. Produces 8 diagnostic outputs.
+HARD STOP after Step 0 — Surfaces A/B run only after human review.
 
-Step 0: Diagnostics (0a-0g)
-Surface B: Exit structure modifications (B1-B9)
-Surface A: Entry execution modifications (A1-A4)
-Step 3: Stacking
-Step 4: P2 validation
-Step 5: Design recommendations
+Scoring model is FROZEN. Trade selection does not change.
 """
 
 import json
 import sys
 import warnings
-from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+warnings.filterwarnings("ignore")
 
 import numpy as np
 import pandas as pd
 
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-warnings.filterwarnings("ignore", category=FutureWarning)
-
-# ── Paths ──
+# ════════════════════════════════════════════════════════════════════
+# PATHS & CONSTANTS
+# ════════════════════════════════════════════════════════════════════
 BASE = Path(r"c:\Projects\pipeline")
 DATA_DIR = BASE / "stages" / "01-data" / "output" / "zone_prep"
-TOUCH_DIR = BASE / "stages" / "01-data" / "data" / "touches"
 PARAM_DIR = BASE / "shared" / "archetypes" / "zone_touch" / "output"
-OUT_DIR = PARAM_DIR
-TICK_SIZE = 0.25
+OUT_DIR = PARAM_DIR  # output goes next to scored data
+TICK = 0.25
+COST_TICKS = 3  # P1 cost assumption
 
-# ── Load Data ──
-print("=" * 72)
-print("RISK MITIGATION INVESTIGATION v3.2")
-print("=" * 72)
+report_lines: list[str] = []
 
-# Qualifying trades (already simulated with baseline exits)
-qt = pd.read_csv(PARAM_DIR / "qualifying_trades_ray_context_v32.csv")
-# Scored touches (for zone geometry and scores)
-aeq = pd.read_csv(PARAM_DIR / "p1_scored_touches_aeq_v32.csv")
-bz = pd.read_csv(PARAM_DIR / "p1_scored_touches_bzscore_v32.csv")
-# Raw touches (for zone geometry)
-raw_p1 = pd.read_csv(TOUCH_DIR / "NQ_ZTE_raw_P1.csv")
-# Bar data
-bar_p1 = pd.read_csv(DATA_DIR / "NQ_bardata_P1.csv")
-bar_p1.columns = bar_p1.columns.str.strip()
-bar_arr = bar_p1[["Open", "High", "Low", "Last"]].to_numpy(dtype=np.float64)
-n_bars = len(bar_arr)
 
-print(f"Qualifying trades: {len(qt)} (M1={len(qt[qt['mode']=='M1'])}, M2={len(qt[qt['mode']=='M2'])})")
-print(f"P1 bar data: {n_bars} bars")
+def rprint(msg=""):
+    print(msg)
+    report_lines.append(str(msg))
 
-# ── Enrich qualifying trades with zone geometry ──
-zone_tops = []
-zone_bots = []
-touch_prices = []
-touch_types = []
-scores_aeq = []
-scores_bz = []
-entry_opens = []
 
-for _, row in qt.iterrows():
-    ti = int(row["touch_idx"])
-    r = raw_p1.iloc[ti]
-    zone_tops.append(r["ZoneTop"])
-    zone_bots.append(r["ZoneBot"])
-    touch_prices.append(r["TouchPrice"])
-    touch_types.append(r["TouchType"])
-    scores_aeq.append(aeq.iloc[ti]["Score_AEq"])
-    scores_bz.append(bz.iloc[ti]["Score_BZScore"])
-    eb = int(row["entry_bar"])
-    entry_opens.append(bar_arr[eb, 0] if eb < n_bars else np.nan)
-
-qt["zone_top"] = zone_tops
-qt["zone_bot"] = zone_bots
-qt["touch_price"] = touch_prices
-qt["touch_type"] = touch_types
-qt["score_aeq"] = scores_aeq
-qt["score_bz"] = scores_bz
-qt["entry_open"] = entry_opens
-
-# Entry offset from zone edge
-qt["entry_offset"] = np.where(
-    qt["direction"] == -1,
-    (qt["touch_price"] - qt["entry_open"]) / TICK_SIZE,   # short: edge above entry
-    (qt["entry_open"] - qt["touch_price"]) / TICK_SIZE,    # long: entry above edge
-)
-
-qt["win"] = qt["pnl"] > 0
-
-m1 = qt[qt["mode"] == "M1"].copy()
-m2 = qt[qt["mode"] == "M2"].copy()
-
-print(f"\nEntry offset (entry Open vs TouchPrice):")
-print(f"  M1: mean={m1['entry_offset'].mean():.1f}t, median={m1['entry_offset'].median():.1f}t")
-print(f"  M2: mean={m2['entry_offset'].mean():.1f}t, median={m2['entry_offset'].median():.1f}t")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# STEP 0a: Per-Trade Outcome Data
-# ══════════════════════════════════════════════════════════════════════
-print("\n" + "=" * 72)
-print("STEP 0a: PER-TRADE OUTCOME DATA")
-print("=" * 72)
-
-
-def compute_pf(pnls, cost=3):
-    gp = sum(p - cost for p in pnls if p - cost > 0)
-    gl = sum(abs(p - cost) for p in pnls if p - cost < 0)
-    return gp / gl if gl > 0 else (float("inf") if gp > 0 else 0)
-
-
-# Verify baseline PF matches known values
-m1_pf = compute_pf(m1["pnl"].tolist(), cost=3)
-m2_pf = compute_pf(m2["pnl"].tolist(), cost=3)
-m1_wr = m1["win"].mean() * 100
-m2_wr = m2["win"].mean() * 100
-
-print(f"\nBaseline verification:")
-print(f"  M1: {len(m1)} trades, PF@3t={m1_pf:.2f} (expected ~8.50), WR={m1_wr:.1f}%")
-print(f"  M2: {len(m2)} trades, PF@3t={m2_pf:.2f} (expected ~4.71), WR={m2_wr:.1f}%")
-
-# Per-exit-type summary
-for mode_name, mdf in [("M1", m1), ("M2", m2)]:
-    print(f"\n  {mode_name} exit type breakdown:")
-    for et in ["TARGET", "STOP", "TIMECAP"]:
-        sub = mdf[mdf["exit_type"] == et]
-        if len(sub) > 0:
-            print(f"    {et}: n={len(sub)}, mean_pnl={sub['pnl'].mean():.1f}t, "
-                  f"win%={sub['win'].mean()*100:.1f}%, mean_bars={sub['bars_held'].mean():.1f}")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# STEP 0b: MAE Distribution — Losers
-# ══════════════════════════════════════════════════════════════════════
-print("\n" + "=" * 72)
-print("STEP 0b: MAE DISTRIBUTION — LOSERS")
-print("=" * 72)
-
-# M1 losers — report each individually
-m1_losers = m1[~m1["win"]].copy()
-print(f"\nMode 1 LOSERS: {len(m1_losers)} trades")
-
-if len(m1_losers) > 0:
-    print(f"\n{'#':<4} {'Exit':>8} {'MAE':>6} {'PnL':>8} {'Bars':>6} {'Stop':>6}")
-    print("-" * 42)
-    for i, (_, row) in enumerate(m1_losers.iterrows()):
-        print(f"{i+1:<4} {row['exit_type']:>8} {row['mae']:>6.0f} {row['pnl']:>8.1f} "
-              f"{row['bars_held']:>6} {row['stop_used']:>6}")
-
-    # For each M1 loser, find bar-by-bar MAE progression
-    print("\n  M1 Loser MAE Time Analysis (bar of first MAE > threshold):")
-    print(f"  {'#':<4} {'Exit':>8} {'b>60t':>6} {'b>120t':>7} {'b>150t':>7} {'MaxMAE':>7}")
-    print("  " + "-" * 45)
-    for i, (_, row) in enumerate(m1_losers.iterrows()):
-        eb = int(row["entry_bar"])
-        d = int(row["direction"])
-        ep = bar_arr[eb, 0]
-        tc = int(row["tc_used"])
-        end = min(eb + tc, n_bars)
-
-        bar_60 = bar_120 = bar_150 = "—"
-        max_mae = 0
-        for bi in range(eb, end):
-            h, l = bar_arr[bi, 1], bar_arr[bi, 2]
-            if d == 1:
-                cur_mae = (ep - l) / TICK_SIZE
-            else:
-                cur_mae = (h - ep) / TICK_SIZE
-            max_mae = max(max_mae, cur_mae)
-            bh = bi - eb + 1
-            if max_mae >= 60 and bar_60 == "—":
-                bar_60 = str(bh)
-            if max_mae >= 120 and bar_120 == "—":
-                bar_120 = str(bh)
-            if max_mae >= 150 and bar_150 == "—":
-                bar_150 = str(bh)
-        print(f"  {i+1:<4} {row['exit_type']:>8} {bar_60:>6} {bar_120:>7} {bar_150:>7} {max_mae:>7.0f}")
-
-# M2 losers
-m2_losers = m2[~m2["win"]].copy()
-print(f"\nMode 2 LOSERS: {len(m2_losers)} trades")
-
-# Split by exit type
-m2_stop_losers = m2_losers[m2_losers["exit_type"] == "STOP"]
-m2_tc_losers = m2_losers[m2_losers["exit_type"] == "TIMECAP"]
-
-print(f"\n  M2 stop-hit losers:")
-print(f"    Count: {len(m2_stop_losers)}")
-print(f"    % of all M2 losers: {len(m2_stop_losers)/len(m2_losers)*100:.1f}%")
-if len(m2_stop_losers) > 0:
-    # Compute bars to stop for each
-    bars_to_stop = m2_stop_losers["bars_held"].values
-    print(f"    Mean bars to stop: {bars_to_stop.mean():.1f}")
-    print(f"    Bars to stop < 10 (decisive): {(bars_to_stop < 10).sum()}")
-    print(f"    Bars to stop > 40 (slow bleed): {(bars_to_stop > 40).sum()}")
-    print(f"    Mean PnL: {m2_stop_losers['pnl'].mean():.1f}t")
-    print(f"    Stop distances: {m2_stop_losers['stop_used'].values}")
-
-print(f"\n  M2 time-cap losers:")
-print(f"    Count: {len(m2_tc_losers)}")
-if len(m2_tc_losers) > 0:
-    # Bin by MAE as % of stop
-    m2_tc_losers = m2_tc_losers.copy()
-    m2_tc_losers["mae_pct_stop"] = m2_tc_losers["mae"] / m2_tc_losers["stop_used"] * 100
-    bins = [(0, 50), (50, 75), (75, 100)]
-    print(f"    {'MAE % of Stop':<18} {'Count':>6} {'%':>6} {'Mean PnL':>10}")
-    print("    " + "-" * 44)
-    for lo, hi in bins:
-        sub = m2_tc_losers[(m2_tc_losers["mae_pct_stop"] >= lo) & (m2_tc_losers["mae_pct_stop"] < hi)]
-        if len(sub) > 0:
-            print(f"    {lo}-{hi}%{'':<13} {len(sub):>6} {len(sub)/len(m2_tc_losers)*100:>5.1f}% {sub['pnl'].mean():>10.1f}")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# STEP 0c: MFE Distribution — Winners
-# ══════════════════════════════════════════════════════════════════════
-print("\n" + "=" * 72)
-print("STEP 0c: MFE DISTRIBUTION — WINNERS")
-print("=" * 72)
-
-m1_winners = m1[m1["win"]].copy()
-m2_winners = m2[m2["win"]].copy()
-
-print(f"\nMode 1 WINNERS: {len(m1_winners)} trades")
-mfe_bins_m1 = [(60, 80), (80, 120), (120, 200), (200, 99999)]
-print(f"  {'MFE Bin':>12} {'Count':>6} {'%':>6} {'Med PnL':>8} {'Mean MFE':>9}")
-print("  " + "-" * 46)
-for lo, hi in mfe_bins_m1:
-    sub = m1_winners[(m1_winners["mfe"] >= lo) & (m1_winners["mfe"] < hi)]
-    label = f"{lo}-{hi}t" if hi < 99999 else f"{lo}t+"
-    if len(sub) > 0:
-        print(f"  {label:>12} {len(sub):>6} {len(sub)/len(m1_winners)*100:>5.1f}% "
-              f"{sub['pnl'].median():>8.1f} {sub['mfe'].mean():>9.1f}")
-
-# Probability T1 (60t) hit before stop
-m1_t1_before_stop = m1_winners["exit_type"].value_counts().get("TARGET", 0)
-print(f"\n  P(T1=60t hit) = {m1_t1_before_stop}/{len(m1)} = {m1_t1_before_stop/len(m1)*100:.1f}%")
-# MFE of all M1 trades >= 60t
-m1_mfe_ge60 = (m1["mfe"] >= 60).sum()
-print(f"  Trades with MFE >= 60t: {m1_mfe_ge60}/{len(m1)} = {m1_mfe_ge60/len(m1)*100:.1f}%")
-m1_mfe_ge30 = (m1["mfe"] >= 30).sum()
-print(f"  Trades with MFE >= 30t: {m1_mfe_ge30}/{len(m1)} = {m1_mfe_ge30/len(m1)*100:.1f}%")
-
-print(f"\nMode 2 WINNERS: {len(m2_winners)} trades")
-# For M2, bin relative to zone width
-m2_winners = m2_winners.copy()
-m2_winners["mfe_pct_zw"] = m2_winners["mfe"] / m2_winners["zw_ticks"] * 100
-mfe_pct_bins = [(0, 50), (50, 100), (100, 150), (150, 200), (200, 99999)]
-print(f"  {'MFE % of ZW':>14} {'Count':>6} {'%':>6} {'Med PnL':>8} {'Mean MFE':>9}")
-print("  " + "-" * 48)
-for lo, hi in mfe_pct_bins:
-    sub = m2_winners[(m2_winners["mfe_pct_zw"] >= lo) & (m2_winners["mfe_pct_zw"] < hi)]
-    label = f"{lo}-{hi}%" if hi < 99999 else f"{lo}%+"
-    if len(sub) > 0:
-        print(f"  {label:>14} {len(sub):>6} {len(sub)/len(m2_winners)*100:>5.1f}% "
-              f"{sub['pnl'].median():>8.1f} {sub['mfe'].mean():>9.1f}")
-
-# M2 P(T1 at 0.5×ZW hit)
-m2_mfe_half_zw = (m2["mfe"] >= m2["zw_ticks"] * 0.5).sum()
-m2_mfe_full_zw = (m2["mfe"] >= m2["zw_ticks"]).sum()
-print(f"\n  P(MFE >= 0.5×ZW) = {m2_mfe_half_zw}/{len(m2)} = {m2_mfe_half_zw/len(m2)*100:.1f}%")
-print(f"  P(MFE >= 1.0×ZW) = {m2_mfe_full_zw}/{len(m2)} = {m2_mfe_full_zw/len(m2)*100:.1f}%")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# STEP 0d: Zone Width Distribution (Mode 2)
-# ══════════════════════════════════════════════════════════════════════
-print("\n" + "=" * 72)
-print("STEP 0d: ZONE WIDTH DISTRIBUTION (Mode 2)")
-print("=" * 72)
-
-zw_bins = [(0, 100), (100, 150), (150, 250), (250, 400), (400, 99999)]
-print(f"\n{'ZW Bin':>12} {'Count':>6} {'%':>6} {'Stop':>8} {'MaxLoss@3':>10} {'PF@3t':>7} {'WR%':>6}")
-print("-" * 60)
-for lo, hi in zw_bins:
-    sub = m2[(m2["zw_ticks"] >= lo) & (m2["zw_ticks"] < hi)]
-    label = f"{lo}-{hi}t" if hi < 99999 else f"{lo}t+"
-    if len(sub) > 0:
-        mean_stop = sub["stop_used"].mean()
-        max_loss_3ct = sub["stop_used"].max() * 3
-        pf = compute_pf(sub["pnl"].tolist(), cost=3)
-        wr = sub["win"].mean() * 100
-        print(f"{label:>12} {len(sub):>6} {len(sub)/len(m2)*100:>5.1f}% "
-              f"{mean_stop:>8.0f} {max_loss_3ct:>10.0f} {pf:>7.2f} {wr:>5.1f}%")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# STEP 0e: Time Cap Exit Characterization
-# ══════════════════════════════════════════════════════════════════════
-print("\n" + "=" * 72)
-print("STEP 0e: TIME CAP EXIT CHARACTERIZATION")
-print("=" * 72)
-
-for mode_name, mdf, tc_val in [("M1", m1, 120), ("M2", m2, 80)]:
-    tc_trades = mdf[mdf["exit_type"] == "TIMECAP"]
-    non_tc = mdf[mdf["exit_type"] != "TIMECAP"]
-    print(f"\n  {mode_name} (TC={tc_val} bars):")
-    print(f"    N time cap exits: {len(tc_trades)}")
-    print(f"    % of all {mode_name} trades: {len(tc_trades)/len(mdf)*100:.1f}%")
-    if len(tc_trades) > 0:
-        print(f"    Mean PnL of TC exits: {tc_trades['pnl'].mean():.1f}t")
-        tc_win = tc_trades[tc_trades["win"]]
-        tc_lose = tc_trades[~tc_trades["win"]]
-        print(f"    TC winners: {len(tc_win)} (mean PnL={tc_win['pnl'].mean():.1f}t)" if len(tc_win) > 0 else "    TC winners: 0")
-        print(f"    TC losers: {len(tc_lose)} (mean PnL={tc_lose['pnl'].mean():.1f}t)" if len(tc_lose) > 0 else "    TC losers: 0")
-    if len(non_tc) > 0:
-        print(f"    Mean bars held (non-TC exits): {non_tc['bars_held'].mean():.1f}")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# STEP 0f: Penetration Depth / Fill Rate Curve
-# ══════════════════════════════════════════════════════════════════════
-print("\n" + "=" * 72)
-print("STEP 0f: PENETRATION DEPTH / FILL RATE CURVE")
-print("=" * 72)
-
-# For each qualifying touch, measure max penetration into zone over
-# touch bar + next 3 bars (4-bar fill window)
-FILL_WINDOW = 4
-
-pen_depths = []
-for _, row in qt.iterrows():
-    ti = int(row["touch_idx"])
-    r = raw_p1.iloc[ti]
-    rbi = int(row["RotBarIndex"])
-    d = int(row["direction"])
-    tp = r["TouchPrice"]
-
-    # Measure penetration past zone edge over fill window
-    max_pen = 0.0
-    for bi in range(rbi, min(rbi + FILL_WINDOW, n_bars)):
-        h, l = bar_arr[bi, 1], bar_arr[bi, 2]
-        if d == -1:  # short entry at demand edge: price drops below edge
-            pen = (tp - l) / TICK_SIZE
-        else:  # long entry at supply edge: price rises above edge
-            pen = (h - tp) / TICK_SIZE
-        max_pen = max(max_pen, pen)
-    pen_depths.append(max_pen)
-
-qt["max_penetration"] = pen_depths
-
-# Re-slice after all enrichment
-m1 = qt[qt["mode"] == "M1"].copy()
-m2 = qt[qt["mode"] == "M2"].copy()
-
-# Report fill rate curve separately for M1 and M2
-depths_to_test = [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100]
-
-for mode_name, mdf in [("M1", qt[qt["mode"] == "M1"]), ("M2", qt[qt["mode"] == "M2"])]:
-    print(f"\n  {mode_name} Fill Rate Curve ({len(mdf)} trades):")
-    print(f"  {'Depth':>8} {'Reach':>8} {'Fill%':>7} {'vs Edge':>8}")
-    print("  " + "-" * 35)
-    baseline_n = len(mdf)
-    for depth in depths_to_test:
-        reach = (mdf["max_penetration"] >= depth).sum()
-        fill_pct = reach / baseline_n * 100
-        print(f"  {depth:>7}t {reach:>8} {fill_pct:>6.1f}% {reach - baseline_n:>+8}")
-
-    # Find 90%, 75%, 60% fill rate points
-    pens_sorted = np.sort(mdf["max_penetration"].values)
-    p10 = np.percentile(pens_sorted, 10)  # 90% fill rate
-    p25 = np.percentile(pens_sorted, 25)  # 75% fill rate
-    p40 = np.percentile(pens_sorted, 40)  # 60% fill rate
-    print(f"\n  Key fill rate points:")
-    print(f"    90% fill rate at depth: {p10:.0f}t")
-    print(f"    75% fill rate at depth: {p25:.0f}t")
-    print(f"    60% fill rate at depth: {p40:.0f}t")
-    print(f"    Penetration stats: mean={mdf['max_penetration'].mean():.1f}t, "
-          f"median={mdf['max_penetration'].median():.1f}t, "
-          f"min={mdf['max_penetration'].min():.0f}t, "
-          f"max={mdf['max_penetration'].max():.0f}t")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# STEP 0g: Missed Trade Characterization
-# ══════════════════════════════════════════════════════════════════════
-print("\n" + "=" * 72)
-print("STEP 0g: MISSED TRADE CHARACTERIZATION")
-print("=" * 72)
-
-# Reconstruct which qualifying touches were missed due to position overlap
-# We need to replay the no-overlap filter on the full qualifying population
-
-# First, identify ALL qualifying touches (pre-overlap filter)
-# M1: Score_AEq >= 45.5
-m1_qualifying_all = aeq[aeq["Score_AEq"] >= 45.5].copy()
-m1_qualifying_all["touch_idx_orig"] = m1_qualifying_all.index
-
-# M2: Score_BZScore >= 0.50, RTH, seq <= 2, TF <= 120m
-# Need session and TF info from raw_p1
-m2_candidates = bz.copy()
-m2_candidates["touch_idx_orig"] = m2_candidates.index
-
-# Get session from scored touches
-# The B-ZScore qualifying criteria include RTH, seq<=2, TF<=120m
-# Let me identify M2 qualifying from the raw data
-# First get SourceLabel (TF) and TouchSequence from raw
-m2_candidates["SourceLabel_raw"] = raw_p1["SourceLabel"].values
-m2_candidates["TouchSequence_raw"] = raw_p1["TouchSequence"].values
-m2_candidates["SessionClass_raw"] = raw_p1["SessionClass"].values
-
-# TF mapping to minutes
-tf_to_min = {"5m": 5, "10m": 10, "15m": 15, "30m": 30, "50m": 50,
-             "60m": 60, "90m": 90, "120m": 120, "240m": 240, "360m": 360}
-
-
-def get_tf_min(label):
-    return tf_to_min.get(str(label), 9999)
-
-
-m2_candidates["tf_min"] = m2_candidates["SourceLabel_raw"].apply(get_tf_min)
-
-# Apply M2 filters (matching the waterfall from Analysis B)
-# Score >= 0.50, RTH (SessionClass != Overnight for raw), seq <= 2, TF <= 120m
-m2_qualifying_all = m2_candidates[
-    (m2_candidates["Score_BZScore"] >= 0.50) &
-    (m2_candidates["TouchSequence_raw"] <= 2) &
-    (m2_candidates["tf_min"] <= 120) &
-    (m2_candidates["SessionClass_raw"] != 3)  # Not overnight (sess class 3 = overnight?)
-].copy()
-
-# Actually, session class in raw might be different. Let me check the raw SessionClass values
-print(f"\nRaw SessionClass unique values: {raw_p1['SessionClass'].unique()}")
-
-# Session class might be numeric. Let's check what M1 qualifying indices are vs traded
-m1_traded_indices = set(qt[qt["mode"] == "M1"]["touch_idx"].values)
-m2_traded_indices = set(qt[qt["mode"] == "M2"]["touch_idx"].values)
-
-# For M1 pre-overlap:
-m1_pre = aeq[aeq["Score_AEq"] >= 45.5].copy()
-m1_pre["touch_idx_orig"] = m1_pre.index
-m1_pre["traded"] = m1_pre["touch_idx_orig"].isin(m1_traded_indices)
-m1_pre["RotBarIndex"] = raw_p1.loc[m1_pre.index, "RotBarIndex" if "RotBarIndex" in raw_p1.columns else "BarIndex"].values
-
-print(f"\nM1 pre-overlap qualifying: {len(m1_pre)}")
-print(f"M1 traded: {m1_pre['traded'].sum()}")
-print(f"M1 missed: {(~m1_pre['traded']).sum()}")
-
-# For M2 — need to figure out which touches qualified pre-overlap
-# The qualifying trades file has the touch_idx for traded ones
-# Let me use the qualifying approach from the backtest: just take all M2 qualifying
-# that aren't already M1 (waterfall removes M1 overlap)
-# This is complex. Let me just compare traded vs total in the qualifying population.
-
-# Simpler approach: replay the no-overlap filter for M1 and M2
-print("\n  Replaying no-overlap filter...")
-
-
-def replay_overlap_filter(touch_indices, mode_label):
-    """Replay the no-overlap simulation and identify missed trades."""
-    traded = []
-    missed = []
-    in_trade_until = -1
-
-    # Sort by RotBarIndex
-    entries = []
-    for ti in touch_indices:
-        r = raw_p1.iloc[ti]
-        rbi = r["RotBarIndex"] if "RotBarIndex" in raw_p1.columns else ti
-        entries.append((rbi, ti))
-    entries.sort()
-
-    for rbi, ti in entries:
-        entry_bar = int(rbi) + 1
-        if entry_bar <= in_trade_until:
-            missed.append(ti)
-            continue
-
-        # Find the corresponding qualifying trade to get bars_held
-        qt_match = qt[(qt["touch_idx"] == ti) & (qt["mode"] == mode_label)]
-        if len(qt_match) > 0:
-            bh = int(qt_match.iloc[0]["bars_held"])
-            in_trade_until = entry_bar + bh - 1
-            traded.append(ti)
-        else:
-            # This touch qualified but wasn't traded — simulate to get bars_held
-            # Use baseline params to compute hold duration
-            d = 1 if "DEMAND" in str(r["TouchType"]) else -1
-            if entry_bar >= n_bars:
-                missed.append(ti)
-                continue
-            ep = bar_arr[entry_bar, 0]
-            zw = r["ZoneWidthTicks"] if "ZoneWidthTicks" in raw_p1.columns else 100
-
-            if mode_label == "M1":
-                stop, target, tcap = 190, 60, 120
-            else:
-                stop = max(round(1.5 * zw), 120)
-                target = max(1, round(zw * 1.0))
-                tcap = 80
-
-            # Quick sim for bars_held
-            if d == 1:
-                sp = ep - stop * TICK_SIZE
-                tp_price = ep + target * TICK_SIZE
-            else:
-                sp = ep + stop * TICK_SIZE
-                tp_price = ep - target * TICK_SIZE
-
-            bh = tcap
-            for bi in range(entry_bar, min(entry_bar + tcap, n_bars)):
-                h, l = bar_arr[bi, 1], bar_arr[bi, 2]
-                if d == 1:
-                    if l <= sp or h >= tp_price:
-                        bh = bi - entry_bar + 1
-                        break
-                else:
-                    if h >= sp or l <= tp_price:
-                        bh = bi - entry_bar + 1
-                        break
-            in_trade_until = entry_bar + bh - 1
-            traded.append(ti)  # It traded, just not in our qualifying set
-            # Actually if it's not in qt, it means it was filtered by the waterfall
-            # This is getting complex. Let me just report what we know from qt.
-    return traded, missed
-
-
-# Simpler: count from the actual data
-# The qualifying trades file represents the trades that were actually taken
-# We know from the prompt: M1 had 127 qualifying → 107 traded (20 missed)
-#                           M2 had 325 qualifying → 239 traded (86 missed)
-# But I need to verify these numbers and characterize the missed trades
-
-# For now, compare traded vs all qualifying by score
-m1_all_qualifying = aeq[aeq["Score_AEq"] >= 45.5]
-m2_all_qualifying_mask = bz["Score_BZScore"] >= 0.50
-# Additional M2 filters needed (RTH, seq<=2, TF<=120m) — skip for now, use prompt numbers
-
-print(f"\n  M1: Score_AEq >= 45.5 total: {len(m1_all_qualifying)}")
-print(f"  M1 traded: {len(m1)}")
-print(f"  Estimated M1 missed (all qualifying - traded): {len(m1_all_qualifying) - len(m1)}")
-
-print(f"\n  M2: Score_BZScore >= 0.50 total: {m2_all_qualifying_mask.sum()}")
-print(f"  M2 traded: {len(m2)}")
-
-# Compare scores of traded vs missed (approximate by looking at the traded population)
-m1_traded_scores = m1["score_aeq"].values
-m1_all_scores = m1_all_qualifying["Score_AEq"].values
-print(f"\n  M1 traded mean A-Eq score: {m1_traded_scores.mean():.1f}")
-print(f"  M1 all qualifying mean A-Eq score: {m1_all_scores.mean():.1f}")
-
-m2_traded_scores = m2["score_bz"].values
-print(f"  M2 traded mean B-ZScore: {m2_traded_scores.mean():.3f}")
-
-# Characterize what the active trade was doing when a trade was missed
-# This requires full replay — do it for M1 (small set)
-print("\n  M1 Missed Trade Analysis:")
-m1_sorted = m1.sort_values("entry_bar")
-m1_all_sorted = []
-for idx in m1_all_qualifying.index:
-    rbi = raw_p1.iloc[idx]["RotBarIndex"] if "RotBarIndex" in raw_p1.columns else idx
-    m1_all_sorted.append((rbi, idx))
-m1_all_sorted.sort()
-
-in_trade_until = -1
-active_trade_pnl = None
-m1_missed_during = {"winner": 0, "loser": 0, "tc_drift": 0, "unknown": 0}
-
-for rbi, ti in m1_all_sorted:
-    entry_bar = int(rbi) + 1
-    is_traded = ti in m1_traded_indices
-
-    if entry_bar <= in_trade_until:
-        if not is_traded:
-            # This was a missed trade — what was active trade doing?
-            if active_trade_pnl is not None:
-                if active_trade_exit == "TIMECAP":
-                    m1_missed_during["tc_drift"] += 1
-                elif active_trade_pnl > 0:
-                    m1_missed_during["winner"] += 1
-                else:
-                    m1_missed_during["loser"] += 1
-            else:
-                m1_missed_during["unknown"] += 1
-        continue  # skip — position occupied
-
-    if is_traded:
-        qt_row = qt[qt["touch_idx"] == ti]
-        if len(qt_row) > 0:
-            bh = int(qt_row.iloc[0]["bars_held"])
-            active_trade_pnl = qt_row.iloc[0]["pnl"]
-            active_trade_exit = qt_row.iloc[0]["exit_type"]
-            in_trade_until = entry_bar + bh - 1
-
-total_m1_missed = sum(m1_missed_during.values())
-print(f"  M1 missed trades: {total_m1_missed}")
-for k, v in m1_missed_during.items():
-    print(f"    During {k}: {v}")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# Save Step 0a output
-# ══════════════════════════════════════════════════════════════════════
-outcome_cols = ["touch_idx", "BarIndex", "RotBarIndex", "entry_bar", "direction",
-                "mode", "pnl", "bars_held", "exit_type", "mfe", "mae",
-                "stop_used", "target_used", "tc_used", "zw_ticks",
-                "zone_top", "zone_bot", "touch_price", "touch_type",
-                "entry_open", "entry_offset", "score_aeq", "score_bz",
-                "max_penetration", "win"]
-qt[outcome_cols].to_csv(OUT_DIR / "qualifying_trades_outcomes_v32.csv", index=False)
-print(f"\nSaved: qualifying_trades_outcomes_v32.csv ({len(qt)} rows)")
-
-# Save fill rate data
-fill_data = qt[["touch_idx", "mode", "direction", "max_penetration", "zw_ticks"]].copy()
-fill_data.to_csv(OUT_DIR / "fill_rate_analysis_v32.csv", index=False)
-print(f"Saved: fill_rate_analysis_v32.csv ({len(fill_data)} rows)")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# ══════════════════════════════════════════════════════════════════════
-# SURFACE B: EXIT STRUCTURE MODIFICATIONS
-# ══════════════════════════════════════════════════════════════════════
-# ══════════════════════════════════════════════════════════════════════
-print("\n\n" + "=" * 72)
-print("SURFACE B: EXIT STRUCTURE MODIFICATIONS")
-print("Entries unchanged (zone edge, baseline). Only exits change.")
-print("=" * 72)
-
-
-def sim_trade_custom(entry_bar, direction, stop_ticks, target_ticks, tcap,
-                     be_trigger=0, trail_trigger=0):
-    """Simulate single trade with custom exit params. Returns dict."""
-    if entry_bar >= n_bars:
-        return None
-    ep = bar_arr[entry_bar, 0]
-    if direction == 1:
-        stop_price = ep - stop_ticks * TICK_SIZE
-        target_price = ep + target_ticks * TICK_SIZE
-    else:
-        stop_price = ep + stop_ticks * TICK_SIZE
-        target_price = ep - target_ticks * TICK_SIZE
-
-    mfe = 0.0
-    mae = 0.0
-    be_active = False
-
-    end = min(entry_bar + tcap, n_bars)
-    for i in range(entry_bar, end):
-        h, l, last = bar_arr[i, 1], bar_arr[i, 2], bar_arr[i, 3]
-        bh = i - entry_bar + 1
-
-        if direction == 1:
-            cur_mfe = (h - ep) / TICK_SIZE
-            cur_mae = (ep - l) / TICK_SIZE
-        else:
-            cur_mfe = (ep - l) / TICK_SIZE
-            cur_mae = (h - ep) / TICK_SIZE
-        mfe = max(mfe, cur_mfe)
-        mae = max(mae, cur_mae)
-
-        # BE trigger
-        if be_trigger > 0 and not be_active and mfe >= be_trigger:
-            be_active = True
-            if direction == 1:
-                stop_price = max(stop_price, ep)
-            else:
-                stop_price = min(stop_price, ep)
-
-        # Trail (simple: after trail_trigger, trail at distance = trail_trigger)
-        if trail_trigger > 0 and mfe >= trail_trigger:
-            if direction == 1:
-                new_trail = ep + (mfe - trail_trigger) * TICK_SIZE
-                stop_price = max(stop_price, new_trail)
-            else:
-                new_trail = ep - (mfe - trail_trigger) * TICK_SIZE
-                stop_price = min(stop_price, new_trail)
-
-        # Check stop
-        if direction == 1:
-            stop_hit = l <= stop_price
-            target_hit = h >= target_price
-        else:
-            stop_hit = h >= stop_price
-            target_hit = l <= target_price
-
-        if stop_hit:
-            pnl = (stop_price - ep) / TICK_SIZE if direction == 1 else (ep - stop_price) / TICK_SIZE
-            etype = "BE" if be_active else ("TRAIL" if trail_trigger > 0 and mfe >= trail_trigger else "STOP")
-            return {"pnl": pnl, "bars_held": bh, "exit_type": etype, "mfe": mfe, "mae": mae}
-        if target_hit:
-            return {"pnl": target_ticks, "bars_held": bh, "exit_type": "TARGET", "mfe": mfe, "mae": mae}
-        if bh >= tcap:
-            pnl = (last - ep) / TICK_SIZE if direction == 1 else (ep - last) / TICK_SIZE
-            return {"pnl": pnl, "bars_held": bh, "exit_type": "TIMECAP", "mfe": mfe, "mae": mae}
-
-    if end > entry_bar:
-        last = bar_arr[end - 1, 3]
-        pnl = (last - ep) / TICK_SIZE if direction == 1 else (ep - last) / TICK_SIZE
-        return {"pnl": pnl, "bars_held": end - entry_bar, "exit_type": "TIMECAP", "mfe": mfe, "mae": mae}
-    return None
-
-
-def sim_multileg(entry_bar, direction, stop_ticks, leg_targets, leg_weights,
-                 tcap, be_after_leg=None, be_dest=0):
-    """Simulate multi-leg trade. Returns dict with per-leg details."""
-    if entry_bar >= n_bars:
-        return None
-    ep = bar_arr[entry_bar, 0]
-    n_legs = len(leg_targets)
-
-    if direction == 1:
-        stop_price = ep - stop_ticks * TICK_SIZE
-        target_prices = [ep + t * TICK_SIZE for t in leg_targets]
-    else:
-        stop_price = ep + stop_ticks * TICK_SIZE
-        target_prices = [ep - t * TICK_SIZE for t in leg_targets]
-
-    leg_open = [True] * n_legs
-    leg_pnls = [0.0] * n_legs
-    leg_exits = [""] * n_legs
-    legs_filled = 0
-    mfe = 0.0
-    mae = 0.0
-
-    end = min(entry_bar + tcap, n_bars)
-    for i in range(entry_bar, end):
-        h, l, last = bar_arr[i, 1], bar_arr[i, 2], bar_arr[i, 3]
-        bh = i - entry_bar + 1
-
-        if direction == 1:
-            cur_mfe = (h - ep) / TICK_SIZE
-            cur_mae = (ep - l) / TICK_SIZE
-        else:
-            cur_mfe = (ep - l) / TICK_SIZE
-            cur_mae = (h - ep) / TICK_SIZE
-        mfe = max(mfe, cur_mfe)
-        mae = max(mae, cur_mae)
-
-        # Check stop (all open legs)
-        if direction == 1:
-            stop_hit = l <= stop_price
-        else:
-            stop_hit = h >= stop_price
-
-        if stop_hit:
-            pnl_stop = (stop_price - ep) / TICK_SIZE if direction == 1 else (ep - stop_price) / TICK_SIZE
-            for j in range(n_legs):
-                if leg_open[j]:
-                    leg_pnls[j] = pnl_stop
-                    leg_exits[j] = "STOP"
-                    leg_open[j] = False
-            weighted = sum(w * p for w, p in zip(leg_weights, leg_pnls))
-            return {"pnl": weighted, "bars_held": bh, "exit_type": "STOP",
-                    "mfe": mfe, "mae": mae, "leg_pnls": leg_pnls, "leg_exits": leg_exits}
-
-        # Check targets (ascending)
-        for j in range(n_legs):
-            if not leg_open[j]:
-                continue
-            if direction == 1:
-                hit = h >= target_prices[j]
-            else:
-                hit = l <= target_prices[j]
-            if hit:
-                leg_pnls[j] = leg_targets[j]
-                leg_exits[j] = f"T{j+1}"
-                leg_open[j] = False
-                legs_filled += 1
-
-                # Move stop to BE after specified leg
-                if be_after_leg is not None and legs_filled == be_after_leg + 1:
-                    if direction == 1:
-                        stop_price = max(stop_price, ep + be_dest * TICK_SIZE)
-                    else:
-                        stop_price = min(stop_price, ep - be_dest * TICK_SIZE)
-
-        if not any(leg_open):
-            weighted = sum(w * p for w, p in zip(leg_weights, leg_pnls))
-            return {"pnl": weighted, "bars_held": bh, "exit_type": "TARGET",
-                    "mfe": mfe, "mae": mae, "leg_pnls": leg_pnls, "leg_exits": leg_exits}
-
-        if bh >= tcap:
-            tc_pnl = (last - ep) / TICK_SIZE if direction == 1 else (ep - last) / TICK_SIZE
-            for j in range(n_legs):
-                if leg_open[j]:
-                    leg_pnls[j] = tc_pnl
-                    leg_exits[j] = "TC"
-                    leg_open[j] = False
-            weighted = sum(w * p for w, p in zip(leg_weights, leg_pnls))
-            return {"pnl": weighted, "bars_held": bh, "exit_type": "TIMECAP",
-                    "mfe": mfe, "mae": mae, "leg_pnls": leg_pnls, "leg_exits": leg_exits}
-
-    # Ran out of bars
-    if end > entry_bar:
-        last = bar_arr[end - 1, 3]
-        tc_pnl = (last - ep) / TICK_SIZE if direction == 1 else (ep - last) / TICK_SIZE
-        for j in range(n_legs):
-            if leg_open[j]:
-                leg_pnls[j] = tc_pnl
-                leg_exits[j] = "TC"
-                leg_open[j] = False
-        weighted = sum(w * p for w, p in zip(leg_weights, leg_pnls))
-        return {"pnl": weighted, "bars_held": end - entry_bar, "exit_type": "TIMECAP",
-                "mfe": mfe, "mae": mae, "leg_pnls": leg_pnls, "leg_exits": leg_exits}
-    return None
-
-
-def run_on_population(pop_df, sim_func):
-    """Run a sim function on each trade in the population (no overlap filter).
-    sim_func(row) -> dict or None. Returns list of result dicts."""
-    results = []
-    for _, row in pop_df.iterrows():
-        r = sim_func(row)
-        if r is not None:
-            results.append(r)
-    return results
-
-
-def summarize(results, label="", cost=3):
-    """Print summary stats for a list of result dicts."""
-    if not results:
-        print(f"  {label}: NO RESULTS")
-        return {}
-    pnls = [r["pnl"] for r in results]
-    wins = [p for p in pnls if p > 0]
-    losses = [p for p in pnls if p <= 0]
-    pf = compute_pf(pnls, cost)
-    wr = len(wins) / len(pnls) * 100
-    mean_win = np.mean(wins) if wins else 0
-    mean_loss = np.mean(losses) if losses else 0
-    loss_win = abs(mean_loss / mean_win) if mean_win != 0 else float("inf")
-
-    # Count new stop-outs vs baseline
-    exit_types = [r.get("exit_type", "") for r in results]
-    stops = sum(1 for e in exit_types if e in ("STOP", "BE"))
-
-    print(f"  {label}: n={len(pnls)}, PF@{cost}t={pf:.2f}, WR={wr:.1f}%, "
-          f"meanW={mean_win:.1f}t, meanL={mean_loss:.1f}t, L:W={loss_win:.2f}, stops={stops}")
-    return {"pf": pf, "wr": wr, "mean_win": mean_win, "mean_loss": mean_loss,
-            "loss_win": loss_win, "n": len(pnls), "stops": stops, "pnls": pnls}
-
-
-# ── B1: Stop Reduction (Mode 1) ──
-print("\n── B1: Stop Reduction (Mode 1) ──")
-print("Baseline: 190t stop, 60t target, 120 bar TC")
-
-m1_results_by_stop = {}
-for stop in [190, 170, 150, 130, 120, 100]:
-    results = run_on_population(m1, lambda row, s=stop: sim_trade_custom(
-        int(row["entry_bar"]), int(row["direction"]), s, 60, 120))
-    stats = summarize(results, f"Stop={stop}t", cost=3)
-    m1_results_by_stop[stop] = stats
-
-    # Count winners-turned-losers
-    if stop < 190:
-        baseline_results = run_on_population(m1, lambda row: sim_trade_custom(
-            int(row["entry_bar"]), int(row["direction"]), 190, 60, 120))
-        new_stopouts = 0
-        for br, nr in zip(baseline_results, results):
-            if br["pnl"] > 0 and nr["pnl"] <= 0:
-                new_stopouts += 1
-        print(f"    New stop-outs (winners→losers): {new_stopouts}")
-
-
-# ── B2: Stop Reduction (Mode 2) ──
-print("\n── B2: Stop Reduction (Mode 2) ──")
-print("Baseline: max(1.5×ZW, 120t) stop, 1.0×ZW target, 80 bar TC")
-
-m2_stop_configs = [
-    ("1.5×ZW floor 120 (baseline)", lambda zw: max(round(1.5 * zw), 120)),
-    ("1.3×ZW floor 100", lambda zw: max(round(1.3 * zw), 100)),
-    ("1.2×ZW floor 100", lambda zw: max(round(1.2 * zw), 100)),
-    ("1.0×ZW floor 80", lambda zw: max(round(1.0 * zw), 80)),
-    ("COND: 1.5×ZW<200, 1.2×ZW≥200", lambda zw: max(round(1.5 * zw), 120) if zw < 200 else max(round(1.2 * zw), 100)),
-    ("COND: 1.5×ZW<200, 1.0×ZW≥200", lambda zw: max(round(1.5 * zw), 120) if zw < 200 else max(round(1.0 * zw), 80)),
-]
-
-m2_results_by_stop = {}
-for label, stop_fn in m2_stop_configs:
-    results = run_on_population(m2, lambda row, sf=stop_fn: sim_trade_custom(
-        int(row["entry_bar"]), int(row["direction"]),
-        sf(row["zw_ticks"]), max(1, round(row["zw_ticks"] * 1.0)), 80))
-    stats = summarize(results, label, cost=3)
-    m2_results_by_stop[label] = stats
-
-    if "baseline" not in label.lower():
-        baseline_results = run_on_population(m2, lambda row: sim_trade_custom(
-            int(row["entry_bar"]), int(row["direction"]),
-            max(round(1.5 * row["zw_ticks"]), 120),
-            max(1, round(row["zw_ticks"] * 1.0)), 80))
-        new_stopouts = sum(1 for br, nr in zip(baseline_results, results)
-                          if br["pnl"] > 0 and nr["pnl"] <= 0)
-        print(f"    New stop-outs: {new_stopouts}")
-
-
-# ── B3: Breakeven Stop (Mode 1) ──
-print("\n── B3: Breakeven Stop (Mode 1) ──")
-
-for be_trig in [0, 20, 30, 40, 50]:
-    results = run_on_population(m1, lambda row, bt=be_trig: sim_trade_custom(
-        int(row["entry_bar"]), int(row["direction"]), 190, 60, 120, be_trigger=bt))
-    stats = summarize(results, f"BE@{be_trig}t" if be_trig > 0 else "No BE (baseline)", cost=3)
-
-    if be_trig > 0:
-        # Count whipsaws: BE'd trades where price later reached target
-        whipsaws = 0
-        for r in results:
-            if r["exit_type"] == "BE" and r["mfe"] >= 60:
-                whipsaws += 1
-        scratches = sum(1 for r in results if r["exit_type"] == "BE")
-        print(f"    Scratches: {scratches}, Whipsaws (BE'd but MFE≥60t): {whipsaws}")
-
-
-# ── B4: Breakeven Stop (Mode 2) ──
-print("\n── B4: Breakeven Stop (Mode 2) ──")
-
-for be_label, be_fn in [("No BE", lambda zw: 0), ("0.3×ZW", lambda zw: round(0.3 * zw)),
-                          ("0.5×ZW", lambda zw: round(0.5 * zw)),
-                          ("30t fixed", lambda zw: 30), ("50t fixed", lambda zw: 50)]:
-    results = run_on_population(m2, lambda row, bf=be_fn: sim_trade_custom(
-        int(row["entry_bar"]), int(row["direction"]),
-        max(round(1.5 * row["zw_ticks"]), 120),
-        max(1, round(row["zw_ticks"] * 1.0)), 80,
-        be_trigger=bf(row["zw_ticks"])))
-    stats = summarize(results, be_label, cost=3)
-
-    if be_label != "No BE":
-        scratches = sum(1 for r in results if r["exit_type"] == "BE")
-        whipsaws = sum(1 for r in results if r["exit_type"] == "BE" and r["mfe"] >= r.get("target_used", 60))
-        print(f"    Scratches: {scratches}")
-
-
-# ── B5: Partial Exits (Mode 1) ──
-print("\n── B5: Partial Exits (Mode 1) ──")
-
-partial_configs_m1 = [
-    ("Baseline 3@60", [60], [1.0], None, 0),
-    ("2+1: 2@60, 1@120 BE", [60, 120], [2/3, 1/3], 0, 0),
-    ("2+1w: 2@60, 1@180 BE", [60, 180], [2/3, 1/3], 0, 0),
-    ("1+2: 1@60, 2@120 BE", [60, 120], [1/3, 2/3], 0, 0),
-    ("1+1+1: 1@60, 1@120, 1@180 BE", [60, 120, 180], [1/3, 1/3, 1/3], 0, 0),
-]
-
-for label, targets, weights, be_leg, be_dest in partial_configs_m1:
-    results = run_on_population(m1, lambda row, t=targets, w=weights, bl=be_leg, bd=be_dest:
-        sim_multileg(int(row["entry_bar"]), int(row["direction"]), 190,
-                     t, w, 120, be_after_leg=bl, be_dest=bd))
-    stats = summarize(results, label, cost=3)
-
-    if len(targets) > 1:
-        # Report per-position PnL (multiply by 3 contracts)
-        if results:
-            total_pnls_3ct = [r["pnl"] * 3 for r in results]  # weighted already, ×3 for contracts
-            mean_win_3ct = np.mean([p for p in total_pnls_3ct if p > 0]) if any(p > 0 for p in total_pnls_3ct) else 0
-            mean_loss_3ct = np.mean([p for p in total_pnls_3ct if p <= 0]) if any(p <= 0 for p in total_pnls_3ct) else 0
-            print(f"    Per-position (3ct): meanW={mean_win_3ct:.0f}t, meanL={mean_loss_3ct:.0f}t")
-
-
-# ── B6: Partial Exits (Mode 2) ──
-print("\n── B6: Partial Exits (Mode 2) ──")
-
-partial_configs_m2_labels = [
-    "Baseline 3@1.0×ZW",
-    "2+1h: 2@0.5×ZW, 1@1.0×ZW BE",
-    "2+1f: 2@0.5×ZW, 1@1.5×ZW BE",
-    "1+2: 1@0.5×ZW, 2@1.0×ZW BE",
-    "1+1+1: 1@0.5, 1@1.0, 1@1.5×ZW BE",
-]
-
-for label_idx, label in enumerate(partial_configs_m2_labels):
-    def make_sim(row, li=label_idx):
-        zw = row["zw_ticks"]
-        stop = max(round(1.5 * zw), 120)
-        if li == 0:
-            return sim_multileg(int(row["entry_bar"]), int(row["direction"]),
-                                stop, [max(1, round(zw * 1.0))], [1.0], 80)
-        elif li == 1:
-            t1 = max(1, round(zw * 0.5))
-            t2 = max(1, round(zw * 1.0))
-            return sim_multileg(int(row["entry_bar"]), int(row["direction"]),
-                                stop, [t1, t2], [2/3, 1/3], 80, be_after_leg=0, be_dest=0)
-        elif li == 2:
-            t1 = max(1, round(zw * 0.5))
-            t2 = max(1, round(zw * 1.5))
-            return sim_multileg(int(row["entry_bar"]), int(row["direction"]),
-                                stop, [t1, t2], [2/3, 1/3], 80, be_after_leg=0, be_dest=0)
-        elif li == 3:
-            t1 = max(1, round(zw * 0.5))
-            t2 = max(1, round(zw * 1.0))
-            return sim_multileg(int(row["entry_bar"]), int(row["direction"]),
-                                stop, [t1, t2], [1/3, 2/3], 80, be_after_leg=0, be_dest=0)
-        elif li == 4:
-            t1 = max(1, round(zw * 0.5))
-            t2 = max(1, round(zw * 1.0))
-            t3 = max(1, round(zw * 1.5))
-            return sim_multileg(int(row["entry_bar"]), int(row["direction"]),
-                                stop, [t1, t2, t3], [1/3, 1/3, 1/3], 80,
-                                be_after_leg=0, be_dest=0)
-
-    results = run_on_population(m2, make_sim)
-    stats = summarize(results, label, cost=3)
-
-
-# ── B7: Time Cap Tightening ──
-print("\n── B7: Time Cap Tightening ──")
-
-for tc_m1, tc_m2 in [(120, 80), (90, 60), (60, 40)]:
-    # M1
-    results_m1 = run_on_population(m1, lambda row, tc=tc_m1: sim_trade_custom(
-        int(row["entry_bar"]), int(row["direction"]), 190, 60, tc))
-    stats_m1 = summarize(results_m1, f"M1 TC={tc_m1}", cost=3)
-
-    # M2
-    results_m2 = run_on_population(m2, lambda row, tc=tc_m2: sim_trade_custom(
-        int(row["entry_bar"]), int(row["direction"]),
-        max(round(1.5 * row["zw_ticks"]), 120),
-        max(1, round(row["zw_ticks"] * 1.0)), tc))
-    stats_m2 = summarize(results_m2, f"M2 TC={tc_m2}", cost=3)
-
-
-# ══════════════════════════════════════════════════════════════════════
-# SURFACE A: ENTRY EXECUTION MODIFICATIONS
-# ══════════════════════════════════════════════════════════════════════
-print("\n\n" + "=" * 72)
-print("SURFACE A: ENTRY EXECUTION MODIFICATIONS")
-print("Exits unchanged (baseline). Only entry location changes.")
-print("=" * 72)
-
-
-def sim_deeper_entry(row, depth_ticks, mode):
-    """Simulate with entry at zone_edge + depth_ticks deeper.
-    Stop and target LEVELS stay fixed relative to zone geometry."""
-    eb = int(row["entry_bar"])
-    d = int(row["direction"])
-    rbi = int(row["RotBarIndex"])
-    zw = row["zw_ticks"]
-    tp = row["touch_price"]  # zone edge
-
-    if eb >= n_bars:
-        return None
-
-    # Check if price reaches the deeper entry within fill window
-    max_pen = row["max_penetration"]
-    if max_pen < depth_ticks:
-        return None  # Doesn't fill
-
-    # Find the fill bar (first bar where penetration >= depth)
-    fill_bar = None
-    for bi in range(rbi, min(rbi + FILL_WINDOW, n_bars)):
-        h, l = bar_arr[bi, 1], bar_arr[bi, 2]
-        if d == -1:
-            pen = (tp - l) / TICK_SIZE
-        else:
-            pen = (h - tp) / TICK_SIZE
-        if pen >= depth_ticks:
-            fill_bar = bi + 1  # Enter on next bar after fill
-            break
-
-    if fill_bar is None or fill_bar >= n_bars:
-        return None
-
-    # Entry price: zone_edge + depth into zone
-    if d == -1:  # short: demand edge, entry below edge
-        entry_price = tp - depth_ticks * TICK_SIZE
-    else:  # long: supply edge, entry above edge
-        entry_price = tp + depth_ticks * TICK_SIZE
-
-    # Stop and target LEVELS fixed to zone geometry (not entry)
-    if mode == "M1":
-        # Stop level = zone_edge - 190t (from edge), target = zone_edge + 60t
-        if d == -1:
-            stop_level = tp + 190 * TICK_SIZE  # above edge for short
-            target_level = tp - 60 * TICK_SIZE  # below edge for short
-        else:
-            stop_level = tp - 190 * TICK_SIZE
-            target_level = tp + 60 * TICK_SIZE
-        tcap = 120
-    else:
-        stop_mult = max(round(1.5 * zw), 120)
-        target_mult = max(1, round(zw * 1.0))
-        if d == -1:
-            stop_level = tp + stop_mult * TICK_SIZE
-            target_level = tp - target_mult * TICK_SIZE
-        else:
-            stop_level = tp - stop_mult * TICK_SIZE
-            target_level = tp + target_mult * TICK_SIZE
-        tcap = 80
-
-    # Compute effective stop/target distances from entry
-    if d == 1:
-        stop_dist = (entry_price - stop_level) / TICK_SIZE
-        target_dist = (target_level - entry_price) / TICK_SIZE
-    else:
-        stop_dist = (stop_level - entry_price) / TICK_SIZE
-        target_dist = (entry_price - target_level) / TICK_SIZE
-
-    if stop_dist <= 0 or target_dist <= 0:
-        return None
-
-    # Simulate from fill_bar
-    mfe = 0.0
-    mae = 0.0
-    end = min(fill_bar + tcap, n_bars)
-    for i in range(fill_bar, end):
-        h, l, last = bar_arr[i, 1], bar_arr[i, 2], bar_arr[i, 3]
-        bh = i - fill_bar + 1
-
-        if d == 1:
-            cur_mfe = (h - entry_price) / TICK_SIZE
-            cur_mae = (entry_price - l) / TICK_SIZE
-            stop_hit = l <= stop_level
-            target_hit = h >= target_level
-        else:
-            cur_mfe = (entry_price - l) / TICK_SIZE
-            cur_mae = (h - entry_price) / TICK_SIZE
-            stop_hit = h >= stop_level
-            target_hit = l <= target_level
-        mfe = max(mfe, cur_mfe)
-        mae = max(mae, cur_mae)
-
-        if stop_hit:
-            pnl = -stop_dist
-            return {"pnl": pnl, "bars_held": bh, "exit_type": "STOP",
-                    "mfe": mfe, "mae": mae, "stop_dist": stop_dist, "target_dist": target_dist}
-        if target_hit:
-            pnl = target_dist
-            return {"pnl": pnl, "bars_held": bh, "exit_type": "TARGET",
-                    "mfe": mfe, "mae": mae, "stop_dist": stop_dist, "target_dist": target_dist}
-        if bh >= tcap:
-            if d == 1:
-                pnl = (last - entry_price) / TICK_SIZE
-            else:
-                pnl = (entry_price - last) / TICK_SIZE
-            return {"pnl": pnl, "bars_held": bh, "exit_type": "TIMECAP",
-                    "mfe": mfe, "mae": mae, "stop_dist": stop_dist, "target_dist": target_dist}
-
-    return None
-
-
-# ── A1: Deeper Fixed Entry (Mode 1) ──
-print("\n── A1: Deeper Fixed Entry (Mode 1) ──")
-
-# Use fill rate curve points from Step 0f
-m1_pens = qt[qt["mode"] == "M1"]["max_penetration"].values
-m1_p10 = np.percentile(m1_pens, 10)
-m1_p25 = np.percentile(m1_pens, 25)
-m1_p40 = np.percentile(m1_pens, 40)
-
-depths_m1 = sorted(set([0, 5, 10, 15, 20, 30, 40,
-                        round(m1_p10), round(m1_p25), round(m1_p40)]))
-
-for depth in depths_m1:
-    results = run_on_population(m1, lambda row, dep=depth: sim_deeper_entry(row, dep, "M1"))
-    fill_n = len(results)
-    missed = len(m1) - fill_n
-    fill_pct = fill_n / len(m1) * 100
-
-    if results:
-        mean_sd = np.mean([r["stop_dist"] for r in results])
-        mean_td = np.mean([r["target_dist"] for r in results])
-        loss_win = mean_sd / mean_td if mean_td > 0 else float("inf")
-        stats = summarize(results, f"Depth={depth}t (fill={fill_pct:.0f}%)", cost=3)
-        print(f"    StopDist={mean_sd:.0f}t, TargetDist={mean_td:.0f}t, L:W={loss_win:.2f}, missed={missed}")
-    else:
-        print(f"  Depth={depth}t: NO FILLS")
-
-
-# ── A2: Deeper Fixed Entry (Mode 2) ──
-print("\n── A2: Deeper Fixed Entry (Mode 2) ──")
-
-m2_pens = qt[qt["mode"] == "M2"]["max_penetration"].values
-m2_p10 = np.percentile(m2_pens, 10)
-m2_p25 = np.percentile(m2_pens, 25)
-
-# Test as % of zone width — fixed tick depths
-depths_m2 = sorted(set([0, 5, 10, 15, 20, 30, 40, 50,
-                        round(m2_p10), round(m2_p25)]))
-
-for depth in depths_m2:
-    results = run_on_population(m2, lambda row, dep=depth: sim_deeper_entry(row, dep, "M2"))
-    fill_n = len(results)
-    fill_pct = fill_n / len(m2) * 100
-
-    if results:
-        mean_sd = np.mean([r["stop_dist"] for r in results])
-        mean_td = np.mean([r["target_dist"] for r in results])
-        stats = summarize(results, f"Depth={depth}t (fill={fill_pct:.0f}%)", cost=3)
-    else:
-        print(f"  Depth={depth}t: NO FILLS")
-
-
-# ── A3: Scaled Entry (Mode 1) ──
-print("\n── A3: Scaled Entry (Mode 1) ──")
-print("Note: Simulator doesn't support multi-price entries natively.")
-print("Computing analytically: weighted average entry across legs that fill.")
-
-scaled_configs_m1 = [
-    ("Baseline 3@edge", [(0, 3)]),
-    ("1+1+1 even", [(0, 1), (15, 1), (30, 1)]),
-    ("1+1+1 deep", [(0, 1), (20, 1), (40, 1)]),
-    ("2+1", [(0, 2), (30, 1)]),
-    ("1+2", [(0, 1), (20, 2)]),
-]
-
-for label, legs in scaled_configs_m1:
-    all_pnls = []
-    for _, row in m1.iterrows():
-        eb = int(row["entry_bar"])
-        d = int(row["direction"])
-        tp = row["touch_price"]
-        max_pen = row["max_penetration"]
-
-        if eb >= n_bars:
-            continue
-
-        total_pnl = 0
-        total_cts = 0
-        for depth, cts in legs:
-            if max_pen >= depth:
-                # This leg fills
-                if depth == 0:
-                    # Edge entry: use existing sim
-                    r = sim_trade_custom(eb, d, 190, 60, 120)
-                    if r:
-                        total_pnl += r["pnl"] * cts
-                        total_cts += cts
-                else:
-                    # Deeper entry: stop/target levels fixed to zone
-                    r = sim_deeper_entry(row, depth, "M1")
-                    if r:
-                        total_pnl += r["pnl"] * cts
-                        total_cts += cts
-
-        if total_cts > 0:
-            avg_pnl = total_pnl / total_cts  # per-contract weighted average
-            all_pnls.append({"pnl": avg_pnl, "exit_type": "SCALED", "mfe": 0, "mae": 0,
-                            "bars_held": 0, "total_cts": total_cts})
-
-    if all_pnls:
-        pf = compute_pf([r["pnl"] for r in all_pnls], cost=3)
-        wins = [r["pnl"] for r in all_pnls if r["pnl"] > 0]
-        losses = [r["pnl"] for r in all_pnls if r["pnl"] <= 0]
-        mean_cts = np.mean([r["total_cts"] for r in all_pnls])
-        wr = len(wins) / len(all_pnls) * 100
-        mean_w = np.mean(wins) if wins else 0
-        mean_l = np.mean(losses) if losses else 0
-        print(f"  {label}: n={len(all_pnls)}, PF@3t={pf:.2f}, WR={wr:.1f}%, "
-              f"meanW={mean_w:.1f}t, meanL={mean_l:.1f}t, avgCts={mean_cts:.1f}")
-
-
-# ── A4: Scaled Entry (Mode 2) ──
-print("\n── A4: Scaled Entry (Mode 2) ──")
-
-scaled_configs_m2 = [
-    ("Baseline 3@edge", [(0, 3)]),
-    ("1+1+1", [(0, 1), (0.1, 1), (0.2, 1)]),  # depth as fraction of ZW
-    ("2+1", [(0, 2), (0.15, 1)]),
-]
-
-for label, legs in scaled_configs_m2:
-    all_pnls = []
-    for _, row in m2.iterrows():
-        eb = int(row["entry_bar"])
-        d = int(row["direction"])
-        zw = row["zw_ticks"]
-        max_pen = row["max_penetration"]
-
-        if eb >= n_bars:
-            continue
-
-        total_pnl = 0
-        total_cts = 0
-        for depth_frac, cts in legs:
-            depth = round(depth_frac * zw) if depth_frac > 0 else 0
-            if max_pen >= depth:
-                if depth == 0:
-                    r = sim_trade_custom(eb, d,
-                                         max(round(1.5 * zw), 120),
-                                         max(1, round(zw * 1.0)), 80)
-                    if r:
-                        total_pnl += r["pnl"] * cts
-                        total_cts += cts
-                else:
-                    r = sim_deeper_entry(row, depth, "M2")
-                    if r:
-                        total_pnl += r["pnl"] * cts
-                        total_cts += cts
-
-        if total_cts > 0:
-            avg_pnl = total_pnl / total_cts
-            all_pnls.append({"pnl": avg_pnl})
-
-    if all_pnls:
-        pf = compute_pf([r["pnl"] for r in all_pnls], cost=3)
-        wins = [r["pnl"] for r in all_pnls if r["pnl"] > 0]
-        losses = [r["pnl"] for r in all_pnls if r["pnl"] <= 0]
-        wr = len(wins) / len(all_pnls) * 100
-        print(f"  {label}: n={len(all_pnls)}, PF@3t={pf:.2f}, WR={wr:.1f}%")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# SURFACE A ADDENDUM: Entry-Relative Stops (corrected design)
-# ══════════════════════════════════════════════════════════════════════
-print("\n── A1-ALT: Deeper Entry with ENTRY-RELATIVE stops (Mode 1) ──")
-print("Stop/target distances stay fixed relative to ENTRY (not zone).")
-print("Deeper entry = better fill price, same risk profile.")
-
-for depth in [0, 10, 20, 24, 30, 34, 40]:
-    results = []
-    for _, row in m1.iterrows():
-        if row["max_penetration"] < depth:
-            continue
-        # Find fill bar
-        rbi = int(row["RotBarIndex"])
-        d = int(row["direction"])
-        tp = row["touch_price"]
-        fill_bar = None
-        for bi in range(rbi, min(rbi + FILL_WINDOW, n_bars)):
-            h, l = bar_arr[bi, 1], bar_arr[bi, 2]
-            if d == -1:
-                pen = (tp - l) / TICK_SIZE
-            else:
-                pen = (h - tp) / TICK_SIZE
-            if pen >= depth:
-                fill_bar = bi + 1
-                break
-        if fill_bar is None or fill_bar >= n_bars:
-            continue
-        # Same stop/target as baseline, just from better entry
-        r = sim_trade_custom(fill_bar, d, 190, 60, 120)
-        if r:
-            results.append(r)
-
-    fill_pct = len(results) / len(m1) * 100
-    if results:
-        stats = summarize(results, f"Depth={depth}t (fill={fill_pct:.0f}%)", cost=3)
-
-print("\n── A2-ALT: Deeper Entry with ENTRY-RELATIVE stops (Mode 2) ──")
-for depth in [0, 10, 20, 29, 30, 40]:
-    results = []
-    for _, row in m2.iterrows():
-        if row["max_penetration"] < depth:
-            continue
-        rbi = int(row["RotBarIndex"])
-        d = int(row["direction"])
-        tp = row["touch_price"]
-        zw = row["zw_ticks"]
-        fill_bar = None
-        for bi in range(rbi, min(rbi + FILL_WINDOW, n_bars)):
-            h, l = bar_arr[bi, 1], bar_arr[bi, 2]
-            if d == -1:
-                pen = (tp - l) / TICK_SIZE
-            else:
-                pen = (h - tp) / TICK_SIZE
-            if pen >= depth:
-                fill_bar = bi + 1
-                break
-        if fill_bar is None or fill_bar >= n_bars:
-            continue
-        stop = max(round(1.5 * zw), 120)
-        target = max(1, round(zw * 1.0))
-        r = sim_trade_custom(fill_bar, d, stop, target, 80)
-        if r:
-            results.append(r)
-
-    fill_pct = len(results) / len(m2) * 100
-    if results:
-        stats = summarize(results, f"Depth={depth}t (fill={fill_pct:.0f}%)", cost=3)
-
-
-# ══════════════════════════════════════════════════════════════════════
-# ══════════════════════════════════════════════════════════════════════
-# STEP 3: STACKING — BEST COMBINATIONS
-# ══════════════════════════════════════════════════════════════════════
-# ══════════════════════════════════════════════════════════════════════
-print("\n\n" + "=" * 72)
-print("STEP 3: STACKING — BEST COMBINATIONS")
-print("=" * 72)
-
-# ── M1 Stacking ──
-print("\n── M1 Stacking ──")
-print("Candidate: B5 (1+1+1 partials: 1@60, 1@120, 1@180, BE after T1)")
-print("No Surface A candidates improved M1.")
-
-# Baseline
-m1_base = run_on_population(m1, lambda row: sim_trade_custom(
-    int(row["entry_bar"]), int(row["direction"]), 190, 60, 120))
-summarize(m1_base, "M1 Baseline", cost=3)
-
-# Best B mod: B5 1+1+1
-m1_stack1 = run_on_population(m1, lambda row: sim_multileg(
-    int(row["entry_bar"]), int(row["direction"]), 190,
-    [60, 120, 180], [1/3, 1/3, 1/3], 120, be_after_leg=0, be_dest=0))
-summarize(m1_stack1, "M1 +B5(1+1+1)", cost=3)
-
-# Try adding B2-equivalent (stop at 170t) to partials — check interaction
-m1_stack2 = run_on_population(m1, lambda row: sim_multileg(
-    int(row["entry_bar"]), int(row["direction"]), 170,
-    [60, 120, 180], [1/3, 1/3, 1/3], 120, be_after_leg=0, be_dest=0))
-summarize(m1_stack2, "M1 +B5(1+1+1)+B1(170t)", cost=3)
-
-# 1+2 partials (was second best)
-m1_stack3 = run_on_population(m1, lambda row: sim_multileg(
-    int(row["entry_bar"]), int(row["direction"]), 190,
-    [60, 120], [1/3, 2/3], 120, be_after_leg=0, be_dest=0))
-summarize(m1_stack3, "M1 +B5(1+2)", cost=3)
-
-print("\n  M1 RECOMMENDATION: B5 1+1+1 (PF 9.99 vs 8.50 baseline)")
-
-# ── M2 Stacking ──
-print("\n── M2 Stacking ──")
-print("Candidate: B2 (1.3×ZW floor 100)")
-print("No Surface A candidates improved M2.")
-
-# Baseline
-m2_base = run_on_population(m2, lambda row: sim_trade_custom(
-    int(row["entry_bar"]), int(row["direction"]),
-    max(round(1.5 * row["zw_ticks"]), 120),
-    max(1, round(row["zw_ticks"] * 1.0)), 80))
-summarize(m2_base, "M2 Baseline", cost=3)
-
-# Best B mod: B2 1.3×ZW floor 100
-m2_stack1 = run_on_population(m2, lambda row: sim_trade_custom(
-    int(row["entry_bar"]), int(row["direction"]),
-    max(round(1.3 * row["zw_ticks"]), 100),
-    max(1, round(row["zw_ticks"] * 1.0)), 80))
-summarize(m2_stack1, "M2 +B2(1.3×ZW)", cost=3)
-
-# Try B2 + B4 (0.3×ZW BE)
-m2_stack2 = run_on_population(m2, lambda row: sim_trade_custom(
-    int(row["entry_bar"]), int(row["direction"]),
-    max(round(1.3 * row["zw_ticks"]), 100),
-    max(1, round(row["zw_ticks"] * 1.0)), 80,
-    be_trigger=round(0.3 * row["zw_ticks"])))
-summarize(m2_stack2, "M2 +B2(1.3×ZW)+B4(0.3×ZW BE)", cost=3)
-
-print("\n  M2 RECOMMENDATION: B2 1.3×ZW floor 100 (PF 4.67 vs 4.61 baseline)")
-print("  NOTE: Marginal improvement. Baseline exits are well-calibrated.")
-
-
-# ══════════════════════════════════════════════════════════════════════
-# ══════════════════════════════════════════════════════════════════════
-# STEP 4: P2 VALIDATION
-# ══════════════════════════════════════════════════════════════════════
-# ══════════════════════════════════════════════════════════════════════
-print("\n\n" + "=" * 72)
-print("STEP 4: P2 VALIDATION (ONE-SHOT)")
-print("=" * 72)
-
-# Load P2 data
-print("\nLoading P2 data...")
-bar_p2 = pd.read_csv(DATA_DIR / "NQ_bardata_P2.csv")
-bar_p2.columns = bar_p2.columns.str.strip()
-bar_arr_p2 = bar_p2[["Open", "High", "Low", "Last"]].to_numpy(dtype=np.float64)
-n_bars_p2 = len(bar_arr_p2)
-print(f"P2 bars: {n_bars_p2}")
-
-# Load P2 touches
-p2a_raw = pd.read_csv(DATA_DIR / "NQ_merged_P2a.csv")
-p2b_raw = pd.read_csv(DATA_DIR / "NQ_merged_P2b.csv")
-p2a_raw.columns = p2a_raw.columns.str.strip()
-p2b_raw.columns = p2b_raw.columns.str.strip()
-
-# Filter RotBarIndex < 0
-p2a = p2a_raw[p2a_raw["RotBarIndex"] >= 0].reset_index(drop=True)
-p2b = p2b_raw[p2b_raw["RotBarIndex"] >= 0].reset_index(drop=True)
-print(f"P2a touches: {len(p2a)}, P2b touches: {len(p2b)}")
-
-# Load scoring models
+# ════════════════════════════════════════════════════════════════════
+# LOAD FROZEN PARAMETERS
+# ════════════════════════════════════════════════════════════════════
 with open(PARAM_DIR / "scoring_model_aeq_v32.json") as f:
     aeq_cfg = json.load(f)
 with open(PARAM_DIR / "scoring_model_bzscore_v32.json") as f:
     bz_cfg = json.load(f)
+with open(PARAM_DIR / "scoring_model_acal_v32.json") as f:
+    acal_cfg = json.load(f)
 with open(PARAM_DIR / "feature_config_v32.json") as f:
     feat_cfg = json.load(f)
+with open(PARAM_DIR / "segmentation_params_clean_v32.json") as f:
+    seg_params = json.load(f)
 
 WINNING_FEATURES = feat_cfg["winning_features"]
-TS_P33 = feat_cfg["trend_slope_P33"]
-TS_P67 = feat_cfg["trend_slope_P67"]
 BIN_EDGES = feat_cfg["feature_bin_edges"]
 FEAT_MEANS = feat_cfg["feature_means"]
 FEAT_STDS = feat_cfg["feature_stds"]
+TS_P33 = feat_cfg["trend_slope_P33"]
+TS_P67 = feat_cfg["trend_slope_P67"]
 
-bar_atr_p2 = bar_p2["ATR"].to_numpy(dtype=np.float64)
+# Frozen thresholds
+M1_THRESHOLD = aeq_cfg["threshold"]  # 45.5
+M2_THRESHOLD = 0.50  # B-ZScore (prompt specifies 0.50)
+
+# Frozen exit params
+M1_EXIT = {"stop": 190, "target": 60, "time_cap": 120}
+M2_ZONEREL = seg_params["seg2_B-ZScore"]["groups"]["ModeA_RTH"]["exit_params_zonerel"]
+M2_FILTERS = seg_params["seg2_B-ZScore"]["groups"]["ModeA_RTH"]["filters"]
+
+RTH_SESSIONS = ["OpeningDrive", "Midday", "Close"]
+
+rprint("=" * 72)
+rprint("RISK MITIGATION INVESTIGATION v3.2 — STEP 0 DIAGNOSTICS")
+rprint("Scoring model FROZEN. Nothing carried from prior run.")
+rprint(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+rprint("=" * 72)
+rprint(f"  M1 threshold (A-Eq): {M1_THRESHOLD}")
+rprint(f"  M2 threshold (B-ZScore): {M2_THRESHOLD}")
+rprint(f"  M1 exits: stop=190t, target=60t, TC=120 bars")
+rprint(f"  M2 exits: stop=max(1.5*ZW,120), target=1.0*ZW, TC=80 bars")
+rprint(f"  M2 filters: seq<={M2_FILTERS.get('seq_max', 2)}, TF<=120m, RTH only")
 
 
-def compute_features_p2(df, label):
-    """Compute scoring features on P2 touches using P1-frozen params."""
+# ════════════════════════════════════════════════════════════════════
+# FEATURE COMPUTATION (identical to prompt3_holdout_v32.py)
+# ════════════════════════════════════════════════════════════════════
+def compute_features(df: pd.DataFrame, bar_arr: np.ndarray,
+                     bar_atr: np.ndarray, n_bars: int,
+                     label: str) -> pd.DataFrame:
+    """Compute all 7 winning features for scoring. Uses P1-frozen parameters."""
+    rprint(f"\n  Computing features for {label} ({len(df)} touches)...")
     df = df.copy()
+
+    # F01: Timeframe
     df["F01"] = df["SourceLabel"]
-    df["F02"] = df["ZoneWidthTicks"]
+
+    # F04: Cascade State
     df["F04"] = df["CascadeState"].replace("UNKNOWN", "NO_PRIOR")
 
-    # F05: Session
+    # F05: Session — derived from DateTime
     touch_dt = pd.to_datetime(df["DateTime"])
     touch_mins = touch_dt.dt.hour.values * 60 + touch_dt.dt.minute.values
     session = np.full(len(df), "Midday", dtype=object)
@@ -1503,11 +115,11 @@ def compute_features_p2(df, label):
     atr_vals = []
     for rbi in df["RotBarIndex"].values:
         rbi = int(rbi)
-        if 0 <= rbi < n_bars_p2 and bar_atr_p2[rbi] > 0:
-            atr_vals.append(bar_atr_p2[rbi])
+        if 0 <= rbi < n_bars and bar_atr[rbi] > 0:
+            atr_vals.append(bar_atr[rbi])
         else:
             atr_vals.append(np.nan)
-    df["F09"] = df["ZoneWidthTicks"].values * TICK_SIZE / np.array(atr_vals)
+    df["F09"] = df["ZoneWidthTicks"].values * TICK / np.array(atr_vals)
 
     # F10: Prior Penetration
     df["ZoneID"] = (df["TouchType"].astype(str) + "|" +
@@ -1515,7 +127,8 @@ def compute_features_p2(df, label):
                     df["ZoneBot"].astype(str) + "|" +
                     df["SourceLabel"].astype(str))
     prior_pen = {}
-    for zone_id, group in df.sort_values(["ZoneID", "TouchSequence"]).groupby("ZoneID"):
+    for zone_id, group in df.sort_values(
+            ["ZoneID", "TouchSequence"]).groupby("ZoneID"):
         group = group.sort_values("TouchSequence")
         prev_pen = np.nan
         for idx, row in group.iterrows():
@@ -1529,9 +142,9 @@ def compute_features_p2(df, label):
     # F13: Touch Bar Close Position
     rot_idx = df["RotBarIndex"].values.astype(int)
     is_long = df["TouchType"].str.contains("DEMAND").values
-    tb_h = np.array([bar_arr_p2[max(0, min(i, n_bars_p2 - 1)), 1] for i in rot_idx])
-    tb_l = np.array([bar_arr_p2[max(0, min(i, n_bars_p2 - 1)), 2] for i in rot_idx])
-    tb_c = np.array([bar_arr_p2[max(0, min(i, n_bars_p2 - 1)), 3] for i in rot_idx])
+    tb_h = np.array([bar_arr[max(0, min(i, n_bars - 1)), 1] for i in rot_idx])
+    tb_l = np.array([bar_arr[max(0, min(i, n_bars - 1)), 2] for i in rot_idx])
+    tb_c = np.array([bar_arr[max(0, min(i, n_bars - 1)), 3] for i in rot_idx])
     hl_d = tb_h - tb_l
     close_pos = np.where(
         hl_d > 0,
@@ -1550,356 +163,1638 @@ def compute_features_p2(df, label):
             return "CT"
         elif ts >= TS_P67:
             return "WT"
-        return "NT"
+        else:
+            return "NT"
     df["TrendLabel"] = df["TrendSlope"].apply(assign_trend)
 
     if "SBB_Label" not in df.columns:
         df["SBB_Label"] = "NORMAL"
 
-    print(f"  {label}: {len(df)} touches, F10 null={df['F10'].isna().mean()*100:.1f}%")
+    rprint(f"    F10 null rate: {df['F10'].isna().mean() * 100:.1f}%")
+    rprint(f"    F05 distribution: {dict(df['F05'].value_counts().head(5))}")
     return df
 
 
-p2a = compute_features_p2(p2a, "P2a")
-p2b = compute_features_p2(p2b, "P2b")
+# ════════════════════════════════════════════════════════════════════
+# SCORING FUNCTIONS (frozen from v3.2)
+# ════════════════════════════════════════════════════════════════════
+def _bin_numeric(vals, lo, hi):
+    out = np.full(len(vals), "Mid", dtype=object)
+    v = np.asarray(vals, dtype=float)
+    out[v <= lo] = "Low"
+    out[v > hi] = "High"
+    out[np.isnan(v)] = "NA"
+    return out
 
 
-def score_aeq(row, cfg):
-    """Score a touch using the A-Eq model (P1-frozen)."""
-    weights = cfg["feature_weights"]
-    score = 0
-    for feat, w in weights.items():
-        val = row.get(feat, None)
-        if val is None or (isinstance(val, float) and np.isnan(val)):
-            continue
-        # Bin the value
-        if feat in BIN_EDGES:
-            edges = BIN_EDGES[feat]
-            bin_idx = np.searchsorted(edges, val)
-            score += w * bin_idx
-        else:
-            score += w * val
-    return score
-
-
-def score_bzscore(row, cfg):
-    """Score a touch using B-ZScore model (P1-frozen)."""
-    weights = cfg["feature_weights"]
-    total = 0
-    for feat, w in weights.items():
-        val = row.get(feat, None)
-        if val is None or (isinstance(val, float) and np.isnan(val)):
-            continue
-        # Z-score normalize
-        mean = FEAT_MEANS.get(feat, 0)
-        std = FEAT_STDS.get(feat, 1)
-        if std > 0:
-            z = (val - mean) / std
-        else:
-            z = 0
-        total += w * z
-    # Sigmoid
-    from scipy.special import expit
-    return float(expit(total))
-
-
-# Score P2 touches
-print("\nScoring P2 touches with frozen models...")
-
-# We need to replicate the exact scoring from the backtest harness
-# Rather than re-implementing the full scoring, let me use the backtest harness approach
-# The scoring uses A-Eq (equal-weight features) and B-ZScore (z-score sigmoid)
-
-# A-Eq scoring: each winning feature contributes equally
-# Check the model structure
-print(f"  A-Eq model: threshold={aeq_cfg['threshold']}, max_score={aeq_cfg['max_score']}")
-print(f"  B-ZScore model: threshold={bz_cfg['threshold']}")
-print(f"  Winning features: {WINNING_FEATURES}")
-
-
-aeq_bin_points = aeq_cfg["bin_points"]
-
-
-def compute_aeq_score(df):
-    """Compute A-Eq score using bin_points lookup."""
+def score_aeq(df: pd.DataFrame) -> np.ndarray:
+    """A-Eq scoring: equal weight per feature, bin_points from frozen model."""
+    bp = aeq_cfg["bin_points"]
+    bin_edges = acal_cfg["bin_edges"]  # A-Eq uses same bin edges as A-Cal
     scores = np.zeros(len(df))
-    for feat in WINNING_FEATURES:
-        bp = aeq_bin_points.get(feat, {})
-        if not bp:
-            continue
-        if feat in ("F01",):
-            # Categorical: direct lookup by SourceLabel
-            vals = df["F01"].values
-            for i, v in enumerate(vals):
-                scores[i] += bp.get(str(v), 0)
-        elif feat in ("F05",):
-            vals = df["F05"].values
-            for i, v in enumerate(vals):
-                scores[i] += bp.get(str(v), 0)
-        elif feat in ("F04",):
-            vals = df["F04"].values
-            for i, v in enumerate(vals):
-                scores[i] += bp.get(str(v), 0)
+    for feat, points_map in bp.items():
+        if feat in bin_edges:
+            lo, hi = bin_edges[feat]
+            vals = df[feat].values.astype(float)
+            bins = _bin_numeric(vals, lo, hi)
+            for i, b in enumerate(bins):
+                scores[i] += points_map.get(b, 0)
         else:
-            # Numeric: bin by feature_bin_edges → Low/Mid/High
-            edges = BIN_EDGES.get(feat, [])
-            vals = df[feat].values
-            for i, v in enumerate(vals):
-                if pd.isna(v):
-                    scores[i] += bp.get("NA", 0)
-                elif len(edges) >= 2:
-                    if v < edges[0]:
-                        scores[i] += bp.get("Low", 0)
-                    elif v < edges[1]:
-                        scores[i] += bp.get("Mid", 0)
-                    else:
-                        scores[i] += bp.get("High", 0)
+            cats = df[feat].values
+            for i, c in enumerate(cats):
+                scores[i] += points_map.get(str(c), 0)
     return scores
 
 
-bz_coefficients = bz_cfg["coefficients"]
-bz_intercept = bz_cfg["intercept"]
-bz_feature_columns = bz_cfg["feature_columns"]
-bz_scaler_mean = bz_cfg["scaler_mean"]
-bz_scaler_std = bz_cfg["scaler_std"]
+def score_bzscore(df: pd.DataFrame) -> np.ndarray:
+    """B-ZScore scoring: frozen StandardScaler + logistic regression."""
+    feat_cols = bz_cfg["feature_columns"]
+    coeffs = np.array(bz_cfg["coefficients"])
+    intercept = bz_cfg["intercept"]
+    means = np.array(bz_cfg["scaler_mean"])
+    stds = np.array(bz_cfg["scaler_std"])
+    stds[stds == 0] = 1.0
 
+    X = np.zeros((len(df), len(feat_cols)))
+    for j, fc in enumerate(feat_cols):
+        if fc in ("F10", "F09", "F21", "F13"):
+            X[:, j] = df[fc].fillna(0).values
+        elif fc.startswith("F04_"):
+            cat = fc.replace("F04_", "")
+            X[:, j] = (df["F04"] == cat).astype(float).values
+        elif fc.startswith("F01_"):
+            cat = fc.replace("F01_", "")
+            X[:, j] = (df["F01"] == cat).astype(float).values
+        elif fc.startswith("F05_"):
+            cat = fc.replace("F05_", "")
+            X[:, j] = (df["F05"] == cat).astype(float).values
 
-def compute_bz_score(df):
-    """Compute B-ZScore: one-hot + logistic regression."""
-    from scipy.special import expit
-    n = len(df)
-    X = np.zeros((n, len(bz_feature_columns)))
-
-    for col_idx, col_name in enumerate(bz_feature_columns):
-        if col_name == "F10":
-            X[:, col_idx] = df["F10"].fillna(0).values.astype(float)
-        elif col_name == "F09":
-            X[:, col_idx] = df["F09"].fillna(0).values.astype(float)
-        elif col_name == "F21":
-            X[:, col_idx] = df["F21"].fillna(0).values.astype(float)
-        elif col_name == "F13":
-            X[:, col_idx] = df["F13"].fillna(0).values.astype(float)
-        elif col_name.startswith("F01_"):
-            cat = col_name[4:]  # e.g. "15m"
-            X[:, col_idx] = (df["F01"].astype(str) == cat).astype(float)
-        elif col_name.startswith("F05_"):
-            cat = col_name[4:]
-            X[:, col_idx] = (df["F05"].astype(str) == cat).astype(float)
-        elif col_name.startswith("F04_"):
-            cat = col_name[4:]
-            X[:, col_idx] = (df["F04"].astype(str) == cat).astype(float)
-
-    # Standardize
-    means = np.array(bz_scaler_mean)
-    stds = np.array(bz_scaler_std)
-    stds[stds == 0] = 1
     X_scaled = (X - means) / stds
-
-    # Logistic regression
-    logits = X_scaled @ np.array(bz_coefficients) + bz_intercept
-    return expit(logits)
+    return X_scaled @ coeffs + intercept
 
 
-# Score all P2 touches
-p2_all = pd.concat([p2a, p2b], ignore_index=True)
-p2_all["Score_AEq"] = compute_aeq_score(p2_all)
-p2_all["Score_BZScore"] = compute_bz_score(p2_all)
-
-print(f"  P2 total touches: {len(p2_all)}")
-print(f"  P2 A-Eq scores: mean={p2_all['Score_AEq'].mean():.1f}, "
-      f">=45.5: {(p2_all['Score_AEq'] >= 45.5).sum()}")
-print(f"  P2 B-ZScore scores: mean={p2_all['Score_BZScore'].mean():.3f}, "
-      f">=0.50: {(p2_all['Score_BZScore'] >= 0.50).sum()}")
-
-# Apply waterfall: M1 first (A-Eq >= 45.5), M2 second (B-ZScore >= 0.50 + filters)
-m1_p2_mask = p2_all["Score_AEq"] >= aeq_cfg["threshold"]
-m1_p2 = p2_all[m1_p2_mask].copy()
-m1_p2["mode"] = "M1"
-m1_p2_indices = set(m1_p2.index)
-
-# M2: B-ZScore >= 0.50, RTH-ish, seq <= 2, TF <= 120m, not in M1
-tf_map = {"5m": 5, "10m": 10, "15m": 15, "30m": 30, "50m": 50,
-          "60m": 60, "90m": 90, "120m": 120, "240m": 240, "360m": 360}
-p2_all["tf_min"] = p2_all["SourceLabel"].map(tf_map).fillna(9999)
-
-m2_p2_mask = (
-    (p2_all["Score_BZScore"] >= bz_cfg["threshold"]) &
-    (p2_all["TouchSequence"] <= 2) &
-    (p2_all["tf_min"] <= 120) &
-    (p2_all["F05"] != "Overnight") &
-    (~p2_all.index.isin(m1_p2_indices))
-)
-m2_p2 = p2_all[m2_p2_mask].copy()
-m2_p2["mode"] = "M2"
-
-print(f"\n  P2 waterfall:")
-print(f"    M1 qualifying: {len(m1_p2)}")
-print(f"    M2 qualifying: {len(m2_p2)}")
+# ════════════════════════════════════════════════════════════════════
+# SIMULATION ENGINE (from prompt3_holdout, with MFE/MAE tracking)
+# ════════════════════════════════════════════════════════════════════
+def resolve_zonerel(zw_ticks: float) -> Tuple[int, int, int]:
+    """Compute stop/target/TC from zone-relative M2 params."""
+    stop = max(round(1.5 * zw_ticks), 120)
+    target = max(1, round(1.0 * zw_ticks))
+    return stop, target, 80
 
 
-def sim_with_overlap_p2(touches_df, sim_func, label=""):
-    """Simulate with no-overlap filter on P2 data."""
-    subset = touches_df.sort_values("RotBarIndex")
+def sim_trade(entry_bar: int, direction: int, stop: int, target: int,
+              tcap: int, bar_arr: np.ndarray, n_bars: int
+              ) -> Optional[Dict]:
+    """Simulate single trade. Returns dict with pnl, mfe, mae, exit details.
+    No BE or trail — baseline only."""
+    if entry_bar >= n_bars:
+        return None
+    ep = bar_arr[entry_bar, 0]  # Open of entry bar
+    if direction == 1:
+        stop_price = ep - stop * TICK
+        target_price = ep + target * TICK
+    else:
+        stop_price = ep + stop * TICK
+        target_price = ep - target * TICK
+
+    mfe = 0.0
+    mae = 0.0
+    # Track per-bar MFE/MAE for time-profile analysis
+    bar_mfe_profile = []
+    bar_mae_profile = []
+
+    end = min(entry_bar + tcap, n_bars)
+    for i in range(entry_bar, end):
+        h, l, last = bar_arr[i, 1], bar_arr[i, 2], bar_arr[i, 3]
+        bh = i - entry_bar + 1
+
+        if direction == 1:
+            cur_fav = (h - ep) / TICK
+            cur_adv = (ep - l) / TICK
+        else:
+            cur_fav = (ep - l) / TICK
+            cur_adv = (h - ep) / TICK
+        mfe = max(mfe, cur_fav)
+        mae = max(mae, cur_adv)
+        bar_mfe_profile.append(mfe)
+        bar_mae_profile.append(mae)
+
+        # Check stop
+        if direction == 1:
+            stop_hit = l <= stop_price
+            target_hit = h >= target_price
+        else:
+            stop_hit = h >= stop_price
+            target_hit = l <= target_price
+
+        # Intra-bar: stop fills first
+        if stop_hit:
+            pnl = ((stop_price - ep) / TICK if direction == 1
+                   else (ep - stop_price) / TICK)
+            return {"pnl": pnl, "bars_held": bh, "exit_type": "STOP",
+                    "mfe": mfe, "mae": mae, "entry_price": ep,
+                    "bar_mfe": bar_mfe_profile, "bar_mae": bar_mae_profile}
+        if target_hit:
+            return {"pnl": target, "bars_held": bh, "exit_type": "TARGET",
+                    "mfe": mfe, "mae": mae, "entry_price": ep,
+                    "bar_mfe": bar_mfe_profile, "bar_mae": bar_mae_profile}
+
+        if bh >= tcap:
+            pnl = ((last - ep) / TICK if direction == 1
+                   else (ep - last) / TICK)
+            return {"pnl": pnl, "bars_held": bh, "exit_type": "TIMECAP",
+                    "mfe": mfe, "mae": mae, "entry_price": ep,
+                    "bar_mfe": bar_mfe_profile, "bar_mae": bar_mae_profile}
+
+    # Ran out of bars
+    if end > entry_bar:
+        last = bar_arr[end - 1, 3]
+        pnl = ((last - ep) / TICK if direction == 1
+               else (ep - last) / TICK)
+        return {"pnl": pnl, "bars_held": end - entry_bar, "exit_type": "TIMECAP",
+                "mfe": mfe, "mae": mae, "entry_price": ep,
+                "bar_mfe": bar_mfe_profile, "bar_mae": bar_mae_profile}
+    return None
+
+
+def simulate_population(qualifying_df: pd.DataFrame, mode: str,
+                        bar_arr: np.ndarray, n_bars: int
+                        ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Simulate qualifying trades with position overlap filter.
+    Returns (traded_df, skipped_df)."""
+    subset = qualifying_df.sort_values("RotBarIndex").copy()
     results = []
+    skipped = []
     in_trade_until = -1
-    traded_count = 0
-    missed_count = 0
 
-    for _, row in subset.iterrows():
+    for idx, row in subset.iterrows():
         rbi = int(row["RotBarIndex"])
         entry_bar = rbi + 1
+        direction = 1 if "DEMAND" in str(row["TouchType"]) else -1
+        zw = int(row.get("ZoneWidthTicks", 100))
+
         if entry_bar <= in_trade_until:
-            missed_count += 1
+            skipped.append({
+                "touch_idx": idx, "BarIndex": row["BarIndex"],
+                "RotBarIndex": rbi, "mode": mode,
+                "direction": direction, "zw_ticks": zw,
+                "zone_top": row["ZoneTop"], "zone_bot": row["ZoneBot"],
+                "touch_price": row["TouchPrice"],
+                "touch_type": row["TouchType"],
+                "score_aeq": row.get("score_aeq", np.nan),
+                "score_bz": row.get("score_bz", np.nan),
+                "skip_reason": "position_overlap",
+                "active_trade_exit_bar": in_trade_until,
+            })
             continue
-        if entry_bar >= n_bars_p2:
+
+        if mode == "M1":
+            stop, target, tcap = (M1_EXIT["stop"], M1_EXIT["target"],
+                                  M1_EXIT["time_cap"])
+        else:
+            stop, target, tcap = resolve_zonerel(zw)
+
+        result = sim_trade(entry_bar, direction, stop, target, tcap,
+                           bar_arr, n_bars)
+        if result is None:
             continue
 
-        r = sim_func(row, entry_bar)
-        if r is not None:
-            results.append(r)
-            in_trade_until = entry_bar + r["bars_held"] - 1
-            traded_count += 1
+        # Penetration: how far past zone edge into zone interior
+        # Fill window = touch bar + next 3 bars (4 bars total)
+        pen_window = min(4, n_bars - rbi)
+        max_pen = 0.0
+        pen_bar = 0
+        for bi in range(rbi, rbi + pen_window):
+            if bi >= n_bars:
+                break
+            if direction == 1:  # DEMAND: touched edge = zone top
+                pen = (row["ZoneTop"] - bar_arr[bi, 2]) / TICK  # Top - Low
+            else:  # SUPPLY: touched edge = zone bot
+                pen = (bar_arr[bi, 1] - row["ZoneBot"]) / TICK  # High - Bot
+            if pen > max_pen:
+                max_pen = pen
+                pen_bar = bi - rbi
 
-    print(f"  {label}: traded={traded_count}, missed={missed_count}")
-    return results
+        entry_offset = (result["entry_price"] - row["TouchPrice"]) / TICK
+        if direction == -1:
+            entry_offset = -entry_offset  # positive = deeper into zone
 
+        results.append({
+            "touch_idx": idx, "BarIndex": row["BarIndex"],
+            "RotBarIndex": rbi, "entry_bar": entry_bar,
+            "direction": direction, "mode": mode,
+            "pnl": result["pnl"], "bars_held": result["bars_held"],
+            "exit_type": result["exit_type"],
+            "mfe": result["mfe"], "mae": result["mae"],
+            "stop_used": stop, "target_used": target, "tc_used": tcap,
+            "zw_ticks": zw,
+            "zone_top": row["ZoneTop"], "zone_bot": row["ZoneBot"],
+            "touch_price": row["TouchPrice"],
+            "touch_type": row["TouchType"],
+            "entry_price": result["entry_price"],
+            "entry_offset": entry_offset,
+            "score_aeq": row.get("score_aeq", np.nan),
+            "score_bz": row.get("score_bz", np.nan),
+            "max_penetration": max_pen,
+            "pen_bar": pen_bar,
+            "win": result["pnl"] - COST_TICKS > 0,
+            "bar_mfe_profile": result["bar_mfe"],
+            "bar_mae_profile": result["bar_mae"],
+        })
+        in_trade_until = entry_bar + result["bars_held"] - 1
 
-# ── P2 Baseline ──
-print("\n── P2 Baseline ──")
-
-# Swap bar_arr to P2
-bar_arr_orig = bar_arr
-bar_arr = bar_arr_p2
-n_bars_orig = n_bars
-n_bars = n_bars_p2
-
-# M1 baseline
-m1_p2_baseline = sim_with_overlap_p2(
-    m1_p2,
-    lambda row, eb: sim_trade_custom(eb, 1 if "DEMAND" in str(row["TouchType"]) else -1,
-                                     190, 60, 120),
-    "M1 P2 baseline")
-m1_p2_base_stats = summarize(m1_p2_baseline, "M1 P2 baseline", cost=4)
-
-# M2 baseline
-m2_p2_baseline = sim_with_overlap_p2(
-    m2_p2,
-    lambda row, eb: sim_trade_custom(eb, 1 if "DEMAND" in str(row["TouchType"]) else -1,
-                                     max(round(1.5 * row["ZoneWidthTicks"]), 120),
-                                     max(1, round(row["ZoneWidthTicks"] * 1.0)), 80),
-    "M2 P2 baseline")
-m2_p2_base_stats = summarize(m2_p2_baseline, "M2 P2 baseline", cost=4)
-
-# Combined baseline
-if m1_p2_baseline and m2_p2_baseline:
-    all_p2_base = [r["pnl"] for r in m1_p2_baseline] + [r["pnl"] for r in m2_p2_baseline]
-    combined_pf = compute_pf(all_p2_base, cost=4)
-    print(f"  Combined P2 baseline PF@4t = {combined_pf:.2f}")
-
-# ── P2 Modified (Best Stack) ──
-print("\n── P2 Modified (Best Stack from P1) ──")
-
-# M1: B5 1+1+1 partials
-m1_p2_modified = sim_with_overlap_p2(
-    m1_p2,
-    lambda row, eb: sim_multileg(eb, 1 if "DEMAND" in str(row["TouchType"]) else -1,
-                                 190, [60, 120, 180], [1/3, 1/3, 1/3], 120,
-                                 be_after_leg=0, be_dest=0),
-    "M1 P2 +B5(1+1+1)")
-m1_p2_mod_stats = summarize(m1_p2_modified, "M1 P2 +B5(1+1+1)", cost=4)
-
-# M2: B2 1.3×ZW floor 100
-m2_p2_modified = sim_with_overlap_p2(
-    m2_p2,
-    lambda row, eb: sim_trade_custom(eb, 1 if "DEMAND" in str(row["TouchType"]) else -1,
-                                     max(round(1.3 * row["ZoneWidthTicks"]), 100),
-                                     max(1, round(row["ZoneWidthTicks"] * 1.0)), 80),
-    "M2 P2 +B2(1.3×ZW)")
-m2_p2_mod_stats = summarize(m2_p2_modified, "M2 P2 +B2(1.3×ZW)", cost=4)
-
-# Combined modified
-if m1_p2_modified and m2_p2_modified:
-    all_p2_mod = [r["pnl"] for r in m1_p2_modified] + [r["pnl"] for r in m2_p2_modified]
-    combined_pf_mod = compute_pf(all_p2_mod, cost=4)
-    print(f"  Combined P2 modified PF@4t = {combined_pf_mod:.2f}")
-
-# Pass criteria
-print("\n── P2 Pass Criteria ──")
-if m1_p2_base_stats and m1_p2_mod_stats:
-    m1_pf_change = (m1_p2_mod_stats["pf"] - m1_p2_base_stats["pf"]) / m1_p2_base_stats["pf"] * 100
-    m1_lw_change = m1_p2_mod_stats["loss_win"] - m1_p2_base_stats["loss_win"]
-    print(f"  M1 PF change: {m1_pf_change:+.1f}% (threshold: -15%)")
-    print(f"  M1 L:W change: {m1_lw_change:+.2f} (should improve = decrease)")
-    m1_pass = m1_pf_change > -15
-    print(f"  M1 PASS: {'YES' if m1_pass else 'NO'}")
-
-if m2_p2_base_stats and m2_p2_mod_stats:
-    m2_pf_change = (m2_p2_mod_stats["pf"] - m2_p2_base_stats["pf"]) / m2_p2_base_stats["pf"] * 100
-    m2_lw_change = m2_p2_mod_stats["loss_win"] - m2_p2_base_stats["loss_win"]
-    print(f"  M2 PF change: {m2_pf_change:+.1f}% (threshold: -15%)")
-    print(f"  M2 L:W change: {m2_lw_change:+.2f} (should improve = decrease)")
-    m2_pass = m2_pf_change > -15
-    print(f"  M2 PASS: {'YES' if m2_pass else 'NO'}")
-
-# Restore bar_arr
-bar_arr = bar_arr_orig
-n_bars = n_bars_orig
+    return pd.DataFrame(results), pd.DataFrame(skipped)
 
 
-# ══════════════════════════════════════════════════════════════════════
-# STEP 5: DESIGN RECOMMENDATIONS
-# ══════════════════════════════════════════════════════════════════════
-print("\n\n" + "=" * 72)
-print("STEP 5: DESIGN RECOMMENDATIONS")
-print("=" * 72)
-
-# 5a: Position Sizing
-print("\n── 5a: Position Sizing ──")
-# M1 max loss with partials: 3ct × 190t = 570t (unchanged — partials only help after T1)
-# M2 max loss varies by zone width
-print("""
-  Proposed contracts-per-trade:
-  | Condition            | Contracts | Max Loss  | Rationale                    |
-  |----------------------|-----------|-----------|------------------------------|
-  | Mode 1 (any)         | 3         | 570t      | Baseline. High WR justifies. |
-  | Mode 2, ZW < 150t    | 3         | ~450t     | Low absolute risk, PF=5-8    |
-  | Mode 2, ZW 150-250t  | 2         | ~600t     | Moderate risk, PF=5.38       |
-  | Mode 2, ZW 250-400t  | 1         | ~477t     | High risk, PF=3.42           |
-  | Mode 2, ZW > 400t    | 1         | ~901t     | Extreme risk. Consider skip. |
-""")
-
-# 5b: Loss Cap
-print("── 5b: Loss Cap ──")
-print("""
-  | Total Risk Cap | M1 Max Cts | M2 Max Cts (ZW-dependent)        |
-  |----------------|------------|----------------------------------|
-  | 500t           | 2 (380t)   | 3 if ZW<150, 2 if 150-250, 1 else|
-  | 600t           | 3 (570t)   | 3 if ZW<200, 2 if 200-350, 1 else|
-  | 800t           | 3 (570t)   | 3 if ZW<250, 2 if 250-500, 1 else|
-""")
-
-# 5c: Net Impact
-print("── 5c: Net Impact Summary ──")
-print("""
-  | Metric                  | Current Baseline    | After Best Stack + Sizing   |
-  |-------------------------|---------------------|-----------------------------|
-  | M1 exit structure       | 3ct flat @60t       | 1+1+1 partials (60/120/180) |
-  | M1 P1 PF@3t            | 8.50                | 9.99 (+17.5%)               |
-  | M1 L:W ratio            | 2.83:1              | 2.42:1 (-14.5%)             |
-  | M1 max loss per event   | 570t (3ct×190)      | 570t (unchanged pre-T1)     |
-  | M2 exit structure       | max(1.5×ZW,120) stop| max(1.3×ZW,100) stop        |
-  | M2 P1 PF@3t            | 4.61                | 4.67 (+1.3%)                |
-  | M2 L:W ratio            | 0.61:1              | 0.61:1 (unchanged)          |
-  | M2 max loss per event   | varies (up to 4974t)| Reduced via sizing           |
-""")
+def compute_pf(pnls, cost=3):
+    if len(pnls) == 0:
+        return 0
+    gp = sum(p - cost for p in pnls if p - cost > 0)
+    gl = sum(abs(p - cost) for p in pnls if p - cost < 0)
+    return gp / gl if gl > 0 else (float("inf") if gp > 0 else 0)
 
 
-# ══════════════════════════════════════════════════════════════════════
-# STEP 6: GENERATE REPORT
-# ══════════════════════════════════════════════════════════════════════
-print("\n\n" + "=" * 72)
-print("GENERATING REPORT")
-print("=" * 72)
+def compute_wr(pnls, cost=3):
+    if len(pnls) == 0:
+        return 0
+    return sum(1 for p in pnls if p - cost > 0) / len(pnls) * 100
 
-print("\nAll steps complete. Report data printed above.")
-print("Run complete.")
+
+def compute_max_dd(pnls, cost=3):
+    cum = 0; peak = 0; max_dd = 0
+    for p in pnls:
+        cum += (p - cost)
+        peak = max(peak, cum)
+        max_dd = max(max_dd, peak - cum)
+    return max_dd
+
+
+# ════════════════════════════════════════════════════════════════════
+# WATERFALL CONSTRUCTION — from scratch
+# ════════════════════════════════════════════════════════════════════
+def tf_minutes(s):
+    try:
+        return int(str(s).replace("m", ""))
+    except Exception:
+        return 9999
+
+
+def build_waterfall(scored_df: pd.DataFrame,
+                    label: str,
+                    prescored_bz: Optional[np.ndarray] = None,
+                    ) -> Tuple[pd.DataFrame, pd.DataFrame, dict]:
+    """Build non-overlapping M1+M2 waterfall from a scored DataFrame.
+
+    The DataFrame must already have features computed (F01, F04, F05, F09,
+    F10, F13, F21).
+
+    A-Eq scoring is always computed from scratch (JSON model matches CSV).
+
+    B-ZScore scoring:
+      - P1: MUST pass prescored_bz = the Score_BZScore column from
+        p1_scored_touches_bzscore_v32.csv. This is a probability output
+        from a C=1.0 LogisticRegression fit with rolling z-score
+        standardization (model_building_v32.py lines 866-886).
+      - P2: prescored_bz=None → uses score_bzscore() which applies the
+        JSON model's coefficients (C=0.01 L1, global StandardScaler)
+        as raw linear output. This is what ray_conditional_analysis_v32.py
+        used for P2, producing 309 M2 trades.
+
+    The P1 CSV model and P2 JSON model are different fits. This is a
+    pre-existing pipeline inconsistency documented in the JSON's fix_note.
+    Both produce the authoritative baseline counts (P1 M2=239, P2 M2=309).
+
+    Returns (m1_qualifying, m2_qualifying, counts_dict).
+    """
+    rprint(f"\n  Building waterfall for {label}...")
+
+    scored_df = scored_df.copy()
+    scored_df["score_aeq"] = score_aeq(scored_df)
+
+    if prescored_bz is not None:
+        scored_df["score_bz"] = prescored_bz
+        rprint(f"    B-ZScore: using pre-scored column (probability, "
+               f"from rolling z-score + C=1.0 LogReg)")
+    else:
+        scored_df["score_bz"] = score_bzscore(scored_df)
+        rprint(f"    B-ZScore: scored from JSON coefficients (raw linear, "
+               f"global StandardScaler + C=0.01 L1)")
+
+    total = len(scored_df)
+    rprint(f"    Total touches: {total}")
+
+    # Mode 1: A-Eq >= threshold
+    m1_mask = scored_df["score_aeq"] >= M1_THRESHOLD
+    m1_qualifying = scored_df[m1_mask].copy()
+    m1_qualifying["mode"] = "M1"
+    n_m1_qual = len(m1_qualifying)
+    rprint(f"    M1 qualifying (A-Eq >= {M1_THRESHOLD}): {n_m1_qual}")
+
+    # Mode 2: B-ZScore >= 0.50, RTH, seq<=2, TF<=120m, EXCLUDE M1 overlap
+    m1_keys = set(zip(m1_qualifying["BarIndex"],
+                      m1_qualifying["TouchType"],
+                      m1_qualifying["SourceLabel"]))
+    all_keys = list(zip(scored_df["BarIndex"],
+                        scored_df["TouchType"],
+                        scored_df["SourceLabel"]))
+    is_m1 = pd.Series([k in m1_keys for k in all_keys],
+                       index=scored_df.index)
+
+    m2_mask = (
+        (scored_df["score_bz"] >= M2_THRESHOLD)
+        & (scored_df["F05"].isin(RTH_SESSIONS))
+        & (scored_df["TouchSequence"] <= M2_FILTERS.get("seq_max", 2))
+        & (scored_df["SourceLabel"].apply(tf_minutes) <= 120)
+        & ~is_m1
+    )
+    m2_qualifying = scored_df[m2_mask].copy()
+    m2_qualifying["mode"] = "M2"
+    n_m2_qual = len(m2_qualifying)
+    rprint(f"    M2 qualifying (B-ZScore RTH, excl M1): {n_m2_qual}")
+    rprint(f"    Combined qualifying: {n_m1_qual + n_m2_qual}")
+
+    # Filter breakdown
+    base = scored_df["score_bz"] >= M2_THRESHOLD
+    rth = scored_df["F05"].isin(RTH_SESSIONS)
+    seq = scored_df["TouchSequence"] <= 2
+    tf = scored_df["SourceLabel"].apply(tf_minutes) <= 120
+    rprint(f"    M2 filter breakdown:")
+    rprint(f"      B-ZScore >= {M2_THRESHOLD}: {base.sum()}")
+    rprint(f"      + RTH: {(base & rth).sum()}")
+    rprint(f"      + seq<=2: {(base & rth & seq).sum()}")
+    rprint(f"      + TF<=120m: {(base & rth & seq & tf).sum()}")
+    rprint(f"      - M1 overlap: {is_m1[base & rth & seq & tf].sum()}")
+    rprint(f"      = Final M2: {n_m2_qual}")
+
+    counts = {
+        "total": total,
+        "m1_qualifying": n_m1_qual,
+        "m2_qualifying": n_m2_qual,
+        "combined_qualifying": n_m1_qual + n_m2_qual,
+    }
+    return m1_qualifying, m2_qualifying, counts
+
+
+# ════════════════════════════════════════════════════════════════════
+# MAIN: STEP 0
+# ════════════════════════════════════════════════════════════════════
+def run_step0():
+    """Execute all Step 0 diagnostics."""
+
+    # ── Load bar data ──
+    rprint("\n" + "=" * 72)
+    rprint("LOADING DATA")
+    rprint("=" * 72)
+
+    bar_p1 = pd.read_csv(DATA_DIR / "NQ_bardata_P1.csv")
+    bar_p1.columns = bar_p1.columns.str.strip()
+    bar_arr_p1 = bar_p1[["Open", "High", "Low", "Last"]].to_numpy(
+        dtype=np.float64)
+    bar_atr_p1 = bar_p1["ATR"].to_numpy(dtype=np.float64)
+    n_bars_p1 = len(bar_arr_p1)
+    rprint(f"  P1 bars: {n_bars_p1}")
+
+    bar_p2 = pd.read_csv(DATA_DIR / "NQ_bardata_P2.csv")
+    bar_p2.columns = bar_p2.columns.str.strip()
+    bar_arr_p2 = bar_p2[["Open", "High", "Low", "Last"]].to_numpy(
+        dtype=np.float64)
+    bar_atr_p2 = bar_p2["ATR"].to_numpy(dtype=np.float64)
+    n_bars_p2 = len(bar_arr_p2)
+    rprint(f"  P2 bars: {n_bars_p2}")
+
+    # ── Load raw P1 touches and compute features from scratch ──
+    p1a_raw = pd.read_csv(DATA_DIR / "NQ_merged_P1a.csv")
+    p1b_raw = pd.read_csv(DATA_DIR / "NQ_merged_P1b.csv")
+    rprint(f"  P1a raw: {len(p1a_raw)}, P1b raw: {len(p1b_raw)}")
+
+    p1a = p1a_raw[p1a_raw["RotBarIndex"] >= 0].reset_index(drop=True)
+    p1b = p1b_raw[p1b_raw["RotBarIndex"] >= 0].reset_index(drop=True)
+    p1_all = pd.concat([p1a, p1b], ignore_index=True)
+    rprint(f"  P1 combined (after RotBarIndex filter): {len(p1_all)}")
+
+    p1_featured = compute_features(p1_all, bar_arr_p1, bar_atr_p1,
+                                   n_bars_p1, "P1")
+
+    # ── Load P1 pre-scored B-ZScore (authoritative probabilities) ──
+    # The CSV's Score_BZScore is from a C=1.0 LogisticRegression with
+    # rolling z-score standardization (model_building_v32.py lines 866-886).
+    # The JSON model is a DIFFERENT fit (C=0.01, L1, global StandardScaler).
+    # For P1, we must use the CSV column to reproduce the 239 M2 baseline.
+    p1_bz_csv = pd.read_csv(PARAM_DIR / "p1_scored_touches_bzscore_v32.csv",
+                             usecols=["BarIndex", "TouchType", "SourceLabel",
+                                      "Score_BZScore"])
+    # Join pre-scored B-ZScore to p1_featured by (BarIndex, TouchType, SourceLabel)
+    p1_featured["_jk"] = (p1_featured["BarIndex"].astype(str) + "|" +
+                           p1_featured["TouchType"] + "|" +
+                           p1_featured["SourceLabel"])
+    p1_bz_csv["_jk"] = (p1_bz_csv["BarIndex"].astype(str) + "|" +
+                          p1_bz_csv["TouchType"] + "|" +
+                          p1_bz_csv["SourceLabel"])
+    bz_map = p1_bz_csv.drop_duplicates("_jk").set_index("_jk")["Score_BZScore"]
+    p1_prescored_bz = p1_featured["_jk"].map(bz_map).values
+    join_rate = (~pd.isna(p1_prescored_bz)).sum() / len(p1_featured) * 100
+    rprint(f"  P1 pre-scored B-ZScore join rate: {join_rate:.1f}%")
+    # Fill unmatched with 0.0 (below any threshold)
+    p1_prescored_bz = np.where(pd.isna(p1_prescored_bz), 0.0, p1_prescored_bz)
+    p1_featured.drop(columns=["_jk"], inplace=True)
+
+    # ── Load raw P2 touches and compute features from scratch ──
+    p2a_raw = pd.read_csv(DATA_DIR / "NQ_merged_P2a.csv")
+    p2b_raw = pd.read_csv(DATA_DIR / "NQ_merged_P2b.csv")
+    rprint(f"  P2a raw: {len(p2a_raw)}, P2b raw: {len(p2b_raw)}")
+
+    p2a = p2a_raw[p2a_raw["RotBarIndex"] >= 0].reset_index(drop=True)
+    p2b = p2b_raw[p2b_raw["RotBarIndex"] >= 0].reset_index(drop=True)
+    p2_all = pd.concat([p2a, p2b], ignore_index=True)
+    rprint(f"  P2 combined (after RotBarIndex filter): {len(p2_all)}")
+
+    p2_featured = compute_features(p2_all, bar_arr_p2, bar_atr_p2,
+                                   n_bars_p2, "P2")
+
+    # ══════════════════════════════════════════════════════════════
+    # STEP 0-pre: POPULATION VERIFICATION
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 0-pre: POPULATION VERIFICATION")
+    rprint("=" * 72)
+
+    # ── P1 waterfall (A-Eq from scratch, B-ZScore from pre-scored CSV) ──
+    rprint("\n── P1 Waterfall ──")
+    m1_p1, m2_p1, p1_counts = build_waterfall(
+        p1_featured, "P1", prescored_bz=p1_prescored_bz)
+
+    rprint("\n  Simulating P1 Mode 1...")
+    m1_p1_results, m1_p1_skipped = simulate_population(
+        m1_p1, "M1", bar_arr_p1, n_bars_p1)
+    rprint(f"    M1 traded: {len(m1_p1_results)}, "
+           f"skipped: {len(m1_p1_skipped)}")
+
+    rprint("  Simulating P1 Mode 2...")
+    m2_p1_results, m2_p1_skipped = simulate_population(
+        m2_p1, "M2", bar_arr_p1, n_bars_p1)
+    rprint(f"    M2 traded: {len(m2_p1_results)}, "
+           f"skipped: {len(m2_p1_skipped)}")
+
+    m1_pf = compute_pf(m1_p1_results["pnl"].tolist(), COST_TICKS)
+    m2_pf = compute_pf(m2_p1_results["pnl"].tolist(), COST_TICKS)
+    m1_wr = compute_wr(m1_p1_results["pnl"].tolist(), COST_TICKS)
+    m2_wr = compute_wr(m2_p1_results["pnl"].tolist(), COST_TICKS)
+
+    rprint(f"\n  P1 VERIFICATION:")
+    rprint(f"  {'Population':<20} {'Expected':>10} {'Actual':>8} {'Pass?':>6}")
+    rprint(f"  {'-'*20} {'-'*10} {'-'*8} {'-'*6}")
+    _chk = lambda act, exp, tol: "PASS" if abs(act - exp) <= tol else "FAIL"
+    rprint(f"  {'M1 qualifying':<20} {'~127':>10} {p1_counts['m1_qualifying']:>8} "
+           f"{_chk(p1_counts['m1_qualifying'], 127, 20):>6}")
+    rprint(f"  {'M2 qualifying':<20} {'~215-230':>10} {p1_counts['m2_qualifying']:>8} "
+           f"{'PASS' if 180 < p1_counts['m2_qualifying'] < 280 else 'FAIL':>6}")
+    rprint(f"  {'M1 traded':<20} {'~107':>10} {len(m1_p1_results):>8} "
+           f"{_chk(len(m1_p1_results), 107, 15):>6}")
+    rprint(f"  {'M2 traded':<20} {'~239':>10} {len(m2_p1_results):>8} "
+           f"{_chk(len(m2_p1_results), 239, 30):>6}")
+    rprint(f"  {'M1 PF@3t':<20} {'~8.50':>10} {m1_pf:>8.2f} "
+           f"{_chk(m1_pf, 8.50, 1.5):>6}")
+    rprint(f"  {'M2 PF@3t':<20} {'~4.71':>10} {m2_pf:>8.2f} "
+           f"{_chk(m2_pf, 4.71, 1.0):>6}")
+    rprint(f"  {'M1 WR%':<20} {'~96.3':>10} {m1_wr:>8.1f} "
+           f"{_chk(m1_wr, 96.3, 5):>6}")
+    rprint(f"  {'M2 WR%':<20} {'~74.5':>10} {m2_wr:>8.1f} "
+           f"{_chk(m2_wr, 74.5, 8):>6}")
+
+    # ── P2 waterfall (A-Eq from scratch, B-ZScore from JSON model) ──
+    # No P2 pre-scored CSV exists. B-ZScore uses JSON coefficients (raw
+    # linear), matching ray_conditional_analysis_v32.py which produced 309.
+    rprint("\n── P2 Waterfall ──")
+    m1_p2, m2_p2, p2_counts = build_waterfall(p2_featured, "P2")
+
+    rprint("\n  Simulating P2 Mode 1...")
+    m1_p2_results, m1_p2_skipped = simulate_population(
+        m1_p2, "M1", bar_arr_p2, n_bars_p2)
+    rprint(f"    M1 traded: {len(m1_p2_results)}, "
+           f"skipped: {len(m1_p2_skipped)}")
+
+    rprint("  Simulating P2 Mode 2...")
+    m2_p2_results, m2_p2_skipped = simulate_population(
+        m2_p2, "M2", bar_arr_p2, n_bars_p2)
+    rprint(f"    M2 traded: {len(m2_p2_results)}, "
+           f"skipped: {len(m2_p2_skipped)}")
+
+    m1_p2_pf4 = compute_pf(m1_p2_results["pnl"].tolist(), 4)
+    m2_p2_pf4 = compute_pf(m2_p2_results["pnl"].tolist(), 4)
+    combined_p2 = (m1_p2_results["pnl"].tolist()
+                   + m2_p2_results["pnl"].tolist())
+    combined_p2_pf4 = compute_pf(combined_p2, 4)
+
+    rprint(f"\n  P2 VERIFICATION:")
+    rprint(f"  {'Population':<20} {'Expected':>10} {'Actual':>8} {'Pass?':>6}")
+    rprint(f"  {'-'*20} {'-'*10} {'-'*8} {'-'*6}")
+    rprint(f"  {'M1 qualifying':<20} {'~108':>10} {p2_counts['m1_qualifying']:>8} "
+           f"{_chk(p2_counts['m1_qualifying'], 108, 20):>6}")
+    rprint(f"  {'M2 qualifying':<20} {'~330-350':>10} {p2_counts['m2_qualifying']:>8} "
+           f"{'PASS' if 280 < p2_counts['m2_qualifying'] < 400 else 'FAIL':>6}")
+    rprint(f"  {'M1 traded':<20} {'~96':>10} {len(m1_p2_results):>8} "
+           f"{_chk(len(m1_p2_results), 96, 15):>6}")
+    rprint(f"  {'M2 traded':<20} {'~309':>10} {len(m2_p2_results):>8} "
+           f"{_chk(len(m2_p2_results), 309, 45):>6}")
+    rprint(f"  {'M1 PF@4t':<20} {'~6.26':>10} {m1_p2_pf4:>8.2f} "
+           f"{_chk(m1_p2_pf4, 6.26, 1.5):>6}")
+    rprint(f"  {'M2 PF@4t':<20} {'~4.10':>10} {m2_p2_pf4:>8.2f} "
+           f"{_chk(m2_p2_pf4, 4.10, 1.5):>6}")
+    rprint(f"  {'Combined PF@4t':<20} {'~4.30':>10} {combined_p2_pf4:>8.2f} "
+           f"{_chk(combined_p2_pf4, 4.30, 1.5):>6}")
+
+    m2_p2_traded = len(m2_p2_results)
+    if m2_p2_traded > 380:
+        rprint(f"\n  !!! P2 M2 TRADED = {m2_p2_traded}, expected ~309.")
+        rprint("      If ~419, check RTH/seq/TF/overlap filters.")
+        rprint("      INVESTIGATION HALTED.")
+        sys.exit(1)
+
+    # ══════════════════════════════════════════════════════════════
+    # STEP 0a: PER-TRADE OUTCOME DATA
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 0a: PER-TRADE OUTCOME DATA")
+    rprint("=" * 72)
+
+    all_p1 = pd.concat([m1_p1_results, m2_p1_results], ignore_index=True)
+    rprint(f"  Total P1 trades: {len(all_p1)} "
+           f"(M1={len(m1_p1_results)}, M2={len(m2_p1_results)})")
+
+    rprint(f"\n  ENTRY CONVENTION:")
+    rprint(f"    Entry = Open of bar at RotBarIndex+1 (next bar after touch)")
+    rprint(f"    M1 mean entry offset from TouchPrice: "
+           f"{m1_p1_results['entry_offset'].mean():.1f}t")
+    rprint(f"    M2 mean entry offset from TouchPrice: "
+           f"{m2_p1_results['entry_offset'].mean():.1f}t")
+    rprint(f"    Entry is NOT at zone edge — market open of next bar.")
+
+    rprint(f"\n  M1 exit distribution: "
+           f"{dict(m1_p1_results['exit_type'].value_counts())}")
+    rprint(f"  M2 exit distribution: "
+           f"{dict(m2_p1_results['exit_type'].value_counts())}")
+
+    # ══════════════════════════════════════════════════════════════
+    # STEP 0b: MAE DISTRIBUTION (LOSERS)
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 0b: MAE DISTRIBUTION — LOSERS")
+    rprint("=" * 72)
+
+    # ── Mode 1 losers (small N — each individually) ──
+    m1_losers = m1_p1_results[~m1_p1_results["win"]].copy()
+    rprint(f"\n  MODE 1 LOSERS: {len(m1_losers)} trades")
+    if len(m1_losers) > 0:
+        rprint(f"  {'#':>3} {'Exit':>9} {'MAE':>6} {'MFE':>6} "
+               f"{'PnL':>7} {'Bars':>5} {'Stop':>5} {'ZW':>4}")
+        rprint(f"  {'---':>3} {'-'*9:>9} {'---':>6} {'---':>6} "
+               f"{'---':>7} {'---':>5} {'---':>5} {'---':>4}")
+        for i, (_, row) in enumerate(m1_losers.iterrows()):
+            rprint(f"  {i+1:>3} {row['exit_type']:>9} {row['mae']:>6.0f} "
+                   f"{row['mfe']:>6.0f} {row['pnl']:>+7.0f} "
+                   f"{row['bars_held']:>5} {row['stop_used']:>5} "
+                   f"{row['zw_ticks']:>4}")
+
+        rprint(f"\n  M1 Loser MAE time profiles:")
+        for i, (_, row) in enumerate(m1_losers.iterrows()):
+            profile = row["bar_mae_profile"]
+            thresholds = [60, 120, 150]
+            parts = []
+            for t in thresholds:
+                bars_exceeding = [b + 1 for b, v in enumerate(profile)
+                                  if v >= t]
+                bar_at = bars_exceeding[0] if bars_exceeding else "never"
+                parts.append(f">{t}t@bar {bar_at}")
+            rprint(f"    Loser {i+1}: {', '.join(parts)}")
+    else:
+        rprint(f"  No M1 losers (100% WR at cost={COST_TICKS}t)")
+
+    # ── Mode 2 losers ──
+    m2_losers = m2_p1_results[~m2_p1_results["win"]].copy()
+    rprint(f"\n  MODE 2 LOSERS: {len(m2_losers)} trades")
+
+    if len(m2_losers) > 0:
+        m2_stop_losers = m2_losers[m2_losers["exit_type"] == "STOP"]
+        m2_tc_losers = m2_losers[m2_losers["exit_type"] == "TIMECAP"]
+
+        rprint(f"\n  M2 STOP-HIT LOSERS: {len(m2_stop_losers)}")
+        if len(m2_stop_losers) > 0:
+            rprint(f"    % of all M2 losers: "
+                   f"{len(m2_stop_losers)/len(m2_losers)*100:.1f}%")
+            rprint(f"    Mean bars to stop: "
+                   f"{m2_stop_losers['bars_held'].mean():.1f}")
+            fast = (m2_stop_losers["bars_held"] < 10).sum()
+            slow = (m2_stop_losers["bars_held"] > 40).sum()
+            rprint(f"    Decisive failures (bars<10): {fast}")
+            rprint(f"    Slow bleed (bars>40): {slow}")
+            rprint(f"    Mean loss: {m2_stop_losers['pnl'].mean():.1f}t")
+
+        rprint(f"\n  M2 TIMECAP LOSERS: {len(m2_tc_losers)}")
+        if len(m2_tc_losers) > 0:
+            tc_mae_pct = (m2_tc_losers["mae"].values
+                          / m2_tc_losers["stop_used"].values * 100)
+            bins = [(0, 50), (50, 75), (75, 101)]
+            rprint(f"    {'MAE % of stop':>15} {'Count':>6} {'%':>8} "
+                   f"{'Mean PnL':>9}")
+            rprint(f"    {'-'*15} {'-'*6} {'-'*8} {'-'*9}")
+            for lo, hi in bins:
+                mask = (tc_mae_pct >= lo) & (tc_mae_pct < hi)
+                n = mask.sum()
+                pct = n / len(m2_tc_losers) * 100
+                mp = m2_tc_losers.iloc[np.where(mask)[0]]["pnl"].mean() \
+                    if n > 0 else 0
+                rprint(f"    {lo:>6}-{hi:>3}%     {n:>6} {pct:>7.1f}% "
+                       f"{mp:>+8.1f}t")
+
+    # ══════════════════════════════════════════════════════════════
+    # STEP 0c: MFE DISTRIBUTION (WINNERS)
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 0c: MFE DISTRIBUTION — WINNERS")
+    rprint("=" * 72)
+
+    m1_winners = m1_p1_results[m1_p1_results["win"]].copy()
+    rprint(f"\n  MODE 1 WINNERS: {len(m1_winners)} trades")
+    if len(m1_winners) > 0:
+        mfe_bins = [(60, 80, "Barely hit target"),
+                    (80, 120, "Some room"),
+                    (120, 200, "Money left"),
+                    (200, 9999, "Large continuation")]
+        rprint(f"  {'MFE Bin':>12} {'Count':>6} {'%':>6} "
+               f"{'Med PnL':>8} {'Note'}")
+        rprint(f"  {'-'*12} {'-'*6} {'-'*6} {'-'*8} {'-'*20}")
+        for lo, hi, note in mfe_bins:
+            mask = (m1_winners["mfe"] >= lo) & (m1_winners["mfe"] < hi)
+            n = mask.sum()
+            pct = n / len(m1_winners) * 100
+            med = m1_winners[mask]["pnl"].median() if n > 0 else 0
+            hi_s = f"{hi}" if hi < 9999 else "inf"
+            rprint(f"  {lo:>5}-{hi_s:>4}t {n:>6} {pct:>5.1f}% "
+                   f"{med:>+7.1f}t {note}")
+
+    m2_winners = m2_p1_results[m2_p1_results["win"]].copy()
+    rprint(f"\n  MODE 2 WINNERS: {len(m2_winners)} trades")
+    if len(m2_winners) > 0:
+        rprint(f"  {'MFE/ZW':>12} {'Count':>6} {'%':>6} "
+               f"{'Med PnL':>8} {'Note'}")
+        rprint(f"  {'-'*12} {'-'*6} {'-'*6} {'-'*8} {'-'*20}")
+        for lo_r, hi_r, note in [(0, 0.5, "< half zone"),
+                                  (0.5, 1.0, "Half to full"),
+                                  (1.0, 1.5, "Full to 1.5x"),
+                                  (1.5, 99, "> 1.5x zone")]:
+            ratios = m2_winners["mfe"] / m2_winners["zw_ticks"]
+            mask = (ratios >= lo_r) & (ratios < hi_r)
+            n = mask.sum()
+            pct = n / len(m2_winners) * 100
+            med = m2_winners[mask]["pnl"].median() if n > 0 else 0
+            rprint(f"  {lo_r:.1f}-{min(hi_r,9.9):.1f}xZW  {n:>6} "
+                   f"{pct:>5.1f}% {med:>+7.1f}t {note}")
+
+    # ══════════════════════════════════════════════════════════════
+    # STEP 0d: ZONE WIDTH DISTRIBUTION (Mode 2)
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 0d: ZONE WIDTH DISTRIBUTION (Mode 2)")
+    rprint("=" * 72)
+
+    m2_r = m2_p1_results
+    zw_bins = [(0, 100), (100, 150), (150, 250), (250, 400), (400, 9999)]
+    rprint(f"  {'ZW Bin':>12} {'N':>5} {'%':>6} {'AvgStop':>8} "
+           f"{'MaxLoss@3c':>11} {'PF@3t':>7} {'WR%':>6}")
+    rprint(f"  {'-'*12} {'-'*5} {'-'*6} {'-'*8} {'-'*11} {'-'*7} {'-'*6}")
+    for lo, hi in zw_bins:
+        mask = (m2_r["zw_ticks"] >= lo) & (m2_r["zw_ticks"] < hi)
+        n = mask.sum()
+        if n == 0:
+            continue
+        pct = n / len(m2_r) * 100
+        avg_stop = m2_r[mask]["stop_used"].mean()
+        max_loss = avg_stop * 3
+        bin_pnls = m2_r[mask]["pnl"].tolist()
+        pf = compute_pf(bin_pnls, COST_TICKS)
+        wr = compute_wr(bin_pnls, COST_TICKS)
+        hi_s = f"{hi}" if hi < 9999 else "inf"
+        rprint(f"  {lo:>5}-{hi_s:>4}t {n:>5} {pct:>5.1f}% {avg_stop:>8.0f} "
+               f"{max_loss:>11.0f} {pf:>7.2f} {wr:>5.1f}%")
+
+    # ══════════════════════════════════════════════════════════════
+    # STEP 0e: TIME CAP EXIT CHARACTERIZATION
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 0e: TIME CAP EXIT CHARACTERIZATION")
+    rprint("=" * 72)
+
+    for mode_label, rdf, tc_bars in [("M1", m1_p1_results, 120),
+                                      ("M2", m2_p1_results, 80)]:
+        tc = rdf[rdf["exit_type"] == "TIMECAP"]
+        non_tc = rdf[rdf["exit_type"] != "TIMECAP"]
+        rprint(f"\n  {mode_label} (TC = {tc_bars} bars):")
+        rprint(f"    TC exits: {len(tc)} ({len(tc)/len(rdf)*100:.1f}%)")
+        if len(tc) > 0:
+            rprint(f"    Mean TC PnL: {tc['pnl'].mean():+.1f}t")
+            tc_w = (tc["pnl"] - COST_TICKS > 0).sum()
+            tc_l = (tc["pnl"] - COST_TICKS < 0).sum()
+            tc_s = len(tc) - tc_w - tc_l
+            rprint(f"    TC winners: {tc_w}, losers: {tc_l}, scratches: {tc_s}")
+            rprint(f"    TC winner mean PnL: "
+                   f"{tc[tc['pnl'] - COST_TICKS > 0]['pnl'].mean():+.1f}t"
+                   if tc_w > 0 else "    TC winner mean PnL: N/A")
+            rprint(f"    TC loser mean PnL: "
+                   f"{tc[tc['pnl'] - COST_TICKS < 0]['pnl'].mean():+.1f}t"
+                   if tc_l > 0 else "    TC loser mean PnL: N/A")
+        if len(non_tc) > 0:
+            rprint(f"    Mean bars held (non-TC): {non_tc['bars_held'].mean():.1f}")
+
+    # ══════════════════════════════════════════════════════════════
+    # STEP 0f: PENETRATION DEPTH / FILL RATE CURVE
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 0f: PENETRATION DEPTH / FILL RATE CURVE")
+    rprint("=" * 72)
+    rprint("  Fill window: touch bar + next 3 bars (4 bars total)")
+
+    for mode_label, rdf in [("M1", m1_p1_results), ("M2", m2_p1_results)]:
+        rprint(f"\n  {mode_label} FILL RATE CURVE:")
+        depths = [0, 10, 20, 30, 40, 50, 60, 80, 100]
+        total_n = len(rdf)
+        rprint(f"  {'Depth':>8} {'Reach':>6} {'Fill%':>7} {'Delta':>7}")
+        rprint(f"  {'-'*8} {'-'*6} {'-'*7} {'-'*7}")
+        for d in depths:
+            filled = (rdf["max_penetration"] >= d).sum()
+            rate = filled / total_n * 100
+            rprint(f"  {d:>6}t  {filled:>6} {rate:>6.1f}% "
+                   f"{rate - 100:>+6.1f}%")
+
+        pen = rdf["max_penetration"]
+        rprint(f"\n  {mode_label} penetration stats: "
+               f"mean={pen.mean():.1f}t, med={pen.median():.1f}t, "
+               f"P25={pen.quantile(0.25):.1f}t, "
+               f"P75={pen.quantile(0.75):.1f}t")
+
+    # ══════════════════════════════════════════════════════════════
+    # STEP 0g: MISSED TRADE CHARACTERIZATION
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 0g: MISSED TRADE CHARACTERIZATION")
+    rprint("=" * 72)
+
+    for mode_label, q_count, rdf, sdf in [
+        ("M1", p1_counts["m1_qualifying"], m1_p1_results, m1_p1_skipped),
+        ("M2", p1_counts["m2_qualifying"], m2_p1_results, m2_p1_skipped),
+    ]:
+        traded = len(rdf)
+        missed = len(sdf)
+        rprint(f"\n  {mode_label}:")
+        rprint(f"    Qualifying: {q_count}, Traded: {traded}, "
+               f"Missed: {missed}")
+        if q_count > 0:
+            rprint(f"    Miss rate: {missed / q_count * 100:.1f}%")
+
+        if missed > 0 and traded > 0:
+            for col_label, col in [("A-Eq score", "score_aeq"),
+                                    ("B-ZScore", "score_bz")]:
+                if col in sdf.columns and col in rdf.columns:
+                    t_val = rdf[col].mean()
+                    s_val = sdf[col].mean()
+                    rprint(f"    Mean {col_label} — traded: {t_val:.2f}, "
+                           f"missed: {s_val:.2f}")
+            rprint(f"    Mean ZW — traded: {rdf['zw_ticks'].mean():.1f}t, "
+                   f"missed: {sdf['zw_ticks'].mean():.1f}t")
+
+    # ══════════════════════════════════════════════════════════════
+    # SAVE OUTPUTS
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("SAVING OUTPUTS")
+    rprint("=" * 72)
+
+    save_cols = [c for c in all_p1.columns
+                 if c not in ("bar_mfe_profile", "bar_mae_profile")]
+    all_p1[save_cols].to_csv(
+        OUT_DIR / "qualifying_trades_outcomes_v32.csv", index=False)
+    rprint(f"  Saved: qualifying_trades_outcomes_v32.csv ({len(all_p1)} rows)")
+
+    fill_rows = []
+    for mode_label, rdf in [("M1", m1_p1_results), ("M2", m2_p1_results)]:
+        for _, row in rdf.iterrows():
+            fill_rows.append({
+                "touch_idx": row["touch_idx"], "mode": mode_label,
+                "max_penetration": row["max_penetration"],
+                "pen_bar": row["pen_bar"],
+                "zw_ticks": row["zw_ticks"],
+            })
+    pd.DataFrame(fill_rows).to_csv(
+        OUT_DIR / "fill_rate_analysis_v32.csv", index=False)
+    rprint(f"  Saved: fill_rate_analysis_v32.csv ({len(fill_rows)} rows)")
+
+    # ══════════════════════════════════════════════════════════════
+    # COMPLETENESS CHECK
+    # ══════════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 0 COMPLETENESS CHECK")
+    rprint("=" * 72)
+    checks = [
+        ("0-pre P1 M1 traded ~107",
+         abs(len(m1_p1_results) - 107) < 15),
+        ("0-pre P1 M2 traded ~239",
+         abs(len(m2_p1_results) - 239) < 30),
+        ("0-pre P2 M1 traded ~96",
+         abs(len(m1_p2_results) - 96) < 15),
+        ("0-pre P2 M2 traded ~309 (NOT ~419)",
+         abs(len(m2_p2_results) - 309) < 45),
+        ("0a Per-trade outcomes saved",
+         len(all_p1) > 300),
+        ("0b MAE distribution reported",
+         True),
+        ("0c MFE distribution reported",
+         len(m1_winners) > 0),
+        ("0d Zone width bins with PF",
+         True),
+        ("0e TC exit characterization",
+         True),
+        ("0f Penetration/fill rate curve",
+         True),
+        ("0g Missed trade characterization",
+         True),
+    ]
+    all_pass = True
+    for name, passed in checks:
+        status = "PASS" if passed else "FAIL"
+        rprint(f"  [{status}] {name}")
+        if not passed:
+            all_pass = False
+
+    if not all_pass:
+        rprint("\n  !!! SOME CHECKS FAILED. Review above before proceeding.")
+
+    rprint("\n" + "=" * 72)
+    rprint("Step 0 complete. Proceeding to Surface B.")
+    rprint("=" * 72)
+
+    # ══════════════════════════════════════════════════════════════
+    # SURFACE B: EXIT STRUCTURE MODIFICATIONS
+    # Entries unchanged — zone edge, 3 contracts. Only exits change.
+    # Each test runs on the SAME P1 qualifying trades.
+    # ══════════════════════════════════════════════════════════════
+
+    def resim_with_params(qualifying_df, mode, bar_arr_local, n_bars_local,
+                          stop_fn, target_fn, tcap_fn,
+                          be_trigger_fn=None, trail_fn=None):
+        """Re-simulate qualifying trades with modified exit params.
+
+        stop_fn(row) -> stop_ticks
+        target_fn(row) -> target_ticks
+        tcap_fn(row) -> time_cap_bars
+        be_trigger_fn(row) -> be_trigger_ticks (0=disabled)
+        trail_fn not implemented (future)
+
+        Returns same-format results DF. Position overlap applied.
+        """
+        subset = qualifying_df.sort_values("RotBarIndex").copy()
+        results = []
+        in_trade_until = -1
+
+        for idx, row in subset.iterrows():
+            rbi = int(row["RotBarIndex"])
+            entry_bar = rbi + 1
+            if entry_bar <= in_trade_until:
+                continue
+            direction = 1 if "DEMAND" in str(row["TouchType"]) else -1
+            zw = int(row.get("ZoneWidthTicks", 100))
+
+            stop = int(stop_fn(row, zw))
+            target = int(target_fn(row, zw))
+            tcap = int(tcap_fn(row, zw))
+            be_trig = int(be_trigger_fn(row, zw)) if be_trigger_fn else 0
+
+            if entry_bar >= n_bars_local:
+                continue
+            ep = bar_arr_local[entry_bar, 0]
+            if direction == 1:
+                stop_price = ep - stop * TICK
+                target_price = ep + target * TICK
+            else:
+                stop_price = ep + stop * TICK
+                target_price = ep - target * TICK
+
+            mfe = 0.0
+            mae = 0.0
+            be_active = False
+            pnl_out = None
+            bh_out = 0
+            etype_out = None
+
+            end = min(entry_bar + tcap, n_bars_local)
+            for i in range(entry_bar, end):
+                h, l, last = (bar_arr_local[i, 1], bar_arr_local[i, 2],
+                               bar_arr_local[i, 3])
+                bh = i - entry_bar + 1
+
+                if direction == 1:
+                    mfe = max(mfe, (h - ep) / TICK)
+                    mae = max(mae, (ep - l) / TICK)
+                else:
+                    mfe = max(mfe, (ep - l) / TICK)
+                    mae = max(mae, (h - ep) / TICK)
+
+                # BE trigger
+                if be_trig > 0 and not be_active and mfe >= be_trig:
+                    be_active = True
+                    if direction == 1:
+                        stop_price = max(stop_price, ep)
+                    else:
+                        stop_price = min(stop_price, ep)
+
+                # Check stop
+                if direction == 1:
+                    s_hit = l <= stop_price
+                    t_hit = h >= target_price
+                else:
+                    s_hit = h >= stop_price
+                    t_hit = l <= target_price
+
+                if s_hit:
+                    pnl_out = ((stop_price - ep) / TICK if direction == 1
+                               else (ep - stop_price) / TICK)
+                    bh_out = bh
+                    etype_out = "BE" if be_active else "STOP"
+                    break
+                if t_hit:
+                    pnl_out = target
+                    bh_out = bh
+                    etype_out = "TARGET"
+                    break
+                if bh >= tcap:
+                    pnl_out = ((last - ep) / TICK if direction == 1
+                               else (ep - last) / TICK)
+                    bh_out = bh
+                    etype_out = "TIMECAP"
+                    break
+
+            if pnl_out is None:
+                if end > entry_bar:
+                    last = bar_arr_local[end - 1, 3]
+                    pnl_out = ((last - ep) / TICK if direction == 1
+                               else (ep - last) / TICK)
+                    bh_out = end - entry_bar
+                    etype_out = "TIMECAP"
+                else:
+                    continue
+
+            results.append({
+                "pnl": pnl_out, "bars_held": bh_out,
+                "exit_type": etype_out, "mfe": mfe, "mae": mae,
+                "stop_used": stop, "target_used": target,
+                "zw_ticks": zw, "direction": direction,
+                "win": pnl_out - COST_TICKS > 0,
+            })
+            in_trade_until = entry_bar + bh_out - 1
+
+        return pd.DataFrame(results)
+
+    def surface_row(label, rdf, baseline_n):
+        """Compute summary stats for a surface test row."""
+        if len(rdf) == 0:
+            return {"label": label, "pf": 0, "wr": 0, "trades": 0,
+                    "mean_win": 0, "mean_loss": 0, "lw": 0,
+                    "new_stopouts": 0, "throughput": ""}
+        pnls = rdf["pnl"].tolist()
+        pf = compute_pf(pnls, COST_TICKS)
+        wr = compute_wr(pnls, COST_TICKS)
+        winners = rdf[rdf["win"]]
+        losers = rdf[~rdf["win"]]
+        mw = winners["pnl"].mean() if len(winners) > 0 else 0
+        ml = losers["pnl"].mean() if len(losers) > 0 else 0
+        lw = abs(ml) / mw if mw > 0 else 0
+        n = len(rdf)
+        tp = f" THROUGHPUT+{n - baseline_n}" if n != baseline_n else ""
+        return {"label": label, "pf": pf, "wr": wr, "trades": n,
+                "mean_win": mw, "mean_loss": ml, "lw": lw,
+                "new_stopouts": 0, "throughput": tp}
+
+    def print_surface_table(rows, mode_label):
+        rprint(f"\n  {mode_label}:")
+        rprint(f"  {'Config':<35} {'PF@3t':>7} {'WR%':>6} {'Trades':>7} "
+               f"{'MeanWin':>8} {'MeanLoss':>9} {'L:W':>6} {'Note'}")
+        rprint(f"  {'-'*35} {'-'*7} {'-'*6} {'-'*7} "
+               f"{'-'*8} {'-'*9} {'-'*6} {'-'*15}")
+        for r in rows:
+            rprint(f"  {r['label']:<35} {r['pf']:>7.2f} {r['wr']:>5.1f}% "
+                   f"{r['trades']:>7} {r['mean_win']:>+7.1f}t "
+                   f"{r['mean_loss']:>+8.1f}t {r['lw']:>5.2f} "
+                   f"{r['throughput']}")
+
+    # ═══════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("SURFACE B: EXIT STRUCTURE MODIFICATIONS")
+    rprint("=" * 72)
+
+    # ── B1: Stop Reduction (Mode 1) ──
+    rprint("\n── B1: Stop Reduction (Mode 1) ──")
+    m1_b1_rows = []
+    m1_baseline_row = surface_row("190t (baseline)", m1_p1_results, 107)
+    m1_b1_rows.append(m1_baseline_row)
+    for s in [170, 150, 130, 120, 100]:
+        r = resim_with_params(
+            m1_p1, "M1", bar_arr_p1, n_bars_p1,
+            stop_fn=lambda row, zw, _s=s: _s,
+            target_fn=lambda row, zw: 60,
+            tcap_fn=lambda row, zw: 120)
+        row = surface_row(f"{s}t", r, 107)
+        # Count new stopouts: trades that were winners at baseline but losers now
+        m1_b1_rows.append(row)
+    print_surface_table(m1_b1_rows, "M1 Stop Reduction")
+
+    # ── B2: Stop Reduction (Mode 2) ──
+    rprint("\n── B2: Stop Reduction (Mode 2) ──")
+    m2_b2_rows = []
+    m2_baseline_row = surface_row("1.5xZW floor 120 (baseline)", m2_p1_results, 239)
+    m2_b2_rows.append(m2_baseline_row)
+
+    stop_configs_m2 = [
+        ("1.3xZW floor 100", lambda row, zw: max(round(1.3 * zw), 100)),
+        ("1.2xZW floor 100", lambda row, zw: max(round(1.2 * zw), 100)),
+        ("1.0xZW floor 80", lambda row, zw: max(round(1.0 * zw), 80)),
+        ("Cond: 1.5 if ZW<200 else 1.2", lambda row, zw: max(round(1.5 * zw), 120) if zw < 200 else max(round(1.2 * zw), 100)),
+        ("Cond: 1.5 if ZW<200 else 1.0", lambda row, zw: max(round(1.5 * zw), 120) if zw < 200 else max(round(1.0 * zw), 80)),
+    ]
+    for label, sfn in stop_configs_m2:
+        r = resim_with_params(
+            m2_p1, "M2", bar_arr_p1, n_bars_p1,
+            stop_fn=sfn,
+            target_fn=lambda row, zw: max(1, round(1.0 * zw)),
+            tcap_fn=lambda row, zw: 80)
+        m2_b2_rows.append(surface_row(label, r, 239))
+    print_surface_table(m2_b2_rows, "M2 Stop Reduction")
+
+    # ── B3: Breakeven Stop (Mode 1) ──
+    rprint("\n── B3: Breakeven Stop (Mode 1) ──")
+    m1_b3_rows = [m1_baseline_row]
+    for be in [20, 30, 40, 50]:
+        r = resim_with_params(
+            m1_p1, "M1", bar_arr_p1, n_bars_p1,
+            stop_fn=lambda row, zw: 190,
+            target_fn=lambda row, zw: 60,
+            tcap_fn=lambda row, zw: 120,
+            be_trigger_fn=lambda row, zw, _be=be: _be)
+        row = surface_row(f"BE@{be}t MFE", r, 107)
+        # Count scratches (BE exits)
+        scratches = (r["exit_type"] == "BE").sum() if len(r) > 0 else 0
+        row["label"] = f"BE@{be}t MFE (scratches={scratches})"
+        m1_b3_rows.append(row)
+    print_surface_table(m1_b3_rows, "M1 Breakeven Stop")
+
+    # ── B4: Breakeven Stop (Mode 2) ──
+    rprint("\n── B4: Breakeven Stop (Mode 2) ──")
+    m2_b4_rows = [m2_baseline_row]
+    for be_label, be_fn in [
+        ("BE@0.3xZW", lambda row, zw: max(1, round(0.3 * zw))),
+        ("BE@0.5xZW", lambda row, zw: max(1, round(0.5 * zw))),
+        ("BE@30t fixed", lambda row, zw: 30),
+        ("BE@50t fixed", lambda row, zw: 50),
+    ]:
+        r = resim_with_params(
+            m2_p1, "M2", bar_arr_p1, n_bars_p1,
+            stop_fn=lambda row, zw: max(round(1.5 * zw), 120),
+            target_fn=lambda row, zw: max(1, round(1.0 * zw)),
+            tcap_fn=lambda row, zw: 80,
+            be_trigger_fn=be_fn)
+        scratches = (r["exit_type"] == "BE").sum() if len(r) > 0 else 0
+        row = surface_row(f"{be_label} (scr={scratches})", r, 239)
+        m2_b4_rows.append(row)
+    print_surface_table(m2_b4_rows, "M2 Breakeven Stop")
+
+    # ── B7: Time Cap Tightening ──
+    rprint("\n── B7: Time Cap Tightening ──")
+    m1_b7_rows = [m1_baseline_row]
+    for tc in [90, 60]:
+        r = resim_with_params(
+            m1_p1, "M1", bar_arr_p1, n_bars_p1,
+            stop_fn=lambda row, zw: 190,
+            target_fn=lambda row, zw: 60,
+            tcap_fn=lambda row, zw, _tc=tc: _tc)
+        m1_b7_rows.append(surface_row(f"TC={tc}", r, 107))
+    print_surface_table(m1_b7_rows, "M1 Time Cap")
+
+    m2_b7_rows = [m2_baseline_row]
+    for tc in [60, 40]:
+        r = resim_with_params(
+            m2_p1, "M2", bar_arr_p1, n_bars_p1,
+            stop_fn=lambda row, zw: max(round(1.5 * zw), 120),
+            target_fn=lambda row, zw: max(1, round(1.0 * zw)),
+            tcap_fn=lambda row, zw, _tc=tc: _tc)
+        m2_b7_rows.append(surface_row(f"TC={tc}", r, 239))
+    print_surface_table(m2_b7_rows, "M2 Time Cap")
+
+    # ── B10: Target Reduction (Mode 2) ──
+    rprint("\n── B10: Target Reduction (Mode 2) ──")
+    m2_b10_rows = [m2_baseline_row]
+    best_b10_mult = 1.0
+    best_b10_pf = m2_baseline_row["pf"]
+    for mult in [0.9, 0.8, 0.75, 0.6, 0.5]:
+        r = resim_with_params(
+            m2_p1, "M2", bar_arr_p1, n_bars_p1,
+            stop_fn=lambda row, zw: max(round(1.5 * zw), 120),
+            target_fn=lambda row, zw, _m=mult: max(1, round(_m * zw)),
+            tcap_fn=lambda row, zw: 80)
+        row = surface_row(f"{mult}xZW target", r, 239)
+        tc_exits = (r["exit_type"] == "TIMECAP").sum() if len(r) > 0 else 0
+        row["label"] = f"{mult}xZW target (TC={tc_exits})"
+        m2_b10_rows.append(row)
+        if row["pf"] > best_b10_pf:
+            best_b10_pf = row["pf"]
+            best_b10_mult = mult
+    print_surface_table(m2_b10_rows, "M2 Target Reduction")
+    rprint(f"\n  Best M2 target: {best_b10_mult}xZW (PF={best_b10_pf:.2f})")
+
+    # ── B5: Partial Exits (Mode 1) — using run_multileg from simulator ──
+    rprint("\n── B5: Partial Exits (Mode 1) ──")
+    # Import the multileg simulator
+    import importlib.util
+    _sim_path = Path(__file__).parent / "zone_touch_simulator.py"
+    _sim_spec = importlib.util.spec_from_file_location(
+        "zone_touch_simulator", str(_sim_path))
+    _sim_mod = importlib.util.module_from_spec(_sim_spec)
+    _sim_spec.loader.exec_module(_sim_mod)
+
+    def run_multileg_population(qualifying_df, config, bar_df_arr,
+                                n_bars_local, mode_str):
+        """Run multileg simulation on qualifying trades."""
+        subset = qualifying_df.sort_values("RotBarIndex").copy()
+        results = []
+        in_trade_until = -1
+
+        # Build a bar DataFrame for the simulator
+        bar_df = pd.DataFrame(bar_df_arr, columns=["Open", "High", "Low", "Last"])
+
+        for idx, row in subset.iterrows():
+            rbi = int(row["RotBarIndex"])
+            entry_bar = rbi + 1
+            if entry_bar <= in_trade_until:
+                continue
+            direction = 1 if "DEMAND" in str(row["TouchType"]) else -1
+            zw = int(row.get("ZoneWidthTicks", 100))
+
+            # Build touch_row for the simulator
+            touch_row = pd.Series({
+                "TouchPrice": bar_df_arr[entry_bar, 0],  # entry at bar open
+                "ApproachDir": direction,
+                "mode": mode_str,
+            })
+
+            # Build mode config with zone-adjusted values if M2
+            mode_cfg = dict(config[mode_str])
+            if mode_str == "M2":
+                stop_t = max(round(1.5 * zw), 120)
+                mode_cfg["stop_ticks"] = stop_t
+                # Scale leg targets by zone width
+                base_targets = config[mode_str]["leg_targets"]
+                mode_cfg["leg_targets"] = [round(t * zw) for t in base_targets]
+
+            cfg = {"tick_size": TICK, mode_str: mode_cfg}
+            result = _sim_mod.run_multileg(bar_df, touch_row, cfg, entry_bar)
+
+            results.append({
+                "pnl": result.pnl_ticks, "bars_held": result.bars_held,
+                "win": result.pnl_ticks - COST_TICKS > 0,
+                "zw_ticks": zw, "direction": direction,
+                "exit_type": result.leg_exit_reasons[-1] if result.leg_exit_reasons else "?",
+                "leg_pnls": result.leg_pnls,
+            })
+            in_trade_until = entry_bar + result.bars_held - 1
+
+        return pd.DataFrame(results)
+
+    # M1 partial configs
+    m1_partial_configs = [
+        ("2+1: 2ct@60t, 1ct@120t BE", {
+            "stop_ticks": 190, "time_cap_bars": 120,
+            "leg_targets": [60, 120], "leg_weights": [0.667, 0.333],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+        ("2+1 wide: 2ct@60t, 1ct@180t BE", {
+            "stop_ticks": 190, "time_cap_bars": 120,
+            "leg_targets": [60, 180], "leg_weights": [0.667, 0.333],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+        ("1+2: 1ct@60t, 2ct@120t BE", {
+            "stop_ticks": 190, "time_cap_bars": 120,
+            "leg_targets": [60, 120], "leg_weights": [0.333, 0.667],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+    ]
+    m1_b5_rows = [m1_baseline_row]
+    for plabel, pcfg in m1_partial_configs:
+        r = run_multileg_population(m1_p1, {"M1": pcfg}, bar_arr_p1,
+                                    n_bars_p1, "M1")
+        m1_b5_rows.append(surface_row(plabel, r, 107))
+    print_surface_table(m1_b5_rows, "M1 Partial Exits")
+
+    # ── B6: Partial Exits (Mode 2) ──
+    rprint("\n── B6: Partial Exits (Mode 2) ──")
+    m2_partial_configs = [
+        ("2+1: 2ct@0.5xZW, 1ct@1.0xZW BE", {
+            "stop_ticks": 0,  # overridden per-trade
+            "time_cap_bars": 80,
+            "leg_targets": [0.5, 1.0],  # scaled by ZW in run_multileg_population
+            "leg_weights": [0.667, 0.333],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+        ("2+1 ext: 2ct@0.5xZW, 1ct@1.5xZW BE", {
+            "stop_ticks": 0,
+            "time_cap_bars": 80,
+            "leg_targets": [0.5, 1.5],
+            "leg_weights": [0.667, 0.333],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+        ("1+2: 1ct@0.5xZW, 2ct@1.0xZW BE", {
+            "stop_ticks": 0,
+            "time_cap_bars": 80,
+            "leg_targets": [0.5, 1.0],
+            "leg_weights": [0.333, 0.667],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }),
+    ]
+    m2_b6_rows = [m2_baseline_row]
+    for plabel, pcfg in m2_partial_configs:
+        r = run_multileg_population(m2_p1, {"M2": pcfg}, bar_arr_p1,
+                                    n_bars_p1, "M2")
+        m2_b6_rows.append(surface_row(plabel, r, 239))
+    print_surface_table(m2_b6_rows, "M2 Partial Exits")
+
+    # ── B10 follow-up: if target reduction improved PF, retest partials ──
+    if best_b10_mult < 1.0:
+        rprint(f"\n── B10+B6: Partials with reduced target ({best_b10_mult}xZW) ──")
+        m2_b10b6_rows = []
+        # Baseline at reduced target
+        r_base = resim_with_params(
+            m2_p1, "M2", bar_arr_p1, n_bars_p1,
+            stop_fn=lambda row, zw: max(round(1.5 * zw), 120),
+            target_fn=lambda row, zw: max(1, round(best_b10_mult * zw)),
+            tcap_fn=lambda row, zw: 80)
+        m2_b10b6_rows.append(surface_row(
+            f"{best_b10_mult}xZW single (baseline)", r_base, 239))
+        # Partial: 2+1 at half/full of reduced target
+        half_t = best_b10_mult / 2
+        pcfg_reduced = {
+            "stop_ticks": 0, "time_cap_bars": 80,
+            "leg_targets": [half_t, best_b10_mult],
+            "leg_weights": [0.667, 0.333],
+            "trail_steps": [],
+            "stop_move_after_leg": 0, "stop_move_destination": 0,
+        }
+        r_part = run_multileg_population(m2_p1, {"M2": pcfg_reduced},
+                                         bar_arr_p1, n_bars_p1, "M2")
+        m2_b10b6_rows.append(surface_row(
+            f"2+1: {half_t:.2f}xZW+{best_b10_mult}xZW BE", r_part, 239))
+        print_surface_table(m2_b10b6_rows, "M2 Reduced Target + Partials")
+
+    # ═══════════════════════════════════════════════════════════
+    # Collect Surface B candidates
+    # ═══════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("SURFACE B SUMMARY — Best Candidates")
+    rprint("=" * 72)
+
+    # Collect all M1 tests
+    all_m1_tests = []
+    for label, rows_list in [("B1-Stop", m1_b1_rows),
+                              ("B3-BE", m1_b3_rows),
+                              ("B5-Partial", m1_b5_rows),
+                              ("B7-TC", m1_b7_rows)]:
+        for r in rows_list[1:]:  # skip baseline
+            all_m1_tests.append({**r, "surface": label})
+
+    # Collect all M2 tests
+    all_m2_tests = []
+    for label, rows_list in [("B2-Stop", m2_b2_rows),
+                              ("B4-BE", m2_b4_rows),
+                              ("B6-Partial", m2_b6_rows),
+                              ("B7-TC", m2_b7_rows),
+                              ("B10-Target", m2_b10_rows)]:
+        for r in rows_list[1:]:
+            all_m2_tests.append({**r, "surface": label})
+
+    m1_base_pf = m1_baseline_row["pf"]
+    m2_base_pf = m2_baseline_row["pf"]
+    m1_candidates = [t for t in all_m1_tests
+                     if t["pf"] > m1_base_pf * 0.95 or t["lw"] < m1_baseline_row["lw"] * 0.8]
+    m2_candidates = [t for t in all_m2_tests
+                     if t["pf"] > m2_base_pf * 0.95 or t["lw"] < m2_baseline_row["lw"] * 0.8]
+
+    rprint(f"\n  M1 candidates (PF >= {m1_base_pf*0.95:.2f} or L:W improved >20%):")
+    for c in sorted(m1_candidates, key=lambda x: -x["pf"]):
+        rprint(f"    [{c['surface']}] {c['label']}: PF={c['pf']:.2f}, "
+               f"L:W={c['lw']:.2f}, WR={c['wr']:.1f}%")
+
+    rprint(f"\n  M2 candidates (PF >= {m2_base_pf*0.95:.2f} or L:W improved >20%):")
+    for c in sorted(m2_candidates, key=lambda x: -x["pf"]):
+        rprint(f"    [{c['surface']}] {c['label']}: PF={c['pf']:.2f}, "
+               f"L:W={c['lw']:.2f}, WR={c['wr']:.1f}%")
+
+    # ═══════════════════════════════════════════════════════════
+    # SURFACE A: ENTRY EXECUTION
+    # ═══════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("SURFACE A: ENTRY EXECUTION MODIFICATIONS")
+    rprint("=" * 72)
+
+    # ── A0: Geometry Verification ──
+    rprint("\n── A0: Geometry Verification ──")
+    # Pick one DEMAND and one SUPPLY trade from M1
+    m1_demand = m1_p1_results[m1_p1_results["touch_type"].str.contains("DEMAND")].iloc[0]
+    m1_supply = m1_p1_results[m1_p1_results["touch_type"].str.contains("SUPPLY")].iloc[0]
+
+    for label, trade in [("DEMAND (long)", m1_demand), ("SUPPLY (short)", m1_supply)]:
+        zt = trade["zone_top"]
+        zb = trade["zone_bot"]
+        ep = trade["entry_price"]
+        d = trade["direction"]
+        if d == 1:
+            touched_edge = zt
+            stop_level = ep - 190 * TICK
+            target_level = ep + 60 * TICK
+        else:
+            touched_edge = zb
+            stop_level = ep + 190 * TICK
+            target_level = ep - 60 * TICK
+        baseline_stop_dist = 190
+        baseline_target_dist = 60
+        depth = 20
+        if d == 1:
+            new_entry = touched_edge - depth * TICK
+            new_stop_dist = (new_entry - stop_level) / TICK
+            new_target_dist = (target_level - new_entry) / TICK
+        else:
+            new_entry = touched_edge + depth * TICK
+            new_stop_dist = (stop_level - new_entry) / TICK
+            new_target_dist = (new_entry - target_level) / TICK
+
+        rprint(f"\n  Verification: {label}")
+        rprint(f"    Zone: top={zt}, bot={zb}, touched_edge={touched_edge}")
+        rprint(f"    Baseline entry={ep}, stop_dist={baseline_stop_dist}t, "
+               f"target_dist={baseline_target_dist}t")
+        rprint(f"    At +{depth}t deeper: new_entry={new_entry}")
+        rprint(f"    New stop_dist={new_stop_dist:.0f}t "
+               f"({'SHRINKS' if new_stop_dist < baseline_stop_dist else 'GROWS!!!'}), "
+               f"new_target_dist={new_target_dist:.0f}t "
+               f"({'GROWS' if new_target_dist > baseline_target_dist else 'SHRINKS!!!'})")
+        if new_stop_dist >= baseline_stop_dist or new_target_dist <= baseline_target_dist:
+            rprint(f"    !!! GEOMETRY ERROR — deeper entry should shrink stop "
+                   f"and grow target for both zone types")
+
+    # ── A1: Deeper Fixed Entry (Mode 1) ──
+    rprint("\n── A1: Deeper Fixed Entry (Mode 1) ──")
+    rprint("  NOTE: Entry is already at bar Open (not zone edge). 'Deeper' means")
+    rprint("  a limit order further into the zone. Trades that don't reach the")
+    rprint("  limit within the fill window (4 bars) are MISSED (fill rate < 100%).")
+
+    # Use fill rate curve from 0f to pick depths at ~90%, 75%, 60% fill
+    m1_pen = m1_p1_results["max_penetration"]
+    fill_90 = int(np.percentile(m1_pen, 10))  # 90% fill = P10 of penetration
+    fill_75 = int(np.percentile(m1_pen, 25))
+    fill_60 = int(np.percentile(m1_pen, 40))
+    depths_m1 = sorted(set([0, fill_90, fill_75, fill_60, 10, 20]))
+    rprint(f"  Fill-rate-derived depths: 90%={fill_90}t, 75%={fill_75}t, 60%={fill_60}t")
+
+    m1_a1_rows = [m1_baseline_row]
+    for depth in depths_m1:
+        if depth == 0:
+            continue
+        # Filter to trades where penetration >= depth (filled)
+        filled = m1_p1_results[m1_p1_results["max_penetration"] >= depth]
+        fill_rate = len(filled) / len(m1_p1_results) * 100
+        if len(filled) == 0:
+            continue
+        # For filled trades, deeper entry changes effective stop/target
+        # Stop shrinks by depth, target grows by depth
+        adj_pnls = []
+        for _, t in filled.iterrows():
+            if t["exit_type"] == "TARGET":
+                adj_pnls.append(t["target_used"] + depth)  # target grows
+            elif t["exit_type"] == "STOP":
+                adj_pnls.append(-(t["stop_used"] - depth))  # stop shrinks
+            else:  # TIMECAP — PnL shifts by depth in favorable direction
+                adj_pnls.append(t["pnl"] + depth)
+        adj_df = pd.DataFrame({
+            "pnl": adj_pnls,
+            "win": [p - COST_TICKS > 0 for p in adj_pnls],
+        })
+        row = surface_row(f"+{depth}t (fill={fill_rate:.0f}%)", adj_df, 107)
+        m1_a1_rows.append(row)
+    print_surface_table(m1_a1_rows, "M1 Deeper Entry (analytical)")
+
+    # ── A2: Deeper Fixed Entry (Mode 2) ──
+    rprint("\n── A2: Deeper Fixed Entry (Mode 2) ──")
+    m2_pen = m2_p1_results["max_penetration"]
+    fill_90_m2 = int(np.percentile(m2_pen, 10))
+    fill_75_m2 = int(np.percentile(m2_pen, 25))
+    fill_60_m2 = int(np.percentile(m2_pen, 40))
+    depths_m2 = sorted(set([0, fill_90_m2, fill_75_m2, fill_60_m2, 10, 20]))
+    rprint(f"  Fill-rate-derived depths: 90%={fill_90_m2}t, 75%={fill_75_m2}t, "
+           f"60%={fill_60_m2}t")
+
+    m2_a2_rows = [m2_baseline_row]
+    for depth in depths_m2:
+        if depth == 0:
+            continue
+        filled = m2_p1_results[m2_p1_results["max_penetration"] >= depth]
+        fill_rate = len(filled) / len(m2_p1_results) * 100
+        if len(filled) == 0:
+            continue
+        adj_pnls = []
+        for _, t in filled.iterrows():
+            if t["exit_type"] == "TARGET":
+                adj_pnls.append(t["target_used"] + depth)
+            elif t["exit_type"] == "STOP":
+                adj_pnls.append(-(t["stop_used"] - depth))
+            else:
+                adj_pnls.append(t["pnl"] + depth)
+        adj_df = pd.DataFrame({
+            "pnl": adj_pnls,
+            "win": [p - COST_TICKS > 0 for p in adj_pnls],
+        })
+        row = surface_row(f"+{depth}t (fill={fill_rate:.0f}%)", adj_df, 239)
+        m2_a2_rows.append(row)
+    print_surface_table(m2_a2_rows, "M2 Deeper Entry (analytical)")
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 3: STACKING
+    # ═══════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 3: STACKING — Best Combinations")
+    rprint("=" * 72)
+
+    # Identify best single mods per mode
+    rprint("\n  Identifying best individual modifications...")
+
+    # M1: Sort all tests by PF improvement
+    m1_best = sorted(all_m1_tests, key=lambda x: -x["pf"])[:5]
+    rprint(f"\n  M1 top 5 individual mods:")
+    for t in m1_best:
+        dpf = t["pf"] - m1_base_pf
+        rprint(f"    {t['surface']:12} {t['label']:<35} "
+               f"PF={t['pf']:.2f} (dPF={dpf:+.2f})")
+
+    m2_best = sorted(all_m2_tests, key=lambda x: -x["pf"])[:5]
+    rprint(f"\n  M2 top 5 individual mods:")
+    for t in m2_best:
+        dpf = t["pf"] - m2_base_pf
+        rprint(f"    {t['surface']:12} {t['label']:<35} "
+               f"PF={t['pf']:.2f} (dPF={dpf:+.2f})")
+
+    # Stack best M1 mods incrementally
+    rprint("\n  M1 Stacking (incremental):")
+    rprint(f"  Baseline: PF={m1_base_pf:.2f}")
+    # For M1, the top mods from B3 (BE) are the most promising
+    # Test BE + stop reduction combined
+    best_m1_be = 30  # typical best from B3
+    for be_val in [20, 30, 40]:
+        for stop_val in [190, 170, 150]:
+            r = resim_with_params(
+                m1_p1, "M1", bar_arr_p1, n_bars_p1,
+                stop_fn=lambda row, zw, _s=stop_val: _s,
+                target_fn=lambda row, zw: 60,
+                tcap_fn=lambda row, zw: 120,
+                be_trigger_fn=lambda row, zw, _be=be_val: _be)
+            pf = compute_pf(r["pnl"].tolist(), COST_TICKS)
+            if pf > m1_base_pf * 0.95:
+                rprint(f"    BE@{be_val}t + Stop={stop_val}t: "
+                       f"PF={pf:.2f}, trades={len(r)}")
+
+    # Stack best M2 mods
+    rprint("\n  M2 Stacking (incremental):")
+    rprint(f"  Baseline: PF={m2_base_pf:.2f}")
+    # Test target reduction + stop conditional + BE
+    for tgt_mult in [1.0, 0.8, best_b10_mult]:
+        for stop_label, sfn in [
+            ("1.5xZW", lambda row, zw: max(round(1.5 * zw), 120)),
+            ("Cond", lambda row, zw: max(round(1.5 * zw), 120) if zw < 200 else max(round(1.2 * zw), 100)),
+        ]:
+            for be_val in [0, 30]:
+                r = resim_with_params(
+                    m2_p1, "M2", bar_arr_p1, n_bars_p1,
+                    stop_fn=sfn,
+                    target_fn=lambda row, zw, _m=tgt_mult: max(1, round(_m * zw)),
+                    tcap_fn=lambda row, zw: 80,
+                    be_trigger_fn=(lambda row, zw, _be=be_val: _be) if be_val > 0 else None)
+                pf = compute_pf(r["pnl"].tolist(), COST_TICKS)
+                wr = compute_wr(r["pnl"].tolist(), COST_TICKS)
+                losers = r[~r["win"]]
+                ml = losers["pnl"].mean() if len(losers) > 0 else 0
+                winners = r[r["win"]]
+                mw = winners["pnl"].mean() if len(winners) > 0 else 0
+                lw = abs(ml) / mw if mw > 0 else 0
+                be_s = f"+BE@{be_val}t" if be_val > 0 else ""
+                rprint(f"    T={tgt_mult}xZW S={stop_label}{be_s}: "
+                       f"PF={pf:.2f}, WR={wr:.1f}%, L:W={lw:.2f}, "
+                       f"trades={len(r)}")
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 4: P2 VALIDATION
+    # ═══════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 4: P2 VALIDATION")
+    rprint("=" * 72)
+    rprint("  P2 populations verified in Step 0-pre: M1=96, M2=309")
+
+    # P2 baseline
+    m1_p2_pf = compute_pf(m1_p2_results["pnl"].tolist(), 4)
+    m2_p2_pf = compute_pf(m2_p2_results["pnl"].tolist(), 4)
+    rprint(f"\n  P2 Baseline: M1 PF@4t={m1_p2_pf:.2f}, M2 PF@4t={m2_p2_pf:.2f}")
+
+    # Apply best M1 stack to P2
+    rprint("\n  Applying best M1 modifications to P2...")
+    # Test BE@30t (likely best from B3) on P2
+    for be_val in [0, 30]:
+        r = resim_with_params(
+            m1_p2, "M1", bar_arr_p2, n_bars_p2,
+            stop_fn=lambda row, zw: 190,
+            target_fn=lambda row, zw: 60,
+            tcap_fn=lambda row, zw: 120,
+            be_trigger_fn=(lambda row, zw: be_val) if be_val > 0 else None)
+        pf = compute_pf(r["pnl"].tolist(), 4)
+        label = f"BE@{be_val}t" if be_val > 0 else "Baseline"
+        rprint(f"    M1 {label}: PF@4t={pf:.2f}, trades={len(r)}")
+
+    # Apply best M2 stacks to P2
+    rprint("\n  Applying best M2 modifications to P2...")
+    for tgt_mult in [1.0, best_b10_mult]:
+        for stop_label, sfn in [
+            ("1.5xZW", lambda row, zw: max(round(1.5 * zw), 120)),
+            ("Cond", lambda row, zw: max(round(1.5 * zw), 120) if zw < 200 else max(round(1.2 * zw), 100)),
+        ]:
+            for be_val in [0, 30]:
+                r = resim_with_params(
+                    m2_p2, "M2", bar_arr_p2, n_bars_p2,
+                    stop_fn=sfn,
+                    target_fn=lambda row, zw, _m=tgt_mult: max(1, round(_m * zw)),
+                    tcap_fn=lambda row, zw: 80,
+                    be_trigger_fn=(lambda row, zw, _be=be_val: _be) if be_val > 0 else None)
+                pf = compute_pf(r["pnl"].tolist(), 4)
+                wr = compute_wr(r["pnl"].tolist(), 4)
+                be_s = f"+BE@{be_val}t" if be_val > 0 else ""
+                rprint(f"    M2 T={tgt_mult}xZW S={stop_label}{be_s}: "
+                       f"PF@4t={pf:.2f}, WR={wr:.1f}%, trades={len(r)}")
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 5: DESIGN RECOMMENDATIONS
+    # ═══════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 5: DESIGN RECOMMENDATIONS")
+    rprint("=" * 72)
+
+    # Position sizing based on zone width
+    rprint("\n  5a: Position Sizing Proposal (Mode 2):")
+    rprint(f"  {'Condition':<25} {'Contracts':>10} {'Rationale'}")
+    rprint(f"  {'-'*25} {'-'*10} {'-'*30}")
+    rprint(f"  {'M1 (any)':<25} {'3':>10} Fixed — low loss:win")
+    rprint(f"  {'M2, ZW < 150t':<25} {'3':>10} Low absolute risk")
+    rprint(f"  {'M2, ZW 150-250t':<25} {'2':>10} Moderate risk")
+    rprint(f"  {'M2, ZW 250-400t':<25} {'1':>10} High absolute risk")
+    rprint(f"  {'M2, ZW > 400t':<25} {'1':>10} Extreme risk — consider skip")
+
+    rprint("\n  5b: Loss Cap Proposal:")
+    rprint(f"  Max risk per event: 500t (all contracts combined)")
+    rprint(f"  M1 @ 3ct × 190t = 570t → cap at 500t means 2ct max on M1")
+    rprint(f"  M2 — dynamic: contracts = floor(500 / stop_dist)")
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 6: SAVE FINAL REPORT
+    # ═══════════════════════════════════════════════════════════
+    rprint("\n" + "=" * 72)
+    rprint("STEP 6: FINAL REPORT")
+    rprint("=" * 72)
+
+    report_path = OUT_DIR / "risk_mitigation_investigation_v32.md"
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write("# Risk Mitigation Investigation v3.2\n\n")
+        f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
+        f.write("Scoring model FROZEN at v3.2. Modifications are entry/exit "
+                "execution only.\n\n")
+        f.write("```\n")
+        f.write("\n".join(report_lines))
+        f.write("\n```\n")
+    rprint(f"  Full report saved: {report_path.name}")
+
+    # Also save step0 report
+    step0_path = OUT_DIR / "risk_mitigation_step0_v32.md"
+    with open(step0_path, "w", encoding="utf-8") as f:
+        f.write("# Risk Mitigation Investigation v3.2 — Step 0\n\n```\n")
+        f.write("\n".join(report_lines))
+        f.write("\n```\n")
+
+    rprint("\n" + "=" * 72)
+    rprint("INVESTIGATION COMPLETE")
+    rprint("=" * 72)
+
+
+if __name__ == "__main__":
+    run_step0()
