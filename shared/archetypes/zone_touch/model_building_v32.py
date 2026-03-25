@@ -658,61 +658,41 @@ if HAS_SKLEARN:
     # Sort touches by entry time for rolling z-score
     time_order = np.argsort(entry_idx)
 
-    for window in [100, 250, 500, 1000]:
-        # Rolling z-score normalization (look-back only, no lookahead)
-        X_time = X[time_order]
-        X_z = np.zeros_like(X_time)
+    # Global StandardScaler + L1 logistic regression (C=0.01).
+    # History: original code used rolling z-score + C=1.0/L2 which produced
+    # degenerate coefficients. GSD diagnosed and refit with global scaler +
+    # L1 + C=0.01 + liblinear. This fix reproduces the frozen JSON.
+    # See v32_replication_gate_results.md finding F4 for full audit trail.
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
 
-        for i in range(len(time_order)):
-            start = max(0, i - window)
-            end = i  # exclusive: don't include current touch
-            if end - start < 2:
-                X_z[i] = 0
-                continue
-            window_data = X_time[start:end]
-            m = window_data.mean(axis=0)
-            s = window_data.std(axis=0)
-            s[s == 0] = 1.0
-            X_z[i] = (X_time[i] - m) / s
+    lr = LogisticRegression(max_iter=1000, C=0.01, penalty='l1',
+                            solver='liblinear')
+    lr.fit(X_scaled, target)
+    proba = lr.predict_proba(X_scaled)[:, 1]
 
-        # Map back to original order
-        X_z_orig = np.zeros_like(X)
-        X_z_orig[time_order] = X_z
+    # Youden's J threshold
+    fpr, tpr, thresholds_roc = roc_curve(target, proba)
+    j_scores = tpr - fpr
+    best_j_idx = np.argmax(j_scores)
+    opt_thr = thresholds_roc[best_j_idx]
 
-        # Logistic regression
-        lr = LogisticRegression(max_iter=1000, C=1.0)
-        lr.fit(X_z_orig, target)
-        proba = lr.predict_proba(X_z_orig)[:, 1]
+    idx_pass = np.where(proba >= opt_thr)[0]
+    pf3, pf4, nt, wr = simulate_subset(idx_pass) if len(idx_pass) >= 50 else (0, 0, 0, 0)
+    rprint(f"  B-ZScore (global scaler, L1 C=0.01): PF@3t={pf3:.4f}, trades={nt}, threshold={opt_thr:.4f}")
 
-        # Youden's J threshold
-        fpr, tpr, thresholds_roc = roc_curve(target, proba)
-        j_scores = tpr - fpr
-        best_j_idx = np.argmax(j_scores)
-        opt_thr = thresholds_roc[best_j_idx]
+    if nt >= 50:
+        best_bz = {
+            "pf3": pf3, "pf4": pf4, "window": 0, "thr": float(opt_thr),
+            "trades": nt, "wr": wr,
+            "coefs": lr.coef_[0].tolist(),
+            "intercept": float(lr.intercept_[0]),
+            "scaler_mean": scaler.mean_.tolist(),
+            "scaler_std": scaler.scale_.tolist(),
+            "feat_cols": feat_cols
+        }
 
-        idx_pass = np.where(proba >= opt_thr)[0]
-        if len(idx_pass) < 50:
-            rprint(f"  Window={window}: <50 trades at Youden threshold, skipping")
-            continue
-
-        pf3, pf4, nt, wr = simulate_subset(idx_pass)
-        rprint(f"  Window={window}: PF@3t={pf3:.4f}, trades={nt}, threshold={opt_thr:.4f}")
-
-        if nt >= 50 and pf3 > best_bz["pf3"]:
-            # Also save a fixed StandardScaler fit for reproducibility
-            scaler_fixed = StandardScaler()
-            scaler_fixed.fit(X)
-            best_bz = {
-                "pf3": pf3, "pf4": pf4, "window": window, "thr": float(opt_thr),
-                "trades": nt, "wr": wr,
-                "coefs": lr.coef_[0].tolist(),
-                "intercept": float(lr.intercept_[0]),
-                "scaler_mean": scaler_fixed.mean_.tolist(),
-                "scaler_std": scaler_fixed.scale_.tolist(),
-                "feat_cols": feat_cols
-            }
-
-    rprint(f"\n  B-ZScore FROZEN: window={best_bz['window']}, threshold={best_bz['thr']:.4f}, "
+    rprint(f"\n  B-ZScore FROZEN: threshold={best_bz['thr']:.4f}, "
            f"PF@3t={best_bz['pf3']:.4f}, trades={best_bz['trades']}")
 else:
     # Fallback: z-score composite without sklearn
@@ -863,27 +843,14 @@ rprint(f"  Saved p1_scored_touches_aeq_v32.csv ({len(df_aeq)} rows)")
 
 # --- B-ZScore scored touches ---
 df_bz = touches.copy()
-if HAS_SKLEARN and best_bz["trades"] > 0 and best_bz["window"] > 0:
-    # Recompute proba with best window for saving
-    X_time = X[time_order]
-    X_z = np.zeros_like(X_time)
-    w = best_bz["window"]
-    for i in range(len(time_order)):
-        start = max(0, i - w)
-        end = i
-        if end - start < 2:
-            X_z[i] = 0
-            continue
-        wd = X_time[start:end]
-        m = wd.mean(axis=0)
-        s = wd.std(axis=0)
-        s[s == 0] = 1.0
-        X_z[i] = (X_time[i] - m) / s
-    X_z_orig = np.zeros_like(X)
-    X_z_orig[time_order] = X_z
-    lr_final = LogisticRegression(max_iter=1000, C=1.0)
-    lr_final.fit(X_z_orig, target)
-    proba_final = lr_final.predict_proba(X_z_orig)[:, 1]
+if HAS_SKLEARN and best_bz["trades"] > 0:
+    # Recompute proba with global StandardScaler + L1 for saving
+    scaler_final = StandardScaler()
+    X_scaled_final = scaler_final.fit_transform(X)
+    lr_final = LogisticRegression(max_iter=1000, C=0.01, penalty='l1',
+                                  solver='liblinear')
+    lr_final.fit(X_scaled_final, target)
+    proba_final = lr_final.predict_proba(X_scaled_final)[:, 1]
     df_bz["Score_BZScore"] = proba_final
     df_bz["Trade_BZScore"] = (proba_final >= best_bz["thr"]).astype(int)
 else:
@@ -950,6 +917,7 @@ bz_json = {
     "pf_4t": best_bz.get("pf4", 0),
     "trades": best_bz.get("trades", 0),
     "win_rate": best_bz.get("wr", 0),
+    "regularization": {"C": 0.01, "penalty": "l1", "solver": "liblinear"},
 }
 with open(OUT / "scoring_model_bzscore_v32.json", "w") as f:
     json.dump(bz_json, f, indent=2)

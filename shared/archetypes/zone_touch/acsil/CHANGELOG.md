@@ -4,6 +4,19 @@ Every modification to any study in this directory gets an entry.
 Newest first. Update this file with EVERY commit that touches
 a .cpp, .h, or SC setting.
 
+## 2026-03-24 — ATEAM_ZONE_TOUCH_V32 autotrader built
+
+| File | Change |
+|------|--------|
+| Added: ATEAM_ZONE_TOUCH_V32.cpp | v3.2 unified autotrader — dual-model (A-Eq M1 + B-ZScore M2) waterfall, 47 inputs, partial exits with BE, circuit breakers, CSV logging, visual display |
+| Added: zone_touch_v32_inputs.txt | Default input values + feature-to-ZTE mapping reference |
+| Updated: STUDY_CHAIN_REFERENCE.md | Section 4c updated from "TO BE BUILT" to implemented. Added to Active Studies table. |
+
+Impact: New study added. No existing studies modified. Pending replication gate
+(P1 comparison) before paper trading. Reads ZTE SignalStorage unchanged (magic
+0x5A425634). Scoring models inlined from feature_config_v32.json,
+scoring_model_aeq_v32.json, scoring_model_bzscore_v32.json.
+
 ## 2026-03-23 — Throughput re-examination CONFIRMED
 
 - All 6 throughput conclusions hold on correct 77-trade population

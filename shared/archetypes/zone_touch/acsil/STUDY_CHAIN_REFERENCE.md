@@ -57,24 +57,37 @@ Moved to `_deprecated/`. Replaced by ZoneTouchEngine. Original: A-Cal scoring, m
 
 **Why separate from the data chain:** The autotrader consumes zone data — it doesn't create or measure zones. Keeping it separate means V4/ZTE can be updated independently (with re-validation) without touching trading logic, and vice versa.
 
-### 4c. ATEAM_ZONE_TOUCH_V32 (v3.2 unified autotrader — TO BE BUILT)
+### 4c. ATEAM_ZONE_TOUCH_V32 (v3.2 unified autotrader)
 
-**Status:** Not yet implemented. This is the target C++ autotrader for paper trading.
+**Status:** Implemented 2026-03-24. Ready for replication gate (Step 2) then paper trading (P3).
 
-**What it does:** Single autotrader with priority waterfall: A-Eq scoring → Mode 1 (fixed partial exits) OR B-ZScore scoring → Mode 2 (zone-relative exits with position sizing). Replaces both FIXED and ZONEREL autotraders with a unified study.
+**What it does:** Single autotrader with priority waterfall: A-Eq scoring → Mode 1 (fixed partial exits) OR B-ZScore scoring → Mode 2 (zone-relative exits with position sizing). Replaces both FIXED and ZONEREL autotraders with a unified study. 47 configurable inputs with frozen defaults.
 
 **Scoring models (frozen):**
-- A-Eq: 7 features, equal weights (10/5/0 bins), threshold 45.5 → Mode 1
-- B-ZScore: 7 features, L1-regularized coefficients + global StandardScaler, threshold 0.50 → Mode 2
+- A-Eq: 7 features (F10, F01, F05, F09, F21, F13, F04), equal-weight bins (10/5/0), threshold 45.5 → Mode 1
+- B-ZScore: 18 one-hot-encoded features, L1-regularized linear model + global StandardScaler, raw linear threshold 0.5417 (no sigmoid) → Mode 2
 - Config files: `output/feature_config_v32.json`, `output/scoring_model_aeq_v32.json`, `output/scoring_model_bzscore_v32.json`
+
+**Feature computation:**
+- F10 (Prior Penetration): from SignalStorage prior touch on same zone
+- F01 (Timeframe): SourceSlot → slot TF input mapping
+- F05 (Session): bar time → 5 session bins (Overnight/PreRTH/OpeningDrive/Midday/Close)
+- F09 (ZW/ATR Ratio): ZoneWidthTicks × tick_size / ATR(14 EMA)
+- F21 (Zone Age): ZoneAgeBars from SignalRecord
+- F13 (Close Position): (Close-Low)/(High-Low) for demand, (High-Close)/(High-Low) for supply
+- F04 (Cascade State): from SignalRecord (0=PRIOR_HELD, 1=NO_PRIOR, 2=PRIOR_BROKE)
 
 **Mode 1 exits:** 1+2 partial (1ct@60t + 2ct@120t, BE on runner after T1), stop 190t, TC 120 bars, 3ct.
 
 **Mode 2 exits:** Target 1.0×ZW, stop max(1.3×ZW, 100t), TC 80 bars. Position sizing: 3ct if ZW<150, 2ct if 150-250, 1ct if ZW≥250. Filters: RTH, seq≤2, TF≤120m.
 
-**Circuit breakers:** Daily 700t, consec 5, DD 1,541t from HWM, rolling 30-trade PF floor 1.0.
+**Circuit breakers:** Daily 700t (auto-reset), consec 5 (manual reset), DD 1,541t from HWM (manual reset), rolling 30-trade PF < 1.0 (manual reset). CB_Reset input for manual reset.
 
-**Session controls:** EOD forced close 15:50 ET, entry blackout 15:30 ET.
+**Session controls:** EOD forced close 15:50 ET, entry blackout 15:30 ET. Pending limit orders cancelled at EOD.
+
+**Visual display:** Entry arrows (green M1, blue M2), mode+score labels, stop/target/BE lines (removed on close).
+
+**CSV logging:** Decision log (every touch including skips) + trade log (completed trades with PnL). For replication gate comparison.
 
 **Deployment spec:** `stages/04-backtest/zone_touch/output/combined_recommendation_clean_v32.md`
 
@@ -145,6 +158,8 @@ All studies and config files in this directory are snapshots frozen as of 2026-0
 | zone_bounce_config_ZONEREL.h | v3.0 | 2026-03-23 | — | Zone-relative config |
 | ATEAM_ZONE_BOUNCE_FIXED.cpp | v1.0 | 2026-03-23 | ATEAM Zone Bounce V1 [v1.0] | Fixed exits, CT limit + WT market. PASS 85/85 |
 | ATEAM_ZONE_BOUNCE_ZONEREL.cpp | v3.0 | 2026-03-23 | ATEAM Zone Bounce V1 [v3.0] | Zone-relative exits, CT limit + WT market. PASS 77/77 |
+| ATEAM_ZONE_TOUCH_V32.cpp | v3.2 | 2026-03-24 | ATEAM Zone Touch V3.2 | Unified M1+M2 waterfall, partial exits, circuit breakers. Pending replication gate. |
+| zone_touch_v32_inputs.txt | v3.2 | 2026-03-24 | — | Default input values reference |
 
 ## Sierra Chart Settings
 
