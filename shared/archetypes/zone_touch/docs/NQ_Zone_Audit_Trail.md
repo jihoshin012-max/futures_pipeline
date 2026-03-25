@@ -324,7 +324,7 @@ v3.2 redesigned as dual-model waterfall: A-Eq (Mode 1, fixed exits with partials
 | Stress test + Monte Carlo | `stress_test_v32.py`, `stress_test_followup_v32.py` | 03-24 20:49–21:21 | 718 trades (P1=331*, P2=387). Combined PF: 5.33/4.52. MC 10k. Max DD: 1129t. Kelly half: M1=42.6%, M2=30.2%. WR compression survives -15%. |
 | Simulation verification | `verify_simulation_v32.py`, `verify_simulation_v32_groundtruth.py` | 03-25 01:10–07:56 | 16 trades walked bar-by-bar. Zero discrepancies. All 20 parameters match spec. |
 
-*P1=331 was based on old pre-scored CSV; corrected to 445 after B-ZScore fix (see below).
+*Stress test ran AFTER risk mitigation (position scaling) was frozen — config is final. P1 trade count was 331 at time of stress test (old pre-scored CSV); corrected to 445 after B-ZScore model fix. P2=387 unchanged. P2-derived metrics (validation PF, deployment viability) remain valid. P1+P2 combined MC/Kelly metrics would shift slightly with 445 P1 trades — conservative direction (more trades = tighter confidence intervals).
 
 ### Position Scaling Investigation — Resolved within Risk Mitigation
 
@@ -377,6 +377,6 @@ Full details: `output/v32_replication_gate_results.md`
 4. ~~v3.2 C++ autotrader~~ — DONE (ATEAM_ZONE_TOUCH_V32.cpp)
 5. ~~v3.2 replication gate~~ — DONE (445/445 PASS)
 6. ~~v3.2 parameter audit~~ — DONE (F4 resolved, all findings documented)
-7. **Re-run stress test** on 445-trade P1 population (deferred — will re-run after final model is locked)
+7. ~~Stress test~~ — DONE (ran after risk mitigation/scaling freeze). P2 metrics valid. P1 count shifted 331→445 after B-ZScore fix; combined MC/Kelly shift is conservative (more trades).
 8. **Paper trade P3** — both M1 and M2, weekly Friday reviews
 9. **After P3:** ETH filter decision, autoresearch (10 items), zone break strategy
