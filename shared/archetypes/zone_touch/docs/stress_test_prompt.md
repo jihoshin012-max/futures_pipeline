@@ -1,463 +1,504 @@
-Stress Test & Position Sizing — Post-Validation Analysis
-
-PURPOSE: Establish statistical confidence, worst-case risk 
-profiles, and position sizing for the validated deployment 
-modes. Three Monte Carlo methods provide layered confidence. 
-Kelly criterion analysis provides sizing framework.
-
-⚠️ Run AFTER Prompt 4 completes and the final mode set is 
-confirmed. Use the frozen parameters from Prompt 3 / 
-deployment_spec_clean_v32.json. Do NOT recalibrate anything.
-
-⚠️ Run SEPARATELY for each deployed mode:
-- A-Eq Seg1 ModeA (FIXED 190t/60t, 96 P2 trades)
-- B-ZScore Seg2 RTH (ZONEREL exits, 327 P2 trades)
-- Any additional modes confirmed by Prompt 4
-
-Use COMBINED P1+P2 trade populations for maximum sample 
-size. The model is frozen — combining periods for stress 
-testing does not violate holdout discipline because no 
-parameters are being fit.
-
-================================================================
-SECTION 1: BOOTSTRAP RESAMPLING (RESHUFFLING)
-================================================================
-
-⚠️ Resample the actual trade outcomes with replacement. 
-This preserves the exact distribution of wins/losses but 
-randomizes their order. Answers: "given these exact trades, 
-how much could the equity curve vary from sequencing luck?"
-
-For each mode, using all available trades (P1+P2 combined):
-
-A) Run 10,000 bootstrap resamples. Each resample = same 
-number of trades drawn with replacement. For each resample, 
-compute the full equity curve and record:
-
-| Metric | Mean | Median | 5th %ile | 95th %ile | Worst |
-|--------|------|--------|----------|-----------|-------|
-| PF @3t | ? | ? | ? | ? | ? |
-| PF @4t | ? | ? | ? | ? | ? |
-| Max drawdown (ticks) | ? | ? | ? | ? | ? |
-| Max consecutive losses | ? | ? | ? | ? | ? |
-| Max consecutive wins | ? | ? | ? | ? | ? |
-| Total PnL (ticks) | ? | ? | ? | ? | ? |
-| Sharpe ratio | ? | ? | ? | ? | ? |
-| Win rate | ? | ? | ? | ? | ? |
-
-⚠️ The 5th percentile is the "bad luck" scenario — what 
-performance looks like in the worst 5% of trade orderings. 
-This is the conservative planning number.
-
-B) Drawdown duration analysis. For each resample, record 
-the longest drawdown duration (number of trades from equity 
-peak to recovery). Report:
-
-| Metric | Mean | 5th %ile | 95th %ile | Worst |
-|--------|------|----------|-----------|-------|
-| Longest DD duration (trades) | ? | ? | ? | ? |
-| Longest DD duration (est. days) | ? | ? | ? | ? |
-
-⚠️ Use the mode's trades/day estimate to convert trade 
-count to calendar days. A 20-trade drawdown at 1 trade/day 
-= 20 trading days ≈ 4 weeks.
-
-C) Probability of ruin. For each resample, check whether 
-the equity curve ever drops below -X ticks from the starting 
-point (test X = 500, 1000, 1500, 2000 ticks):
-
-| Ruin threshold | % of resamples hitting ruin | Mean trades to ruin |
-|---------------|---------------------------|-------------------|
-| -500t | ? | ? |
-| -1000t | ? | ? |
-| -1500t | ? | ? |
-| -2000t | ? | ? |
-
-📌 REMINDER: Bootstrap preserves win/loss distribution but 
-destroys sequential dependencies. The ACTUAL worst case may 
-be worse if losses cluster (addressed in Section 3).
-
-================================================================
-SECTION 2: STANDARD MONTE CARLO (FORWARD PROJECTION)
-================================================================
-
-⚠️ Generate synthetic trades from estimated parameters. 
-This projects forward assuming the edge is real and stable. 
-Answers: "if I trade this for 6 months, what's the range 
-of outcomes?"
-
-A) Parameter estimation. From the combined P1+P2 trades:
-
-| Parameter | A-Eq ModeA | B-ZScore RTH |
-|-----------|-----------|-------------|
-| Win rate | ? | ? |
-| Mean win (ticks) | ? | ? |
-| Std dev win (ticks) | ? | ? |
-| Mean loss (ticks) | ? | ? |
-| Std dev loss (ticks) | ? | ? |
-| Win distribution shape | Normal / Lognormal / Empirical | ? |
-| Loss distribution shape | Normal / Lognormal / Empirical | ? |
-
-⚠️ Fit both Normal and Lognormal to win/loss distributions. 
-Use the better fit (KS test). If neither fits well, use 
-the empirical distribution directly.
-
-B) Forward simulation. Generate 10,000 synthetic equity 
-curves of N trades each. Test N = 100, 250, 500, 1000 
-(representing ~1 month, ~3 months, ~6 months, ~1 year at 
-estimated trade frequency).
-
-For each N, report:
-
-| N trades | Median PnL | 5th %ile PnL | 95th %ile PnL | P(loss) | Median DD | 95th %ile DD |
-|----------|-----------|-------------|-------------|---------|----------|-------------|
-| 100 | ? | ? | ? | ? | ? | ? |
-| 250 | ? | ? | ? | ? | ? | ? |
-| 500 | ? | ? | ? | ? | ? | ? |
-| 1000 | ? | ? | ? | ? | ? | ? |
-
-⚠️ P(loss) = probability of net negative PnL after N 
-trades. If P(loss) at 250 trades is 2%, you have 98% 
-confidence of being profitable after ~3 months.
-
-C) Time to equity targets. For a starting capital of 
-$25,000 per contract:
-
-| Target | Median trades to reach | 5th %ile | P(never) |
-|--------|----------------------|----------|----------|
-| +$5,000 | ? | ? | ? |
-| +$10,000 | ? | ? | ? |
-| +$25,000 (double) | ? | ? | ? |
-
-📌 REMINDER: Standard MC assumes IID trades — each trade 
-is independent with the same parameters. This OVERSTATES 
-confidence if the edge degrades over time or if losses 
-cluster. Section 3 addresses this.
-
-================================================================
-SECTION 3: REGIME-SWITCHING MONTE CARLO (MARKOV CHAINS)
-================================================================
-
-⚠️ The most realistic simulation. Models the strategy as 
-switching between observable states with different 
-performance characteristics. Answers: "what happens when 
-the strategy enters a bad regime?"
-
-A) State definition. Use ATR regime (already computed) as 
-the observable state:
-
-| State | Definition | From baseline |
-|-------|-----------|--------------|
-| LOW_VOL | ATR < P33 (from P1) | Lower edge, tighter moves |
-| MID_VOL | ATR P33-P67 | Baseline conditions |
-| HIGH_VOL | ATR > P67 | Wider moves, higher DD |
-
-For each mode, compute performance per state on P1+P2:
-
-| State | Trades | WR | Mean win | Mean loss | PF | Max DD |
-|-------|--------|-----|---------|----------|-----|--------|
-| LOW_VOL | ? | ? | ? | ? | ? | ? |
-| MID_VOL | ? | ? | ? | ? | ? | ? |
-| HIGH_VOL | ? | ? | ? | ? | ? | ? |
-
-⚠️ If any state has < 20 trades, merge with the adjacent 
-state and use a 2-state model instead of 3-state.
-
-B) Transition matrix estimation. From the ATR time series 
-(not trade series — use bar data), estimate the probability 
-of transitioning between states:
-
-| From \ To | LOW_VOL | MID_VOL | HIGH_VOL |
-|-----------|---------|---------|----------|
-| LOW_VOL | ? | ? | ? |
-| MID_VOL | ? | ? | ? |
-| HIGH_VOL | ? | ? | ? |
-
-Also estimate mean state duration (bars and days):
-
-| State | Mean duration (bars) | Mean duration (days) |
-|-------|---------------------|---------------------|
-| LOW_VOL | ? | ? |
-| MID_VOL | ? | ? |
-| HIGH_VOL | ? | ? |
-
-C) Regime-switching simulation. Run 10,000 synthetic paths:
-
-📌 REMINDER: This is the most realistic simulation — it 
-models the strategy switching between volatility regimes 
-with estimated transition probabilities. The 5th percentile 
-from this method is the PLANNING NUMBER for live deployment.
-
-1. Start in a random state (weighted by empirical frequency)
-2. Generate trade outcome from that state's distribution
-3. After each trade, check for state transition using the 
-   Markov transition matrix
-4. Continue for N trades
-
-For N = 250 (≈3 months):
-
-| Metric | Mean | 5th %ile | 95th %ile | Worst |
-|--------|------|----------|-----------|-------|
-| PF @3t | ? | ? | ? | ? |
-| Max drawdown (ticks) | ? | ? | ? | ? |
-| Max consecutive losses | ? | ? | ? | ? |
-| Total PnL (ticks) | ? | ? | ? | ? |
-| Time spent in worst state (%) | ? | ? | ? | ? |
-
-D) Worst-regime stress test. Force the simulation to START 
-in the worst-performing state and stay there for 50 trades 
-before allowing transitions:
-
-| Metric | Worst-state-locked | Normal Markov |
-|--------|-------------------|--------------|
-| PF after 50 trades | ? | ? |
-| Max DD in first 50 | ? | ? |
-| Recovery trades after exiting worst state | ? | ? |
-
-⚠️ This simulates "what if I start trading during the 
-worst possible market regime and it persists?" If the 
-strategy survives 50 trades locked in the bad state, it's 
-robust enough for live deployment.
-
-📌 REMINDER: Compare all three methods' 5th percentile DD 
-estimates. The Markov MC should produce WIDER confidence 
-intervals than bootstrap or standard MC because it accounts 
-for regime clustering. If it doesn't, the regime effect is 
-small and the simpler methods are adequate.
-
-================================================================
-SECTION 4: CROSS-METHOD COMPARISON
-================================================================
-
-⚠️ The three methods should AGREE on the general picture 
-but DISAGREE on tail risk. Compare:
-
-| Metric | Bootstrap | Standard MC | Markov MC |
-|--------|-----------|-------------|-----------|
-| Median PF | ? | ? | ? |
-| 5th %ile PF | ? | ? | ? |
-| Median max DD | ? | ? | ? |
-| 95th %ile max DD | ? | ? | ? |
-| P(ruin at -1000t) | ? | ? | ? |
-| Max consecutive losses (95th) | ? | ? | ? |
-
-⚠️ If Markov MC shows significantly worse tail risk than 
-the other two methods, regime effects matter and the 
-conservative sizing should use Markov estimates, not 
-bootstrap. If all three agree, use the simpler bootstrap 
-estimates.
-
-================================================================
-SECTION 5: KELLY CRITERION & POSITION SIZING
-================================================================
-
-⚠️ Kelly gives the theoretical optimal fraction of capital 
-to risk per trade. In practice, nobody uses full Kelly — 
-estimation error makes it dangerous.
-
-A) Kelly computation per mode.
-
-For modes with FIXED exits (A-Eq ModeA):
-- b = target / stop = 60 / 190 = 0.316
-- p = observed WR (use combined P1+P2)
-- q = 1 - p
-- Full Kelly f* = (b × p - q) / b
-- Report f* and the implied position size
-
-For modes with ZONEREL exits (B-ZScore RTH):
-- b varies per trade (zone-width dependent)
-- Compute Kelly for each zone-width quartile:
-
-| Zone width quartile | Mean b (target/stop) | WR | Kelly f* |
-|--------------------|---------------------|-----|---------|
-| Q1 (narrowest) | ? | ? | ? |
-| Q2 | ? | ? | ? |
-| Q3 | ? | ? | ? |
-| Q4 (widest) | ? | ? | ? |
-
-⚠️ If Kelly f* varies significantly across zone widths, 
-position size should be zone-width-conditional.
-
-B) Fractional Kelly analysis.
-
-| Fraction | f* × κ | Capital risked per trade | Expected geometric growth rate | P(ruin at -20% of capital) |
-|----------|--------|------------------------|------------------------------|---------------------------|
-| Full Kelly (κ=1.0) | ? | ? | ? | ? |
-| 3/4 Kelly (κ=0.75) | ? | ? | ? | ? |
-| Half Kelly (κ=0.5) | ? | ? | ? | ? |
-| Quarter Kelly (κ=0.25) | ? | ? | ? | ? |
-| Tenth Kelly (κ=0.1) | ? | ? | ? | ? |
-
-⚠️ P(ruin) is computed from the Markov MC Section 3 — 
-apply each fractional Kelly sizing to the regime-switching 
-simulation and report how often the equity drops 20% from 
-peak.
-
-C) Estimation error sensitivity. Kelly is only as good as 
-the WR and payoff estimates. Test sensitivity:
-
-| WR perturbation | Full Kelly f* | Half Kelly f* | Implied size change |
-|----------------|--------------|--------------|-------------------|
-| Observed WR | ? | ? | baseline |
-| WR - 5pp | ? | ? | ? |
-| WR - 10pp | ? | ? | ? |
-| WR - 15pp | ? | ? | ? |
-| Breakeven WR | ? | ? | 0 (no position) |
-
-⚠️ For A-Eq ModeA: if WR drops from 94.8% to 84.8% 
-(-10pp), does half-Kelly still produce positive expected 
-growth? If not, the sizing is fragile to edge degradation.
-
-📌 REMINDER: Kelly assumes IID bets. Your trades are NOT 
-IID (regime effects from Section 3). Use the Markov MC 
-P(ruin) estimates, not the Kelly formula's theoretical 
-P(ruin), for actual risk management.
-
-D) Practical sizing recommendation.
-
-Given:
-- Account size: $25,000 per contract (NQ margin + buffer)
-- Max acceptable DD: user-defined (report for 10%, 15%, 20%)
-- Worst-case DD from Markov MC 95th percentile
-
-| Max DD tolerance | Contracts per $25K | Implied Kelly fraction | Expected monthly PnL |
-|-----------------|-------------------|----------------------|---------------------|
-| 10% ($2,500) | ? | ? | ? |
-| 15% ($3,750) | ? | ? | ? |
-| 20% ($5,000) | ? | ? | ? |
-
-⚠️ The practical size is: floor(max DD tolerance / 
-Markov 95th percentile DD in dollars). This anchors to 
-the REALISTIC worst case, not the theoretical Kelly 
-optimum.
-
-For multi-mode deployment (A-Eq + B-ZScore RTH running 
-simultaneously):
-
-| Metric | A-Eq alone | B-ZScore RTH alone | Combined |
-|--------|-----------|-------------------|----------|
-| Markov 95th DD (ticks) | ? | ? | ? |
-| Markov 95th DD (dollars, 1 contract each) | ? | ? | ? |
-| Contracts at 15% DD tolerance | ? | ? | ? |
-| Expected monthly PnL at that size | ? | ? | ? |
-
-⚠️ Combined DD is NOT the sum of individual DDs — the 
-modes have low overlap and may drawdown at different times. 
-Simulate the combined equity curve (union of both modes' 
-trades in chronological order) through the Markov MC to 
-get the true combined DD distribution.
-
-================================================================
-SECTION 6: PARAMETER SENSITIVITY
-================================================================
-
-⚠️ How fragile is the strategy to small parameter changes? 
-Nudge each frozen parameter ±10% and ±20%:
-
-A) For A-Eq ModeA:
-
-| Parameter | -20% | -10% | Current | +10% | +20% |
-|-----------|------|------|---------|------|------|
-| Score threshold (45.5) | PF=? | PF=? | PF=? | PF=? | PF=? |
-| Stop (190t) | PF=? | PF=? | PF=? | PF=? | PF=? |
-| Target (60t) | PF=? | PF=? | PF=? | PF=? | PF=? |
-| Time cap (120 bars) | PF=? | PF=? | PF=? | PF=? | PF=? |
-
-B) For B-ZScore Seg2 RTH (report mean across zone widths):
-
-| Parameter | -20% | -10% | Current | +10% | +20% |
-|-----------|------|------|---------|------|------|
-| B-ZScore threshold (0.50) | PF=? | PF=? | PF=? | PF=? | PF=? |
-| Stop multiplier (1.5×ZW) | PF=? | PF=? | PF=? | PF=? | PF=? |
-| Target multiplier (1.0×ZW) | PF=? | PF=? | PF=? | PF=? | PF=? |
-| Time cap (80 bars) | PF=? | PF=? | PF=? | PF=? | PF=? |
-| Seq gate (≤2) | — | — | PF=? | ≤3=? | ≤5=? |
-
-⚠️ If PF changes > 30% with a 10% parameter nudge, that 
-parameter is fragile. Flag it. If PF is stable across ±20% 
-on all parameters, the model is robust.
-
-📌 REMINDER: This is sensitivity analysis on FROZEN 
-parameters. Do NOT optimize — just report how PF changes. 
-If a nudge IMPROVES PF, note it but do NOT adopt it. That's 
-parameter snooping on validation data.
-
-================================================================
-SECTION 7: CONCENTRATION & CALENDAR RISK
-================================================================
-
-A) Trade clustering. Are trades evenly distributed or 
-concentrated in specific periods?
-
-| Period | Trades | PnL | % of total PnL |
-|--------|--------|-----|----------------|
-| Week 1-4 | ? | ? | ? |
-| Week 5-8 | ? | ? | ? |
-| Week 9-12 | ? | ? | ? |
-| Week 13+ | ? | ? | ? |
-
-⚠️ If >50% of PnL comes from 2-3 weeks, the equity curve 
-is driven by a few hot streaks. The Monte Carlo CIs may 
-be optimistic because the underlying process isn't 
-stationary.
-
-B) Day-of-week analysis:
-
-| Day | Trades | WR | PF | Avg PnL |
-|-----|--------|-----|-----|---------|
-| Mon | ? | ? | ? | ? |
-| Tue | ? | ? | ? | ? |
-| Wed | ? | ? | ? | ? |
-| Thu | ? | ? | ? | ? |
-| Fri | ? | ? | ? | ? |
-
-C) Gap risk. For all trades, check whether any position 
-was open at session close (16:55 ET flatten should prevent 
-this, but verify):
+# Stress Test, Monte Carlo & Kelly Sizing — v3.2 Zone Touch Strategy
+
+**Purpose:** Stress test the frozen v3.2 configuration to determine position sizing, 
+capital requirements, and deployment viability. This produces the final risk 
+parameters before C++ implementation and paper trading.
+
+**Branch:** `main`
+**Pipeline version:** 3.2 (model and execution parameters frozen)
+**Date:** 2026-03-24
+
+⚠️ EVERYTHING IS FROZEN. This analysis does not change the model, trade selection, 
+entry, exit, or position sizing rules. It tests the frozen configuration under 
+adverse conditions to determine whether the strategy is deployable and at what 
+capital level.
+
+---
+
+## Frozen Configuration
+
+**Mode 1 (A-Eq ModeA):**
+| Parameter | Value |
+|-----------|-------|
+| Entry | Bar Open after touch (zone edge) |
+| Stop | 190t fixed from entry |
+| Target | 1+2 partial: 1ct@60t + 2ct@120t, BE on runner after T1 |
+| Time cap | 120 bars |
+| Contracts | 3 |
+| P1 trades / PF@3t | 107 / 8.50 |
+| P2 trades / PF@4t | 96 / 6.26 (8.25 with partials) |
+| WR (P2) | 94.8% |
+
+**Mode 2 (B-ZScore RTH):**
+| Parameter | Value |
+|-----------|-------|
+| Entry | Bar Open after touch (zone edge) |
+| Stop | max(1.3×ZW, 100t) from entry |
+| Target | 1.0×ZW |
+| Time cap | 80 bars |
+| Contracts | 3ct if ZW<150, 2ct if 150-250, 1ct if 250+ |
+| P1 trades / PF@3t | 239 / 4.61 |
+| P2 trades / PF@4t | 309 / 4.10 |
+| WR (P1) | 74.5% |
+
+📌 REMINDER: M1 uses 1+2 partial exits. M2 uses 1.3×ZW floor 100t stop (not 1.5×ZW) 
+and position sizing by zone width. These are the FROZEN risk mitigation parameters.
+
+**Combined Combo 1:**
+| Metric | P1 | P2 |
+|--------|----|----|
+| Trades | 346 | 405 |
+| PF | ~5.5 @3t | 4.30 @4t |
+
+⚠️ The P2 PF of 4.30 is the pre-partial baseline. The post-partial combined P2 
+will be computed in Step 1. Use the post-partial number as the true baseline 
+throughout this analysis.
+
+---
+
+## File Locations
+
+```
+TRADE OUTCOMES:
+  c:\Projects\pipeline\shared\archetypes\zone_touch\output\qualifying_trades_outcomes_v32.csv
+
+SIMULATION SCRIPTS:
+  c:\Projects\pipeline\shared\archetypes\zone_touch\zone_touch_simulator.py
+  c:\Projects\pipeline\shared\archetypes\zone_touch\risk_mitigation_v32.py
+
+DEPLOYMENT SPEC:
+  c:\Projects\pipeline\shared\archetypes\zone_touch\output\combined_recommendation_clean_v32.md
+```
+
+⚠️ B-ZScore scoring inconsistency (documented in risk mitigation): P1 uses 
+Score_BZScore from CSV (C=1.0 probability). P2 uses JSON score_bzscore() 
+(C=0.01 raw linear). Both threshold 0.50. If rebuilding populations from scratch, 
+use the same approach as the risk mitigation investigation. If reusing the 
+existing qualifying_trades_outcomes_v32.csv, verify counts match (M1: 107/96, 
+M2: 239/309).
+
+---
+
+## Step 1: Build the True Baseline Trade Sequence
+
+⚠️ MANDATORY FIRST STEP. Generate the complete per-trade outcome series for 
+the frozen configuration on BOTH P1 and P2.
+
+### 1a: Simulate the frozen configuration
+
+Run the position-overlap-aware simulator with the frozen exit parameters 
+(M1 partials, M2 1.3×ZW stop, M2 position sizing) on P1 and P2. The output 
+is a time-ordered sequence of trades with:
+
+| Column | Description |
+|--------|------------|
+| trade_id | Unique identifier |
+| mode | 1 or 2 |
+| datetime | Entry datetime |
+| contracts | Position size (from sizing rules) |
+| pnl_per_contract | Per-contract P&L in ticks |
+| pnl_total | Total P&L (contracts × per-contract) |
+| zone_width | Zone width in ticks |
+| exit_type | TARGET_T1, TARGET_T2, BE_RUNNER, STOP, TIMECAP |
+| bars_held | Duration |
+| win | Boolean |
+
+📌 REMINDER: M1 uses 1+2 partial exits. Each M1 trade produces a multi-leg 
+outcome. Report the COMBINED per-trade PnL (sum across legs). The exit_type 
+should reflect the final leg's exit (the runner determines overall outcome type).
+
+### 1b: Verify baseline metrics
+
+| Metric | P1 Expected | P1 Actual | P2 Expected | P2 Actual |
+|--------|------------|-----------|-------------|-----------|
+| M1 trades | ~107 | ? | ~96 | ? |
+| M2 trades | ~239 | ? | ~309 | ? |
+| M1 PF (with partials) | ~9.52 | ? | ~8.25 | ? |
+| M2 PF | ~4.61 | ? | ~4.10 | ? |
+| Combined PF | ? | ? | ? | ? |
+
+⚠️ If combined post-partial P2 PF differs significantly from expectations, 
+investigate before proceeding.
+
+### 1c: Basic trade statistics
+
+Report for the COMBINED P1+P2 population (all trades in time order):
 
 | Metric | Value |
 |--------|-------|
-| Trades open at session boundary | ? |
-| Overnight gap exposure instances | ? |
-| Max potential gap loss (if position held) | ? |
+| Total trades | ? |
+| Trading days covered | ? |
+| Mean trades per day | ? |
+| Median trades per day | ? |
+| Max trades in one day | ? |
+| Days with zero trades | ? |
+| Mean PnL per trade (ticks, all contracts) | ? |
+| Median PnL per trade | ? |
+| Std dev PnL per trade | ? |
+| Skewness | ? |
+| Max single-trade win (ticks) | ? |
+| Max single-trade loss (ticks) | ? |
+| Win rate | ? |
 
-================================================================
-SUMMARY
-================================================================
+⚠️ Use P1+P2 combined for the stress test — this gives the largest sample. The 
+Monte Carlo bootstrap will resample from this population.
 
-⚠️ Produce a single-page risk summary per mode:
+---
 
-| Metric | A-Eq ModeA | B-ZScore RTH | Combined |
-|--------|-----------|-------------|----------|
-| Observed PF @4t | ? | ? | ? |
-| Bootstrap 5th %ile PF | ? | ? | ? |
-| Standard MC 5th %ile PF (250 trades) | ? | ? | ? |
-| Markov MC 5th %ile PF (250 trades) | ? | ? | ? |
-| Bootstrap 95th %ile max DD (ticks) | ? | ? | ? |
-| Markov 95th %ile max DD (ticks) | ? | ? | ? |
-| P(ruin at -1000t) — Markov | ? | ? | ? |
-| Max consecutive losses (95th %ile) | ? | ? | ? |
-| Full Kelly f* | ? | ? | — |
-| Half Kelly f* | ? | ? | — |
-| Practical contracts at 15% DD tolerance | ? | ? | ? |
-| Expected monthly PnL at practical size | ? | ? | ? |
-| Breakeven WR | ? | ? | ? |
-| WR safety margin (observed - breakeven) | ? | ? | ? |
-| Parameter sensitivity (max PF change at ±10%) | ? | ? | ? |
-| Calmar ratio (annualized return / max DD) | ? | ? | ? |
-| Sortino ratio | ? | ? | ? |
+## Step 2: Historical Drawdown Analysis
 
-⚠️ The MARKOV estimates are the planning numbers for live 
-deployment. Bootstrap and standard MC are optimistic 
-comparisons. If all three agree, high confidence. If 
-Markov is significantly worse, use Markov for sizing.
+### 2a: Equity curve and drawdown series
 
-RISK VERDICT per mode:
-- GREEN: Markov 5th %ile PF > 1.5, P(ruin) < 5%, 
-  parameter sensitivity < 20%, WR margin > 10pp
-- YELLOW: Markov 5th %ile PF > 1.0, P(ruin) < 15%, 
-  some parameter sensitivity
-- RED: Markov 5th %ile PF < 1.0, P(ruin) > 15%, or 
-  fragile parameters
+Compute the cumulative PnL (in ticks, accounting for contract sizing) in trade 
+order. Report:
 
-Save results to stress_test_results.md
+| Metric | P1 | P2 | P1+P2 |
+|--------|----|----|-------|
+| Total profit (ticks) | ? | ? | ? |
+| Max drawdown (ticks) | ? | ? | ? |
+| Profit / Max DD | ? | ? | ? |
+| Max consecutive losses | ? | ? | ? |
+| Max consecutive wins | ? | ? | ? |
+| Longest drawdown (trades) | ? | ? | ? |
+| Longest drawdown (days) | ? | ? | ? |
+
+⚠️ Drawdown is measured in TICKS (all contracts combined), not dollars. The 
+dollar conversion depends on contract size ($5/tick for NQ micro, $20/tick for 
+NQ E-mini). Report in ticks; we'll convert later.
+
+### 2b: Drawdown recovery analysis
+
+For each drawdown that exceeded 500t:
+
+| DD # | Peak Equity | Trough | DD Size | Recovery Trades | Recovery Days |
+|------|------------|--------|---------|-----------------|---------------|
+| 1 | ? | ? | ? | ? | ? |
+| 2 | ? | ? | ? | ? | ? |
+| ... | | | | | |
+
+📌 REMINDER: A 500t drawdown at 1 MNQ contract = $2,500. At 3 contracts = $7,500. 
+The capital requirement must accommodate the max drawdown with margin buffer.
+
+---
+
+## Step 3: Monte Carlo Simulation
+
+⚠️ This is the core stress test. Bootstrap resample the trade outcomes to 
+generate thousands of possible equity paths.
+
+### 3a: Setup
+
+- **Population:** All P1+P2 trades (the combined sequence from Step 1)
+- **Method:** Bootstrap with replacement — randomly sample N trades from the 
+  population (where N = population size) to create one synthetic equity path
+- **Iterations:** 10,000 paths
+- **Trade count per path:** Same as actual trade count (use the P1+P2 total)
+- **Preserve:** Per-trade PnL including contract sizing. Do NOT resample 
+  contracts separately — the pnl_total already reflects position sizing.
+
+⚠️ IMPORTANT: This bootstrap assumes trades are independent. If there's serial 
+correlation (winning streaks, losing clusters), the bootstrap understates tail 
+risk. Check for serial correlation in Step 3b before interpreting results.
+
+### 3b: Serial correlation check
+
+Compute the autocorrelation of the trade PnL series at lags 1-5:
+
+| Lag | Autocorrelation | Significant? (|r| > 2/sqrt(N)) |
+|-----|----------------|-------------------------------|
+| 1 | ? | ? |
+| 2 | ? | ? |
+| 3 | ? | ? |
+| 4 | ? | ? |
+| 5 | ? | ? |
+
+If any lag shows significant autocorrelation, note it. This means the bootstrap 
+understates clustering risk and the drawdown percentiles should be viewed 
+conservatively.
+
+📌 REMINDER: The frozen configuration uses one-position-at-a-time with overlap 
+skipping. Trades are NOT mechanically independent (a long-held trade prevents 
+subsequent signals). However, conditional on being TAKEN, the trade outcomes 
+may still be approximately independent.
+
+### 3c: Monte Carlo results
+
+From the 10,000 paths, report:
+
+**Drawdown distribution:**
+
+| Percentile | Max Drawdown (ticks) |
+|-----------|---------------------|
+| 50th (median) | ? |
+| 75th | ? |
+| 90th | ? |
+| 95th | ? |
+| 99th | ? |
+| Worst case (max) | ? |
+
+⚠️ The 95th percentile max drawdown is the PRIMARY risk metric. Capital 
+allocation should accommodate this with margin buffer.
+
+**Profit distribution:**
+
+| Percentile | Total Profit (ticks) |
+|-----------|---------------------|
+| 5th (worst) | ? |
+| 25th | ? |
+| 50th (median) | ? |
+| 75th | ? |
+| 95th (best) | ? |
+
+**Win rate distribution:**
+
+| Percentile | Win Rate |
+|-----------|---------|
+| 5th | ? |
+| 25th | ? |
+| 50th | ? |
+| 75th | ? |
+| 95th | ? |
+
+### 3d: Ruin probability
+
+From the 10,000 paths, what percentage hit a drawdown exceeding:
+
+| DD Threshold | % of Paths | Interpretation |
+|-------------|-----------|----------------|
+| 1,000t | ? | Moderate stress |
+| 2,000t | ? | Severe stress |
+| 3,000t | ? | Near-ruin for small accounts |
+| 5,000t | ? | Catastrophic |
+
+⚠️ "Ruin" depends on account size and contract type. For 1 MNQ ($5/tick), 
+3,000t = $15,000 drawdown. For 1 NQ ($20/tick), 3,000t = $60,000. These 
+thresholds will be mapped to dollar amounts in Step 5.
+
+---
+
+## Step 4: WR Compression Stress Test
+
+⚠️ The backtested WR may not persist in live trading. Slippage, data differences, 
+and regime changes can compress WR. This test measures sensitivity.
+
+### 4a: WR degradation scenarios
+
+Artificially degrade the win rate by randomly converting N% of winners to 
+losers (assign them -1× mean loss PnL). Run each scenario 1,000 times and 
+report the median PF and 95th percentile max DD:
+
+| WR Reduction | Effective WR (M1/M2) | Median PF | 95th DD |
+|-------------|---------------------|-----------|---------|
+| 0% (baseline) | 94.8% / 74.5% | ? | ? |
+| -2% | 92.8% / 72.5% | ? | ? |
+| -5% | 89.8% / 69.5% | ? | ? |
+| -8% | 86.8% / 66.5% | ? | ? |
+| -10% | 84.8% / 64.5% | ? | ? |
+| -15% | 79.8% / 59.5% | ? | ? |
+
+⚠️ KEY QUESTION: At what WR reduction does PF drop below 2.0? Below 1.5? 
+Below 1.0 (breakeven)? This is the strategy's margin of safety.
+
+📌 REMINDER: M1 has only 4 losers in 107 P1 trades. Converting even 2 winners 
+to losers changes the ratio dramatically. The WR compression test reveals how 
+fragile the M1 edge is.
+
+### 4b: Slippage sensitivity
+
+Add N ticks of total round-trip slippage PER CONTRACT to every trade (this 
+accounts for adverse fills on both entry and exit). For M1 with 3 contracts, 
+N ticks slippage = 3N ticks total position impact. Reduce each trade's 
+pnl_total by (contracts × N):
+
+| Slippage (per ct RT) | Combined PF | M1 PF | M2 PF | 95th DD |
+|---------------------|------------|-------|-------|---------|
+| 0t (baseline) | ? | ? | ? | ? |
+| 2t | ? | ? | ? | ? |
+| 3t | ? | ? | ? | ? |
+| 4t | ? | ? | ? | ? |
+| 6t | ? | ? | ? | ? |
+| 10t | ? | ? | ? | ? |
+
+⚠️ NQ typically has 1-2t of slippage per side (entry and exit), so 2-4t 
+round-trip per contract is realistic. 4t round-trip is conservative. If PF 
+drops below 2.0 at 4t RT slippage, the strategy is fragile.
+
+---
+
+## Step 5: Kelly Criterion & Capital Sizing
+
+### 5a: Kelly fraction
+
+Compute the Kelly fraction for each mode independently:
+
+```
+Kelly% = WR - (1 - WR) / (AvgWin / AvgLoss)
+```
+
+| Metric | Mode 1 | Mode 2 |
+|--------|--------|--------|
+| WR | ? | ? |
+| Avg Win (ticks, per contract) | ? | ? |
+| Avg Loss (ticks, per contract) | ? | ? |
+| Win/Loss ratio | ? | ? |
+| Full Kelly % | ? | ? |
+| Half Kelly % | ? | ? |
+| Quarter Kelly % | ? | ? |
+
+⚠️ Full Kelly is theoretically optimal but assumes perfect parameter knowledge. 
+In practice, half or quarter Kelly is standard for trading strategies with 
+parameter uncertainty. The WR compression test in Step 4 shows how uncertain 
+the parameters are.
+
+### 5b: Capital requirements
+
+The 95th percentile max drawdown from the Monte Carlo (Step 3c) is the combined 
+DD across ALL trades (M1 and M2 mixed). Use THIS number for capital sizing — 
+not per-tier DDs computed separately.
+
+For each contract type, compute the capital needed:
+
+| Contract Type | 95th DD (ticks, from 3c) | 95th DD ($) | 2x Buffer ($) | Min Capital |
+|--------------|------------------------|-------------|---------------|-------------|
+| MNQ ($5/tick) | ? | ? | ? | ? |
+| NQ ($20/tick) | ? | ? | ? | ? |
+
+⚠️ "2× Buffer" = 2× the 95th percentile DD. This is the minimum capital to 
+deploy the strategy with reasonable confidence of surviving the worst expected 
+drawdown without ruin.
+
+📌 REMINDER: NQ intraday margin is typically $1,000-2,000 per MNQ contract. 
+The capital requirement should be WELL above margin — the margin is the exchange 
+minimum, not a sufficient trading stake.
+
+### 5c: Expected annual metrics
+
+Extrapolate from the P1+P2 trade rate and per-trade statistics:
+
+| Metric | MNQ (3ct max) | NQ (3ct max) |
+|--------|-------------|-------------|
+| Est. trades per year | ? | ? |
+| Est. annual profit (ticks) | ? | ? |
+| Est. annual profit ($) | ? | ? |
+| Est. max annual DD ($) | ? | ? |
+| Annual profit / Max DD | ? | ? |
+| Est. annual return on capital | ? | ? |
+
+⚠️ These are ESTIMATES based on backtested performance. Live trading will 
+differ due to slippage, missed fills, and regime changes. Use the slippage-
+adjusted PF (4t RT slippage from Step 4b) for conservative estimates.
+
+---
+
+## Step 6: Regime Sensitivity
+
+### 6a: Rolling performance
+
+Compute rolling 60-trade PF and WR across the P1+P2 sequence:
+
+| Metric | Min | Max | Mean | Std |
+|--------|-----|-----|------|-----|
+| Rolling 60-trade PF | ? | ? | ? | ? |
+| Rolling 60-trade WR | ? | ? | ? | ? |
+
+⚠️ If rolling PF drops below 1.0 for any window, report the dates and 
+characterize the regime (high vol? trend? range?).
+
+### 6b: Monthly performance
+
+Report PnL by calendar month across P1+P2:
+
+| Month | Trades | PF | WR | PnL (ticks) |
+|-------|--------|----|----|-------------|
+| ? | ? | ? | ? | ? |
+| ... | | | | |
+
+⚠️ Are there months with negative PnL? If so, how many and how severe? This 
+sets expectations for live trading — even a profitable strategy has losing 
+months.
+
+---
+
+## Step 7: Output Report
+
+Produce `stress_test_v32.md` with:
+
+### Section 1: Baseline Trade Statistics
+- Post-partial combined P1/P2 metrics
+- Trade frequency, PnL distribution, skewness
+
+### Section 2: Historical Drawdown
+- Equity curve description
+- Drawdown recovery analysis
+- Max consecutive losses
+
+### Section 3: Monte Carlo Results
+- Serial correlation check
+- DD distribution (50th through 99th)
+- Profit distribution
+- Ruin probability table
+
+### Section 4: Stress Tests
+- WR compression results with breakeven point
+- Slippage sensitivity with breakeven point
+
+📌 REMINDER: Report the WR level where PF drops below 2.0, 1.5, and 1.0. 
+Report the slippage level (round-trip per contract) where PF drops below 2.0. 
+These are the strategy's margins of safety.
+
+### Section 5: Kelly & Capital Sizing
+- Kelly fractions per mode
+- Capital requirements per contract type
+- Expected annual metrics (conservative, using 4t RT slippage)
+
+### Section 6: Regime Analysis
+- Rolling performance stability
+- Monthly breakdown
+- Any losing periods identified
+
+### Section 7: Deployment Recommendation
+- Recommended contract type (MNQ vs NQ)
+- Recommended starting capital
+- Expected first-year performance range (5th to 95th percentile)
+- Key risk factors and monitoring thresholds
+
+⚠️ The deployment recommendation should be CONSERVATIVE. Use half-Kelly, 
+4t RT slippage, and 95th percentile DD for all sizing recommendations.
+
+📌 FINAL REMINDER: The model and execution parameters are FROZEN. This analysis 
+does not change anything — it tells us whether the frozen configuration is 
+deployable, at what capital level, and what the realistic risk profile looks like.
+
+---
+
+## Output Files
+
+Save to: `c:\Projects\pipeline\shared\archetypes\zone_touch\output\`
+- `stress_test_v32.md` — full report
+- `stress_test_v32.py` — reproducible analysis script
+- `monte_carlo_results_v32.csv` — raw MC output (10K paths summary)
+
+Commit to `main` with message:
+"Add stress test / Monte Carlo / Kelly analysis"
+
+---
+
+## Self-Check Before Submitting
+
+- [ ] Post-partial combined P2 PF computed (not stale 4.30)
+- [ ] M1 simulation uses 1+2 partial exits (not flat)
+- [ ] M2 simulation uses 1.3×ZW floor 100t stop (not 1.5×ZW)
+- [ ] M2 simulation uses position sizing (3/2/1 by ZW)
+- [ ] Trade sequence is time-ordered (for serial correlation and rolling analysis)
+- [ ] Monte Carlo uses P1+P2 combined population
+- [ ] Serial correlation checked before interpreting MC results
+- [ ] WR compression tested on M1 and M2 independently
+- [ ] Slippage tested as round-trip per contract (2-10t range), scaled by contracts
+- [ ] Capital requirements use COMBINED MC 95th DD (not per-tier)
+- [ ] B-ZScore scoring approach matches risk mitigation (P1 CSV, P2 JSON) if rebuilt
+- [ ] Kelly computed per mode (not combined)
+- [ ] Capital requirements computed for both MNQ and NQ
+- [ ] Annual estimates use 4t RT slippage (conservative)
+- [ ] Rolling PF checked for sub-1.0 windows
+- [ ] Losing months identified and characterized
+- [ ] Deployment recommendation uses half-Kelly and 95th percentile DD
