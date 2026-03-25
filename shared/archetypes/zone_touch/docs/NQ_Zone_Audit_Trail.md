@@ -1,8 +1,8 @@
 # NQ Zone Touch — Audit Trail & Session Journal
 
-> **Date range:** 2026-03-20 through 2026-03-23
-> **Status:** C++ replication PASSED. Throughput re-examined and CONFIRMED. Visual spot-check next.
-> **Last updated:** 2026-03-23
+> **Date range:** 2026-03-20 through 2026-03-25
+> **Status:** v3.2 replication gate PASSED (445/445). Model reproducibility fixed. Paper trade next.
+> **Last updated:** 2026-03-25
 
 ---
 
@@ -295,12 +295,88 @@ throughput_prompt_1_v2.md, throughput_prompt_2_v2.md
 
 ---
 
+---
+
+## v3.2 Pipeline Rebuild — 2026-03-24 through 2026-03-25
+
+### Architecture Change: v3.1 → v3.2
+
+v3.1 used a single A-Cal model with FIXED/ZONEREL exit variants.
+v3.2 redesigned as dual-model waterfall: A-Eq (Mode 1, fixed exits with partials) + B-ZScore (Mode 2, zone-relative exits with ZW-conditional sizing). Feature set expanded from 4 to 7 features. All prompts re-executed on the same P1/P2 data.
+
+### v3.2 Prompt Execution Log
+
+| Prompt | Script | Date | Key Result |
+|--------|--------|------|-----------|
+| Prompt 0 — Baseline | `baseline_v32.py` | 03-24 07:42 | PF=1.34, 3278 touches |
+| Prompt 1a/1b — Feature screening + model building | `feature_screening_v32.py`, `model_building_v32.py` | 03-24 08:12 | 7 winning features (F10,F01,F05,F09,F21,F13,F04). 3 scoring models (A-Cal, A-Eq, B-ZScore) |
+| Prompt 2 — Segmentation + calibration | `prompt2_segmentation_v32.py` | 03-24 09:06 | Frozen manifest produced. A-Eq threshold=45.5, B-ZScore threshold=0.50 |
+| Prompt 3 — Mode classification | `mode_classification_v32.py` | 03-24 09:20 | Dual-model waterfall: A-Eq M1 priority, B-ZScore M2 with RTH/seq/TF filters |
+| Prompt 4 — P2 validation | supplemental prepend | 03-24 14:27 | P2 one-shot passed for both modes |
+
+### v3.2 Post-Pipeline Investigations
+
+| Investigation | Script | Date | Result |
+|--------------|--------|------|--------|
+| Ray Analysis A — Incremental elbow | `ray_elbow_test_v32.py` | 03-24 15:44 | REDUNDANT — no PF gain over 7-feature set |
+| Ray Analysis B — Conditional overlay | `ray_conditional_analysis_v32.py` | 03-24 16:19 | NO VIABLE OVERLAY — no ray filter improves PF |
+| Risk mitigation (includes position scaling) | `risk_mitigation_v32.py` | 03-24 17:41–19:59 | M1: 1+2 partial (1ct@60t + 2ct@120t, BE after T1, stop=190, TC=120). M2: stop=max(1.3xZW,100), target=1.0xZW, TC=80, ZW-conditional sizing (3/2/1 ct). Deeper entries REJECTED (68% fill rate at 10t depth). Zone-fixed geometry REJECTED (single-trade artifact). |
+| Stress test + Monte Carlo | `stress_test_v32.py`, `stress_test_followup_v32.py` | 03-24 20:49–21:21 | 718 trades (P1=331*, P2=387). Combined PF: 5.33/4.52. MC 10k. Max DD: 1129t. Kelly half: M1=42.6%, M2=30.2%. WR compression survives -15%. |
+| Simulation verification | `verify_simulation_v32.py`, `verify_simulation_v32_groundtruth.py` | 03-25 01:10–07:56 | 16 trades walked bar-by-bar. Zero discrepancies. All 20 parameters match spec. |
+
+*P1=331 was based on old pre-scored CSV; corrected to 445 after B-ZScore fix (see below).
+
+### Position Scaling Investigation — Resolved within Risk Mitigation
+
+The `position_scaling_investigation_prompt.md` was queued as a standalone investigation (saved 03-24 09:47). Instead of running it separately, the risk mitigation investigation covered both topics:
+
+- **Deeper entries:** REJECTED — median penetration 15-17t, fill rate 68% at 10t depth. Opportunity-adjusted PF shows selection bias from excluding unfilled trades.
+- **Position scaling:** Implemented as **M2 ZW-conditional sizing** (3ct if ZW<150, 2ct if 150-250, 1ct if 250+). This is position scaling by zone structure rather than entry depth.
+- **Verdict:** Position scaling prompt objectives fully addressed. No separate execution needed.
+
+### v3.2 Replication Gate — PASS (2026-03-25)
+
+- **C++ study:** `ATEAM_ZONE_TOUCH_V32.cpp` with CSV test mode
+- **Result:** 445/445 trades matched on RotBarIndex, PF=4.93 both sides, 237/237 POSITION_OPEN skips matched
+- **1 A-Eq divergence:** RBI=56480 (Python aeq=45.0/M2, C++ aeq=50.0/M1) — ATR-derived feature computation edge case
+- **P2 unchanged:** 387 trades (M1=86, M2=301)
+
+### v3.2 Bugs Found & Fixed
+
+| # | Bug | Root Cause | Fix | Date |
+|---|-----|-----------|-----|------|
+| 1 | B-ZScore degenerate model | `model_building_v32.py` used rolling z-score + C=1.0/L2 | GSD refit with global StandardScaler + C=0.01/L1/liblinear (separate script). JSON saved with correct coefficients. | 03-24 08:34 |
+| 2 | B-ZScore model code not updated | `model_building_v32.py` still had old degenerate settings | Updated code to C=0.01/L1/liblinear/global StandardScaler. Reproduces frozen JSON within float noise. | 03-25 10:39 |
+| 3 | C++ missing sigmoid on B-ZScore | Returned raw linear score, not probability | Added `1/(1+exp(-z))` to both ComputeBZScore paths | 03-25 09:16 |
+| 4 | C++ wrong B-ZScore threshold | V32Config had 0.5417 (Youden's J cutpoint) | Changed to 0.50 per frozen manifest and Python M2_THRESHOLD | 03-25 09:16 |
+| 5 | Float32 precision at 0.5 boundary | Pre-scored values like 0.4999999999997 rounded to 0.5f | Changed PrescoredBZ to double; threshold comparison in double | 03-25 10:14 |
+| 6 | P1 population 331 → 445 | Old pre-scored CSV (expanding-window) inconsistent with frozen JSON (global scaler) | Accepted 445 as correct. P2 unchanged (387). 16 ground-truth trades verified — no mode flips. | 03-25 10:43 |
+
+### v3.2 Parameter Audit (2026-03-25)
+
+Full cross-check across 8 sources (C++ V32Config, frozen manifest JSON, stress_test_v32.py, A-Eq JSON, B-ZScore JSON, risk mitigation report, stress test report, simulation verification report).
+
+| Finding | Severity | Status |
+|---------|----------|--------|
+| F4: B-ZScore model reproducibility | HIGH | RESOLVED — model_building_v32.py updated |
+| F7: Cost ticks P1=3 vs stress_test P2/live=4 | MEDIUM | Documented — conservative bias |
+| F1: BE_after_T1 reporting ambiguity | MEDIUM | Documented — functionally correct |
+| F8: IsRTH upper bound vs Close session | LOW | Unreachable due to 15:30 blackout |
+| F2: A-Eq bin edge rounding (float32) | LOW | No practical impact |
+| F3: B-ZScore threshold JSON vs runtime | INFO | Intentional override |
+
+Full details: `output/v32_replication_gate_results.md`
+
+---
+
 ## Next Steps (in order)
 
-1. ~~Build C++ autotrader~~ — DONE (FIXED v1.0 + ZONEREL v3.0)
-2. ~~C++ replication gate~~ — DONE (85/85 FIXED, 77/77 ZONEREL)
-3. ~~Throughput re-examination~~ — DONE (all conclusions CONFIRMED)
-4. **Visual spot-check** — pick 10 trades, verify on SC chart (zone, entry, exit)
-5. **ZRA+ZB4 consolidation** — merge study chain, re-test both variants
-6. **Paper trade P3** (Mar–Jun 2026) — both variants, weekly Friday reviews
-7. **After P3:** Decide ETH filter, run autoresearch (10 items), investigate zone break strategy
+1. ~~v3.1 C++ autotrader~~ — DONE (FIXED v1.0 + ZONEREL v3.0)
+2. ~~v3.1 replication gate~~ — DONE (85/85 FIXED, 77/77 ZONEREL)
+3. ~~v3.2 pipeline rebuild~~ — DONE (Prompts 0-4, ray screening, risk mitigation, stress test)
+4. ~~v3.2 C++ autotrader~~ — DONE (ATEAM_ZONE_TOUCH_V32.cpp)
+5. ~~v3.2 replication gate~~ — DONE (445/445 PASS)
+6. ~~v3.2 parameter audit~~ — DONE (F4 resolved, all findings documented)
+7. **Re-run stress test** on 445-trade P1 population (deferred — will re-run after final model is locked)
+8. **Paper trade P3** — both M1 and M2, weekly Friday reviews
+9. **After P3:** ETH filter decision, autoresearch (10 items), zone break strategy
