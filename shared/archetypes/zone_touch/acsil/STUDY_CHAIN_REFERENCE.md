@@ -57,6 +57,75 @@ Moved to `_deprecated/`. Replaced by ZoneTouchEngine. Original: A-Cal scoring, m
 
 **Why separate from the data chain:** The autotrader consumes zone data — it doesn't create or measure zones. Keeping it separate means V4/ZTE can be updated independently (with re-validation) without touching trading logic, and vice versa.
 
+### 4c. ATEAM_ZONE_TOUCH_V32 (v3.2 unified autotrader — TO BE BUILT)
+
+**Status:** Not yet implemented. This is the target C++ autotrader for paper trading.
+
+**What it does:** Single autotrader with priority waterfall: A-Eq scoring → Mode 1 (fixed partial exits) OR B-ZScore scoring → Mode 2 (zone-relative exits with position sizing). Replaces both FIXED and ZONEREL autotraders with a unified study.
+
+**Scoring models (frozen):**
+- A-Eq: 7 features, equal weights (10/5/0 bins), threshold 45.5 → Mode 1
+- B-ZScore: 7 features, L1-regularized coefficients + global StandardScaler, threshold 0.50 → Mode 2
+- Config files: `output/feature_config_v32.json`, `output/scoring_model_aeq_v32.json`, `output/scoring_model_bzscore_v32.json`
+
+**Mode 1 exits:** 1+2 partial (1ct@60t + 2ct@120t, BE on runner after T1), stop 190t, TC 120 bars, 3ct.
+
+**Mode 2 exits:** Target 1.0×ZW, stop max(1.3×ZW, 100t), TC 80 bars. Position sizing: 3ct if ZW<150, 2ct if 150-250, 1ct if ZW≥250. Filters: RTH, seq≤2, TF≤120m.
+
+**Circuit breakers:** Daily 700t, consec 5, DD 1,541t from HWM, rolling 30-trade PF floor 1.0.
+
+**Session controls:** EOD forced close 15:50 ET, entry blackout 15:30 ET.
+
+**Deployment spec:** `stages/04-backtest/zone_touch/output/combined_recommendation_clean_v32.md`
+
+## ZTE Subgraph Layout (critical for autotrader integration)
+
+### V4 → ZTE subgraph indices (ZTE reads these from V4)
+
+| Index | Constant | Description |
+|-------|----------|-------------|
+| 0 | V4_SG_DEMAND_SIGNAL | Demand zone creation signal |
+| 1 | V4_SG_DEMAND_ZONE_TOP | Demand zone top price |
+| 2 | V4_SG_DEMAND_ZONE_BOT | Demand zone bottom price |
+| 3 | V4_SG_SUPPLY_SIGNAL | Supply zone creation signal |
+| 4 | V4_SG_SUPPLY_ZONE_TOP | Supply zone top price |
+| 5 | V4_SG_SUPPLY_ZONE_BOT | Supply zone bottom price |
+| 6 | V4_SG_DEMAND_BROKEN | Demand zone broken signal |
+| 7 | V4_SG_SUPPLY_BROKEN | Supply zone broken signal |
+| 8 | V4_SG_NEAREST_DEMAND_TOP | Nearest active demand zone top |
+| 9 | V4_SG_NEAREST_DEMAND_BOT | Nearest active demand zone bottom |
+| 10 | V4_SG_NEAREST_SUPPLY_TOP | Nearest active supply zone top |
+| 11 | V4_SG_NEAREST_SUPPLY_BOT | Nearest active supply zone bottom |
+| 12 | V4_SG_DEMAND_RAY_PRICE | Demand ray price (broken zone accumulation) |
+| 13 | V4_SG_SUPPLY_RAY_PRICE | Supply ray price (broken zone accumulation) |
+| 14 | V4_SG_VP_IMBALANCE_PRICE | VP imbalance price (dead in v3.2 — always 0) |
+
+### ZTE output subgraphs (autotrader reads these from ZTE)
+
+| Index | Name | Description |
+|-------|------|-------------|
+| 0 | SG_M1Demand | M1 (A-Eq ModeA) demand entry signal |
+| 1 | SG_M1Supply | M1 supply entry signal |
+| 2 | SG_M3Demand | M3 (counter-trend) demand entry signal |
+| 3 | SG_M3Supply | M3 supply entry signal |
+| 4 | SG_M4Demand | M4 demand entry signal |
+| 5 | SG_M4Supply | M4 supply entry signal |
+| 6 | SG_SkipDemand | Skipped demand touch (below threshold) |
+| 7 | SG_SkipSupply | Skipped supply touch |
+| 8 | SG_M5Demand | M5 demand entry signal |
+| 9 | SG_M5Supply | M5 supply entry signal |
+| 10 | SG_TrendSlope | Trend bar color (blue=up, red=down) |
+| 11 | SG_TrendZero | Trend slope value in ticks |
+| 12 | SG_DemandEdge | Demand edge touch price |
+| 13 | SG_M1HDemand | M1H (high-score hold) demand signal |
+| 14 | SG_M1HSupply | M1H supply signal |
+| 15 | SG_SupplyEdge | Supply edge touch price |
+| 16 | SG_VPRayTouch | VP ray touch signal (dead in v3.2) |
+| 17 | SG_Reaction | Reaction ticks (hidden) |
+| 18 | SG_Penetration | Penetration ticks (hidden) |
+
+**Persistent storage:** ZTE writes a ZB4-compatible SignalStorage struct (magic `0x5A425634`). The autotrader reads this via `GetPersistentPointerFromChartStudy` to get touch event data, feature values, and zone geometry.
+
 ## Version lock rule
 
 All studies and config files in this directory are snapshots frozen as of 2026-03-23. They produced the data that Pipeline v3.1 validated. If you modify any study in C:\Projects\sierrachart\, the pipeline results may no longer be valid. Before deploying a modified study:
@@ -95,14 +164,24 @@ All studies and config files in this directory are snapshots frozen as of 2026-0
 | M1A_AutoTrader.cpp | SC workspace | — | Dead code, not on any chart |
 | M1B_AutoTrader.cpp | SC workspace | — | Dead code, not on any chart |
 
-## Config Files (P1-frozen — do not modify)
+## Config Files (frozen — do not modify)
 
-| File | Purpose |
-|------|---------|
-| scoring_model_acal.json | A-Cal weights + threshold |
-| feature_config.json | Bin edges + TrendSlope cutoffs |
-| zone_bounce_config_FIXED.h | Autotrader config — fixed exits (v1.0) |
-| zone_bounce_config_ZONEREL.h | Autotrader config — zone-relative exits (v3.0) |
+### v3.2 scoring (used by ATEAM_ZONE_TOUCH_V32)
+
+| File | Location | Purpose |
+|------|----------|---------|
+| feature_config_v32.json | output/ | A-Eq bin edges for 7 features |
+| scoring_model_aeq_v32.json | output/ | A-Eq equal weights + threshold 45.5 |
+| scoring_model_bzscore_v32.json | output/ | B-ZScore L1 coefficients + StandardScaler params |
+
+### Legacy (used by FIXED/ZONEREL autotraders)
+
+| File | Location | Purpose |
+|------|----------|---------|
+| scoring_model_acal.json | acsil/ | A-Cal weights + threshold |
+| feature_config.json | acsil/ | Bin edges + TrendSlope cutoffs |
+| zone_bounce_config_FIXED.h | acsil/ | Autotrader config — fixed exits (v1.0) |
+| zone_bounce_config_ZONEREL.h | acsil/ | Autotrader config — zone-relative exits (v3.0) |
 
 ## Documentation
 
