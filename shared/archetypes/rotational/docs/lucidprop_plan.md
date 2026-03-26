@@ -146,6 +146,7 @@ HardStop is derived from StepDist and depth — not an independent variable. For
   - [ ] Depth distribution (same d0/d1 split?)
   - [ ] Max consecutive losses (similar or worse?)
   - [ ] Cycle frequency per session (similar number of cycles per day?)
+  - [ ] SD dominance by time block (same SDs win same blocks? — compare vs `analysis_sd_by_timeblock.csv`)
 - [ ] **7.3** Pass/Fail criteria:
   - **PASS:** E[R] positive, PropScore within 50% of P1, regime distribution similar
   - **WEAK:** E[R] positive but PropScore degraded >50%, or time block pattern shifts significantly

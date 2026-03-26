@@ -149,6 +149,37 @@ Fine-grained HS sweep (100-160 ticks, 5-tick increments) for SD=25 MCS=2:
 
 HS=125 and HS=130 are within noise of each other. [OPINION] Either is a valid choice. HS=125 is slightly more conservative (lower max loss: $1,250 vs $1,300).
 
+### Finding 9: Dominant StepDist Shifts by Time Block
+
+Tested all 6 SD values (best HS per SD, depth 1) across 30-min blocks. SD=25 is not the best in every block — it wins overall by being consistently decent, not dominant anywhere.
+
+**Winning SD per block (P1 data):**
+
+| Time Block | Best SD | E[R] | 2nd SD | E[R] |
+|-----------|---------|------|--------|------|
+| 09:30-10:00 | SD=10 | -$7.54 | SD=25 | -$19.13 |
+| 10:00-10:30 | SD=50 | $110.91 | SD=30 | $88.75 |
+| 10:30-11:00 | SD=30 | $146.93 | SD=50 | $135.60 |
+| 11:00-11:30 | SD=25 | $30.45 | SD=10 | $4.68 |
+| 11:30-12:00 | SD=50 | $338.66 | SD=30 | $75.49 |
+| 12:00-12:30 | SD=25 | $73.08 | SD=30 | $68.69 |
+| 12:30-13:00 | SD=50 | $31.56 | SD=10 | -$5.71 |
+| 13:00-13:30 | SD=30 | $330.18 | SD=25 | $227.15 |
+| 13:30-14:00 | SD=10 | $0.68 | SD=20 | -$0.86 |
+| 14:00-14:30 | SD=50 | $286.59 | SD=30 | $156.42 |
+| 14:30-15:00 | SD=30 | $343.62 | SD=25 | $155.24 |
+| 15:00-15:30 | SD=20 | $122.67 | SD=15 | $72.80 |
+| 15:30-15:50 | SD=50 | $324.74 | SD=30 | $20.73 |
+
+**Observations:**
+- SD=30 and SD=50 dominate the highest-E[R] blocks (10:30, 11:30, 13:00, 14:00, 14:30)
+- SD=25 dominates the moderate blocks (11:00, 12:00)
+- SD=10 and SD=20 dominate the quietest blocks (13:30, 15:00)
+- 09:30-10:00 is negative for ALL SD values — universally bad regardless of grid scale
+- [OPINION] The rotation scale shifts throughout the day. SD=25 works as a one-size-fits-all because it avoids the worst mismatches, but a dynamic SD selection could capture significantly more edge.
+
+**Data saved:** `analysis_sd_by_timeblock.csv` — full metrics per SD × time block for P2 comparison.
+
 ---
 
 ## Open Questions for Next Analysis
@@ -157,6 +188,8 @@ HS=125 and HS=130 are within noise of each other. [OPINION] Either is a valid ch
 
 2. **Rotation scale detection:** Can we identify in real-time whether the current market is rotating at the SD=25 scale? (See Future Exploration section in audit trail — three approach options + MA-based trend filter documented.)
 
-3. **P2 holdout validation:** Run on P2 data (frozen params, one shot) per pipeline rules. Check whether time block pattern and regime distribution hold.
+3. **P2 holdout validation:** Run on P2 data (frozen params, one shot) per pipeline rules. Check whether time block pattern, regime distribution, and SD-by-block dominance hold.
 
 4. **Time gate + HS combination:** The time gate and HS analyses were done independently. The optimal HS might shift when the bad blocks are excluded (fewer trend cycles in the data → different HS balance point).
+
+5. **Dynamic SD selection:** Finding 9 shows different SDs dominate different blocks. [SPECULATION] A two-SD approach (e.g., SD=25 for midday, SD=30-50 for morning/afternoon) could capture more edge if the pattern holds in P2.
