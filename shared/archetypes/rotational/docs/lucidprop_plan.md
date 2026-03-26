@@ -132,11 +132,23 @@ HardStop is derived from StepDist and depth — not an independent variable. For
 - [ ] **6.3** Measure: eval pass rate, median days to pass, funded survival, total extracted value
 - [ ] **6.4** Document results
 
-### Phase 7: Validation & Deployment
+### Phase 7: P2 Holdout Validation
 
 - [ ] **7.1** P2 holdout run with frozen top config (one shot, per pipeline rules)
-- [ ] **7.2** If P2 passes: paper trade on LP study with identified settings
-- [ ] **7.3** If P2 fails: investigate, do NOT re-optimize
+- [ ] **7.2** Compare P2 vs P1 — check if these hold or shift:
+  - [ ] Overall E[R], sigma, PropScore, win rate
+  - [ ] 30-minute block pattern (09:30 worst, 13:00 best — same in P2?)
+  - [ ] Regime distribution (% clean rotation / martingale save / trend overcame)
+  - [ ] Depth distribution (same d0/d1 split?)
+  - [ ] Max consecutive losses (similar or worse?)
+  - [ ] Cycle frequency per session (similar number of cycles per day?)
+- [ ] **7.3** Pass/Fail criteria:
+  - **PASS:** E[R] positive, PropScore within 50% of P1, regime distribution similar
+  - **WEAK:** E[R] positive but PropScore degraded >50%, or time block pattern shifts significantly
+  - **FAIL:** E[R] negative, or regime distribution fundamentally different (e.g., trend overcame jumps from 26% to 50%+)
+- [ ] **7.4** If PASS: proceed to paper trade on LP study with identified settings
+- [ ] **7.5** If WEAK: document what shifted, assess if it's a regime change or noise
+- [ ] **7.6** If FAIL: investigate root cause, do NOT re-optimize on P2 data
 
 ---
 
