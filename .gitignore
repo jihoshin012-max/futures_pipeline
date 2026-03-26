@@ -39,3 +39,5 @@ stages/01-data/output/zone_prep/ATEAM_*.csv
 
 # P2 holdout lock flag
 stages/04-backtest/p2_holdout/holdout_locked_P2.flag
+shared/archetypes/rotational/docs/sweep_all_cycles.csv
+shared/archetypes/rotational/acsil/*.dll

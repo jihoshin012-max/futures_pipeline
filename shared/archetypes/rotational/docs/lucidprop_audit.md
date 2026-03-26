@@ -162,8 +162,80 @@
   - Python output: ATEAM_LP_PY_cycles.csv
   - Compared with `diff` — identical
 
+### Phase 3: Parameter Sweep
+
+**Sweep v1 (completed, archived):**
+- [x] 108 configs: SD [10,15,20,25,30,50] × HS [20,30,40,60,80,120] × MF [0,3,5]
+- [x] Fixed: MCS=2, ML=1 (funded tier 1 constraints)
+- [x] Commission: $4.00/RT (later corrected to $3.50)
+- [x] Results saved: `sweep_results_v1_SD10-50_HS20-120_MF0-5_commission400.csv`
+- [x] Key findings:
+  - MaxFades has no effect — dropped from future sweeps
+  - Most configs tested pure rotation (HS < SD_ticks), not martingale
+  - SD=25 HS=120 was top PropScore but only allowed 1 add with 20 ticks of room
+  - HS range too tight to test actual martingale behavior at larger SD values
+
+**Design iteration (discussion-driven):**
+- [x] Identified that HS is derived from SD and depth, not an independent variable
+- [x] HS minimum for adds: depth 1 needs HS ≥ SD_ticks, depth 2 needs HS ≥ 1.5×SD_ticks, etc.
+- [x] MLL caps max loss: position × HS × $5/tick ≤ $2,000 for viable configs
+- [x] Decision: drop eval/funded constraints from sweep, run full unconstrained grid, tag viability after
+- [x] Decision: start from eval (4 minis) not funded tier 1 (2 minis) — must pass eval first
+- [x] Decision: regime classification by cycle outcome at each SD scale (depth + exit_type)
+- [x] Decision: save all cycle-level data for 30-min block and regime post-processing
+- [x] Commission corrected to $3.50/RT mini, $1.00/RT micro
+
+**Sweep v2 (baseline, running):**
+- [x] 144 configs: 6 SD × 4 depths (MCS=1,2,4,8) × 6 HS per depth
+- [x] HS derived from depth minimums with multipliers [1.0, 1.25, 1.5, 2.0, 2.5, 3.0]
+- [x] Depth 0: 36 configs (pure rotation, all eval-viable)
+- [x] Depth 1: 36 configs (25 eval-viable, 11 informational)
+- [x] Depth 2: 36 configs (4 eval-viable, 32 informational)
+- [x] Depth 3: 36 configs (0 eval-viable, all informational)
+- [x] Commission: $3.50/RT
+- [x] Outputs: sweep_results.csv + sweep_all_cycles.csv (full cycle data)
+- [ ] Results pending — sweep running (~51 min estimated)
+
+---
+
+## Decisions Log (continued)
+
+| Date | Decision | Rationale |
+|------|----------|-----------|
+| 2026-03-25 | Drop MaxFades from sweep | v1 showed no effect across all configs |
+| 2026-03-25 | HS is derived from SD × depth, not independent | HS below depth minimum means adds can't fire — testing those is testing pure rotation, not martingale |
+| 2026-03-25 | Full unconstrained sweep, tag viability post-hoc | Allows isolating results for any stage (eval/funded/live) without re-running |
+| 2026-03-25 | Start from eval constraints, not funded tier 1 | Must pass eval first; if it fails at 4 minis it fails at 2 |
+| 2026-03-25 | Regime = cycle outcome at that SD scale | Rotational vs trending is scale-dependent; reversal=rotation, stop=trend at that grid |
+| 2026-03-25 | Save all cycle data for post-processing | Enables 30-min block analysis, regime splits without re-running sims |
+| 2026-03-25 | Commission: $3.50/RT mini, $1.00/RT micro | Corrected from initial $4.00/$0.50 estimates |
+
 ---
 
 ## Next Up
 
-**Phase 3:** Build sweep harness, run 90-config sweep on full P1 data, compute E[R], σ, PropScore per config.
+**After sweep v2 completes:**
+1. Review results — which SD × depth combinations have positive E[R]
+2. Build 30-min block analysis on saved cycle data
+3. Regime analysis: rotation vs trend breakdown by cycle outcome
+4. Identify top configs for targeted follow-up sweeps
+
+---
+
+## Future Exploration
+
+### Rotation Scale Detection Study (Filter Study)
+
+**Goal:** Identify the current dominant rotation scale in real-time to inform StepDist selection or enable/disable trading based on whether the market matches the strategy's grid.
+
+**Approach options:**
+
+1. **Rolling zigzag swing size** — run zigzag at a small threshold (e.g., 3 pts) over a lookback window (30–60 min). Median completed swing size = current rotation scale. Maps directly to which SD is appropriate. Can also detect scale trend (expanding/contracting swings → possible transition to trend).
+
+2. **Rolling range vs displacement** — over a lookback window, compare total range (high - low) to net displacement (|close - open|). High range + low displacement = rotational. The ratio is a "rotation quality" score, and the absolute range indicates the scale.
+
+3. **Multi-scale fractal decomposition** — run zigzag simultaneously at multiple thresholds (e.g., 5, 10, 15, 25, 50 pts). Report which scale has the most active completions. Connects directly to the fractal Layer 2 analysis (Fact 1 self-similarity, Fact 3 parent/child ratio).
+
+**Implementation:** Separate SC study (like SpeedRead) that the rotation strategy reads via inter-study reference. Outputs rotation scale, quality score, and scale trend as subgraph values.
+
+**Dependencies:** None on the current sweep — this is an independent research track. The sweep results (specifically the regime analysis showing which SD performs best in which conditions) would inform the thresholds for this study.
