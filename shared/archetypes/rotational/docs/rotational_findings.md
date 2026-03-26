@@ -315,6 +315,32 @@ Full RTH goes negative at ~5 ticks RT slippage. Time gate survives beyond 6 tick
 
 **Data saved:** `stress_test_config79.csv`, `stress_test_config79_timegate.csv`
 
+### Finding 19: Personal Account Risk Summary
+
+Concerns independent of any prop firm — applies to trading this strategy on personal capital:
+
+**Concerns:**
+
+1. **Thin WR margin** — A 5% drop in win rate (73% → 69%) takes PF below 1.0. Only ~5 percentage points of cushion before breakeven. Regime changes or live execution differences could erode this.
+
+2. **Large drawdowns relative to per-cycle profit** — Strategy makes $33-66 per cycle but 95th percentile max DD is $27K-47K. At half Kelly with 2× buffer, requires $55K-94K starting capital to trade 1 mini NQ.
+
+3. **P1 sequence was lucky** — Historical DD ($20K full RTH) was at 12th percentile of reshuffled paths. 88% of random orderings of the same trades produced worse drawdowns. Future performance may see worse sequencing.
+
+4. **Low W/L ratio (0.40)** — Avg win $493, avg loss $1,234. Losses are 2.5× larger than wins. Strategy relies entirely on high win rate to compensate. Any WR degradation hits disproportionately hard because each loss takes back ~2.5 wins.
+
+5. **Slippage sensitivity** — At 2 ticks RT slippage (realistic for NQ market orders), PF drops from 1.10 to 1.05 (full RTH). Thin margin between profitable and breakeven execution.
+
+**Not a concern:**
+
+- Serial correlation is minimal — cycles are approximately independent
+- Strategy is profitable in both full RTH and time gate variants
+- Daily P&L is positive on 68% of trading days
+- Sharpe (4.87-7.29) and Sortino (8.64-22.67) are strong despite drawdown magnitude
+- Slippage at realistic levels (1-2 ticks) is tolerable
+
+[OPINION] The biggest practical risk is item 4 — the asymmetric win/loss size. The strategy needs to maintain 70%+ win rate to stay profitable, and there's only ~5pp of cushion. P2 validation of the win rate stability is the most critical next step.
+
 ---
 
 ## Open Questions for Next Analysis
