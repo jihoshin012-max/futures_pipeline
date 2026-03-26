@@ -231,13 +231,21 @@
 
 **Goal:** Identify the current dominant rotation scale in real-time to inform StepDist selection or enable/disable trading based on whether the market matches the strategy's grid.
 
-**Approach options:**
+**Approach options with pros/cons:**
 
-1. **Rolling zigzag swing size** — run zigzag at a small threshold (e.g., 3 pts) over a lookback window (30–60 min). Median completed swing size = current rotation scale. Maps directly to which SD is appropriate. Can also detect scale trend (expanding/contracting swings → possible transition to trend).
+| | Option 1: Rolling Zigzag | Option 2: Range/Displacement | Option 3: Multi-Scale Fractal |
+|---|---|---|---|
+| **What it measures** | Median swing size over lookback | Ratio of range to net movement | Which scale has most active completions |
+| **Output** | Single number (pts) — "swings are ~20 pts right now" | Ratio 0–1 — "how rotational" but not what scale | Multiple numbers — activity level per scale |
+| **Directly maps to SD?** | Yes — median swing ≈ suggested SD | No — tells you IF rotational but not the scale | Yes — the most active scale = suggested SD |
+| **Computational cost** | Low — one zigzag pass | Very low — just high/low/close over window | Higher — multiple zigzag passes |
+| **Lookback sensitivity** | Sensitive — too short = noisy, too long = lagging | Same sensitivity | Less sensitive — multiple scales smooth each other |
+| **Handles transitions** | Detects via expanding/contracting swing size | Detects via ratio dropping toward 1.0 (trending) | Detects via activity shifting between scales |
+| **False signals** | A single large swing skews the median | A trend within the window looks rotational if it reverses | More robust — a trend shows up as completions at larger scales only |
+| **Complexity to build** | Simple — standard zigzag + rolling stats | Simplest — basic math on OHLC | Most complex — multiple concurrent zigzags + comparison logic |
+| **Already validated?** | Yes — the fractal analysis used this exact zigzag | Partially — common technique but not tested in this pipeline | The fractal decomposition (Part 2) IS this analysis, but as batch not real-time |
 
-2. **Rolling range vs displacement** — over a lookback window, compare total range (high - low) to net displacement (|close - open|). High range + low displacement = rotational. The ratio is a "rotation quality" score, and the absolute range indicates the scale.
-
-3. **Multi-scale fractal decomposition** — run zigzag simultaneously at multiple thresholds (e.g., 5, 10, 15, 25, 50 pts). Report which scale has the most active completions. Connects directly to the fractal Layer 2 analysis (Fact 1 self-similarity, Fact 3 parent/child ratio).
+**[OPINION] Recommended path:** Option 1 is the most viable starting point — directly answers "what SD should I use right now," simple to build, zigzag already exists in the pipeline. Option 2 answers a different question ("is it rotational?" not "at what scale?"). Option 3 is the most robust but is essentially a real-time fractal decomposition — better as an evolution of Option 1 after it proves useful.
 
 **Implementation:** Separate SC study (like SpeedRead) that the rotation strategy reads via inter-study reference. Outputs rotation scale, quality score, and scale trend as subgraph values.
 
