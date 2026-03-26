@@ -250,3 +250,32 @@
 **Implementation:** Separate SC study (like SpeedRead) that the rotation strategy reads via inter-study reference. Outputs rotation scale, quality score, and scale trend as subgraph values.
 
 **Dependencies:** None on the current sweep — this is an independent research track. The sweep results (specifically the regime analysis showing which SD performs best in which conditions) would inform the thresholds for this study.
+
+### Expanded Study Options with Lag Assessment (post-P2)
+
+P2 validation confirmed that a fixed SD is vulnerable to scale shifts between regimes. SD=25 was P1-optimal but failed P2, while SD=30/50 improved. The rotation scale detection study is now a priority, not just a nice-to-have.
+
+**Price-based approaches:**
+
+| Study | How it works | What it tells you | Complexity | Lag |
+|-------|-------------|-------------------|------------|-----|
+| Rolling zigzag median | Zigzag at small threshold (3pt), median swing over lookback | "Swings are ~30pts right now" -> use SD=30 | Low | Medium — needs several completed swings in the lookback to produce a stable median |
+| Price distance from MA / SD | \|Price - MA\| / StepDist | Whether current price fits the grid scale | Low | Medium — MA itself lags by its period |
+| Multi-threshold zigzag | Zigzag at 10,15,20,25,30,50 simultaneously, most completions wins | Which scale is most active right now | Medium | Low-Medium — detects scale shift as soon as completions shift between thresholds |
+| ATR-relative scaling | SD = f(ATR), scale grid with volatility | Dynamic grid that expands/contracts | Low | Medium-High — ATR is a trailing indicator (typically 14-20 period) |
+
+**Strategy-feedback approaches:**
+
+| Study | How it works | What it tells you | Complexity | Lag |
+|-------|-------------|-------------------|------------|-----|
+| Rolling cycle health | Last N cycle outcomes, pause if stop rate exceeds threshold | Strategy is failing at this scale | Low | High — must lose money first before signal triggers. N cycles of loss before detection |
+| Depth-weighted outcome | Track reversal rate at d0 vs d1 over rolling window | Scale mismatch if d0 reversals drop | Low | High — same as above, losses come before signal |
+
+**Hybrid approaches:**
+
+| Study | How it works | What it tells you | Complexity | Lag |
+|-------|-------------|-------------------|------------|-----|
+| Zigzag + cycle feedback | Zigzag suggests SD, cycle health confirms/overrides | Two signals must agree | Medium | Medium — zigzag detects early, cycle health confirms with lag |
+| Dual-SD runner | Run two SDs simultaneously, allocate to better recent performer | Let market pick the winner | Medium-High | Medium — needs enough cycles at each SD to measure, but detects faster than single-SD since both always run |
+
+[OPINION] The key tradeoff: price-based methods detect scale changes faster but may give false signals. Strategy-feedback methods are more reliable but require losing money before they trigger. [SUGGESTION] The hybrid and dual-SD approaches attempt to balance early detection with confirmation — but this has not been tested and the actual lag/accuracy tradeoff would need to be measured empirically.
