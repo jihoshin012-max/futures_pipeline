@@ -385,8 +385,9 @@ SCSFExport scsf_ATEAM_ZONE_TOUCH_V32(SCStudyInterfaceRef sc)
     SCInputRef Input_Slot8TF          = sc.Input[44];
     SCInputRef Input_EOD_CloseHHMM    = sc.Input[45];
     SCInputRef Input_EOD_BlackoutHHMM = sc.Input[46];
-    SCInputRef Input_CSVTestMode      = sc.Input[47];
-    SCInputRef Input_CSVTestPath      = sc.Input[48];
+    SCInputRef Input_CB_DailyInclOpen  = sc.Input[47];
+    SCInputRef Input_CSVTestMode      = sc.Input[48];
+    SCInputRef Input_CSVTestPath      = sc.Input[49];
 
     // --- Subgraphs (separate up/down — SC DrawStyle applies to all bars) ---
     SCSubgraphRef SG_M1Long       = sc.Subgraph[0];  // demand entry (arrow up)
@@ -518,6 +519,9 @@ SCSFExport scsf_ATEAM_ZONE_TOUCH_V32(SCStudyInterfaceRef sc)
 
         Input_CB_Reset.Name = "CB Reset (set 1 to reset)";
         Input_CB_Reset.SetInt(0);
+
+        Input_CB_DailyInclOpen.Name = "CB Daily Loss Incl Open P&L";
+        Input_CB_DailyInclOpen.SetYesNo(0);  // default: realized only
 
         Input_LogEnabled.Name = "CSV Logging Enabled";
         Input_LogEnabled.SetYesNo(1);
@@ -2077,7 +2081,20 @@ SCSFExport scsf_ATEAM_ZONE_TOUCH_V32(SCStudyInterfaceRef sc)
     // =================================================================
     auto CBTriggered = [&]() -> bool {
         if (!Input_CB_Enabled.GetBoolean()) return false;
-        return cb.CB_Daily || cb.CB_Consec || cb.CB_Drawdown || cb.CB_RollingPF;
+
+        // Daily loss: optionally include unrealized P&L from open position
+        bool dailyHit = cb.CB_Daily;
+        if (!dailyHit && Input_CB_DailyInclOpen.GetBoolean() && pos.InTrade)
+        {
+            float curPrice = sc.Close[sc.Index];
+            float openTicks = (curPrice - pos.EntryPrice) / tickSize * (float)pos.Direction;
+            float openPnl = pos.PartialPnlTicks + openTicks * (float)pos.RemainingContracts;
+            float totalDaily = cb.DailyPnl + openPnl;
+            if (totalDaily <= -(float)Input_CB_DailyLoss.GetInt())
+                dailyHit = true;
+        }
+
+        return dailyHit || cb.CB_Consec || cb.CB_Drawdown || cb.CB_RollingPF;
     };
 
     auto CBStateStr = [&](char* buf, int bufLen) {
