@@ -124,17 +124,38 @@ HardStop is derived from StepDist and depth — not an independent variable. For
 - [x] **5.3** Evaluated 12:30-13:00 and 13:30-14:00 exclusions — both help
 - [x] **5.4** Documented in `rotational_findings.md` (Findings 7-8)
 
-### Phase 6: Monte Carlo Validation
+### Phase 6: Monte Carlo & Stress Test
 
-- [ ] **6.1** Build Monte Carlo simulator with explicit LucidFlex rules:
+Based on zone touch stress test framework — applicable steps only.
+
+- [ ] **6.1** Historical drawdown analysis on best config (SD=25 HS=125, with and without time gate)
+  - Equity curve, max DD, profit/DD ratio
+  - Max consecutive losses/wins
+  - Longest drawdown in trades and days
+  - DD recovery analysis (each DD > $500)
+- [ ] **6.2** Serial correlation check (lags 1-5 on cycle P&L)
+- [ ] **6.3** Bootstrap Monte Carlo (10,000 paths)
+  - DD distribution (50th, 75th, 90th, 95th, 99th percentile)
+  - Profit distribution
+  - Ruin probability at MLL thresholds ($1,000, $1,500, $2,000)
+- [ ] **6.4** Reshuffling MC (10,000 paths — was P1 sequence lucky?)
+  - Compare reshuffled DD distribution vs bootstrap
+  - Historical DD percentile rank in reshuffled distribution
+- [ ] **6.5** WR compression stress test
+  - Degrade win rate by 2%, 5%, 8%, 10%, 15%
+  - Report median PF and 95th DD at each level
+  - Identify WR where PF drops below 2.0, 1.5, 1.0
+- [ ] **6.6** Slippage sensitivity
+  - Add 1, 2, 3, 4, 6 ticks RT slippage per contract per cycle
+  - Report PF and 95th DD at each level
+- [ ] **6.7** Kelly sizing
+  - Full, half, quarter Kelly fractions
+  - Capital requirements using 95th percentile DD
+- [ ] **6.8** LucidFlex eval Monte Carlo (10,000 paths)
   - Trailing EOD drawdown (MLL trails HWM − $2,000, locks at $52,100)
-  - Scaling tier transitions (2 → 3 → 4 minis as profit grows)
-  - Consistency rule (eval: 50% max single-day profit)
-  - Payout logic (5 profitable days at $150+, $2,000 cap)
-  - Commission on every cycle
-- [ ] **6.2** Run 10,000 Monte Carlo paths per top config
-- [ ] **6.3** Measure: eval pass rate, median days to pass, funded survival, total extracted value
-- [ ] **6.4** Document results
+  - Consistency rule (50% max single-day profit)
+  - Eval pass rate, median days to pass
+- [ ] **6.9** Document results in `rotational_findings.md`
 
 ### Phase 7: P2 Holdout Validation
 

@@ -182,14 +182,149 @@ Tested all 6 SD values (best HS per SD, depth 1) across 30-min blocks. SD=25 is 
 
 ---
 
+## Phase 6 Results: Stress Test & Monte Carlo (2026-03-26)
+
+### Finding 10: Strategy Has Genuine Edge — Risk-Adjusted Ratios Are Strong
+
+Annualized ratios based on 59 P1 trading days (SD=25, HS=125, MCS=2):
+
+| Ratio | Full RTH | Time Gate | Benchmark (strong) |
+|-------|----------|-----------|-------------------|
+| **Sharpe** | 4.87 | 7.29 | > 2.0 |
+| **Sortino** | 8.64 | 22.67 | > 3.0 |
+| **Calmar** | 25.82 | 65.14 | > 3.0 |
+
+Supporting daily P&L statistics:
+
+| Metric | Full RTH | Time Gate |
+|--------|----------|-----------|
+| Daily mean P&L | $1,780 | $2,514 |
+| Daily std | $5,801 | $5,475 |
+| Losing days | 19/59 (32%) | 19/59 (32%) |
+| Best day | $21,102 | $23,584 |
+| Worst day | -$11,052 | -$5,416 |
+| Max DD (daily) | $17,372 | $9,724 |
+
+**Caveat:** 59 trading days is a small sample for annualized ratios. These will likely moderate over longer periods and in P2. The time gate halves the worst-day loss and nearly triples the Sortino.
+
+### Finding 11: Historical Drawdown Profile
+
+| Metric | Full RTH | Time Gate |
+|--------|----------|-----------|
+| Total profit | $105,034 | $148,302 |
+| Max DD | $20,277 | $15,192 |
+| Profit/DD ratio | 5.18 | 9.76 |
+| Max consecutive losses | 6 | 6 |
+| Max consecutive wins | 23 | 23 |
+| Longest DD (trades) | 536 | 351 |
+| Longest DD (days) | 12 | 9 |
+| Drawdowns > $500 | 57 | 73 |
+
+### Finding 12: Serial Correlation is Minimal
+
+| Lag | Full RTH | Time Gate | Significant? |
+|-----|----------|-----------|-------------|
+| 1 | -0.017 | -0.003 | No |
+| 2 | 0.038 | 0.031 | Marginal (full RTH only) |
+| 3 | -0.023 | -0.009 | No |
+| 4 | -0.031 | -0.047 | Marginal (time gate only) |
+| 5 | -0.011 | -0.014 | No |
+
+**Observation:** Autocorrelation is near zero at all lags. The marginally significant values (lag 2 full RTH, lag 4 time gate) are barely above the threshold. Bootstrap Monte Carlo results are not materially understated by serial correlation.
+
+### Finding 13: Bootstrap Monte Carlo — Drawdown Distribution
+
+10,000 resampled paths:
+
+| Percentile | Full RTH DD | Time Gate DD |
+|-----------|-------------|-------------|
+| 50th | $26,686 | $16,940 |
+| 75th | $33,476 | $20,602 |
+| 90th | $41,587 | $24,751 |
+| **95th** | **$47,110** | **$27,667** |
+| 99th | $60,553 | $34,028 |
+| Worst | $87,556 | $57,685 |
+
+**Ruin probability (DD exceeds threshold):**
+
+All thresholds ($1,000 through $3,000) show 100% probability of being hit at some point during the P1 period equivalent. This means a $2,000 MLL will be breached in every simulated path.
+
+### Finding 14: Reshuffling MC — P1 Sequence Was Somewhat Lucky
+
+| Metric | Full RTH | Time Gate |
+|--------|----------|-----------|
+| Historical DD | $20,277 | $15,192 |
+| Percentile in reshuffled | 12.3% | 31.8% |
+| Assessment | Lucky | Average |
+
+Full RTH historical DD was at the 12th percentile of reshuffled paths — the actual loss ordering was more favorable than 88% of random orderings. Time gate at 32nd percentile — closer to average. [OPINION] Capital sizing should use the reshuffled/bootstrap 95th percentile, not the historical DD.
+
+### Finding 15: WR Compression — Thin Margin
+
+| WR Reduction | Full RTH PF | Time Gate PF |
+|-------------|------------|-------------|
+| 0% (baseline) | 1.10 | 1.22 |
+| 2% | 1.02 | 1.13 |
+| 5% | 0.92 | 1.01 |
+| 8% | 0.83 | 0.90 |
+| 10% | 0.78 | 0.84 |
+
+**Full RTH breaks even (PF < 1.0) at ~5% WR reduction.** Time gate breaks even at ~5% as well but starts from a higher base.
+
+[OPINION] The strategy's margin of safety is thin. A 5% drop in win rate (from 73% to 69%) erases the edge entirely. This makes regime stability critical — P2 validation of the win rate is essential.
+
+### Finding 16: Slippage Sensitivity — Moderate Tolerance
+
+| Slippage (ticks RT) | Full RTH PF | Time Gate PF |
+|--------------------|------------|-------------|
+| 0 | 1.10 | 1.22 |
+| 1 | 1.08 | 1.19 |
+| 2 | 1.05 | 1.17 |
+| 3 | 1.03 | 1.14 |
+| 4 | 1.01 | 1.12 |
+| 6 | 0.97 | 1.07 |
+
+Full RTH goes negative at ~5 ticks RT slippage. Time gate survives beyond 6 ticks. With realistic NQ slippage of 1-2 ticks RT on market orders, both versions remain profitable.
+
+### Finding 17: Kelly Sizing
+
+| Metric | Full RTH | Time Gate |
+|--------|----------|-----------|
+| Win rate | 73.4% | 75.1% |
+| Avg win | $493 | $492 |
+| Avg loss | $1,234 | $1,221 |
+| W/L ratio | 0.40 | 0.40 |
+| Full Kelly | 6.7% | 13.4% |
+| Half Kelly | 3.4% | 6.7% |
+| Quarter Kelly | 1.7% | 3.4% |
+
+### Finding 18: LucidFlex Eval Pass Rate — Low
+
+10,000 simulated eval attempts under actual LucidFlex rules (trailing EOD drawdown, $3,000 target, 50% consistency):
+
+| Metric | Full RTH | Time Gate |
+|--------|----------|-----------|
+| **Eval pass rate** | **30.2%** | **34.9%** |
+| Failure rate | 69.8% | 65.1% |
+| Median days to pass | 4 | 4 |
+| 25th-75th days | 3-5 | 3-5 |
+
+**Observation:** The P_pass formula estimated ~47-54% but the Monte Carlo with actual trailing MLL gives 30-35%. The trailing drawdown is significantly more punishing than a static barrier. The $2,000 MLL is too tight for a strategy where a single depth-1 hard stop costs $1,250.
+
+**[OPINION] The strategy has genuine positive edge (Findings 10-11) but the LucidFlex $2,000 MLL may be a poor match for this strategy's loss profile. As a standalone strategy on personal capital, the ratios are strong. For the LucidFlex eval specifically, the Monte Carlo gives ~35% pass rate (1/0.35 = ~2.9 attempts expected to pass, assuming independent attempts).**
+
+**Data saved:** `stress_test_config79.csv`, `stress_test_config79_timegate.csv`
+
+---
+
 ## Open Questions for Next Analysis
 
-1. **Monte Carlo under LucidFlex rules:** Run the probability framework on SD=25 HS=125 with time gate, using explicit trailing drawdown, scaling tiers, and consistency rules. The P_pass formula gives ~54% with time gate — Monte Carlo may differ due to trailing MLL.
+1. **Rotation scale detection:** Can we identify in real-time whether the current market is rotating at the SD=25 scale? (See Future Exploration section in audit trail — three approach options + MA-based trend filter documented.)
 
-2. **Rotation scale detection:** Can we identify in real-time whether the current market is rotating at the SD=25 scale? (See Future Exploration section in audit trail — three approach options + MA-based trend filter documented.)
+2. **P2 holdout validation:** Run on P2 data (frozen params, one shot) per pipeline rules. Check whether time block pattern, regime distribution, ratios, and SD-by-block dominance hold.
 
-3. **P2 holdout validation:** Run on P2 data (frozen params, one shot) per pipeline rules. Check whether time block pattern, regime distribution, and SD-by-block dominance hold.
+3. **Time gate + HS combination:** The time gate and HS analyses were done independently. The optimal HS might shift when the bad blocks are excluded.
 
-4. **Time gate + HS combination:** The time gate and HS analyses were done independently. The optimal HS might shift when the bad blocks are excluded (fewer trend cycles in the data → different HS balance point).
+4. **Dynamic SD selection:** Finding 9 shows different SDs dominate different blocks. [SPECULATION] A two-SD approach (e.g., SD=25 for midday, SD=30-50 for morning/afternoon) could capture more edge if the pattern holds in P2.
 
-5. **Dynamic SD selection:** Finding 9 shows different SDs dominate different blocks. [SPECULATION] A two-SD approach (e.g., SD=25 for midday, SD=30-50 for morning/afternoon) could capture more edge if the pattern holds in P2.
+5. **Alternative prop firm fit:** The strategy may fit better with a prop firm that has a larger MLL or static (non-trailing) drawdown. The 100% ruin probability at $2,000 MLL is a structural mismatch, not a strategy flaw.
