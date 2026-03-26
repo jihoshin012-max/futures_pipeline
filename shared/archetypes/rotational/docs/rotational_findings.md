@@ -106,14 +106,57 @@ The observed win rates (90-97%) are near the mathematical breakeven threshold (8
 
 ---
 
+## Phase 5 Results: Refinement (2026-03-25)
+
+### Finding 7: Time Gate Significantly Improves Performance
+
+Tested on best config (SD=25, HS=125, MCS=2). Results from P1 cycle data:
+
+| Scenario | Cycles | E[R] | Sigma | PropScore | P_pass Eval |
+|----------|--------|------|-------|-----------|-------------|
+| Full RTH (9:30-15:50) | 3,165 | $33.19 | $768.64 | 0.035 | 46.8% |
+| Excl 09:30-10:00 | 2,600 | $44.56 | $761.27 | 0.048 | 49.4% |
+| Excl 12:30-13:00 | 2,966 | $39.35 | $764.76 | 0.042 | 48.2% |
+| Excl both | 2,401 | $53.11 | $755.67 | 0.057 | 51.3% |
+| Excl 09:30 + 13:30-14:00 | 2,444 | $55.90 | $754.39 | 0.061 | 51.9% |
+| **Excl all 3 bad blocks** | **2,245** | **$66.06** | **$747.57** | **0.072** | **54.3%** |
+
+**Observation:** Excluding the three worst blocks (09:30-10:00, 12:30-13:00, 13:30-14:00) doubles E[R] from $33 to $66 and PropScore from 0.035 to 0.072. Sigma actually decreases (fewer large losses), so the improvement is real, not just from dropping cycles. P_pass eval goes from 46.8% to 54.3%.
+
+**The three bad blocks contribute 920 cycles (29% of total) but produce net losses.** Removing them improves every metric simultaneously — more E[R], less sigma, higher PropScore, higher P_pass.
+
+[SUGGESTION] A time gate excluding these three blocks is the highest-impact single change available. Needs P2 validation to confirm the pattern isn't P1-specific.
+
+### Finding 8: Optimal Hard Stop is 125-130 Ticks for SD=25
+
+Fine-grained HS sweep (100-160 ticks, 5-tick increments) for SD=25 MCS=2:
+
+| HS | Cycles | Win Rate | E[R] | Sigma | PropScore |
+|----|--------|----------|------|-------|-----------|
+| 100 | 3,727 | 50.5% | $0.63 | $499 | 0.001 |
+| 105 | 3,263 | 68.0% | $3.58 | $719 | 0.004 |
+| 110 | 3,226 | 69.0% | $1.94 | $737 | 0.002 |
+| 115 | 3,175 | 70.3% | $9.19 | $750 | 0.010 |
+| 120 | 3,156 | 71.9% | $22.73 | $759 | 0.025 |
+| **125** | **3,165** | **73.4%** | **$33.19** | **$769** | **0.035** |
+| **130** | **3,131** | **74.1%** | **$34.14** | **$783** | **0.036** |
+| 135 | 3,068 | 74.0% | $20.32 | $804 | 0.021 |
+| 140 | 3,018 | 74.5% | $17.95 | $820 | 0.018 |
+| 150 | 2,940 | 75.1% | $7.95 | $853 | 0.008 |
+| 155 | 2,867 | 75.2% | -$2.00 | $873 | -0.002 |
+
+**Observation:** Sharp peak at HS=125-130. Below 120, PropScore drops steeply (the add has too little room to recover). Above 135, sigma grows faster than E[R] (wider stop = bigger losses on failures). HS=100 (the theoretical minimum for the add to fire) produces near-zero E[R] — the add fires but has essentially no recovery room.
+
+HS=125 and HS=130 are within noise of each other. [OPINION] Either is a valid choice. HS=125 is slightly more conservative (lower max loss: $1,250 vs $1,300).
+
+---
+
 ## Open Questions for Next Analysis
 
-1. **Time gate impact:** Quantify the improvement from excluding 09:30-10:00 (and possibly 12:30-13:00) on the top configs. Simple re-filter on saved cycle data.
+1. **Monte Carlo under LucidFlex rules:** Run the probability framework on SD=25 HS=125 with time gate, using explicit trailing drawdown, scaling tiers, and consistency rules. The P_pass formula gives ~54% with time gate — Monte Carlo may differ due to trailing MLL.
 
-2. **Targeted HS sweep around SD=25:** The best config is HS=125. Test HS=110, 115, 120, 125, 130, 135, 140 in 5-tick increments to find the precise optimum.
+2. **Rotation scale detection:** Can we identify in real-time whether the current market is rotating at the SD=25 scale? (See Future Exploration section in audit trail — three approach options + MA-based trend filter documented.)
 
-3. **Rotation scale detection:** Can we identify in real-time whether the current market is rotating at the SD=25 scale? (See Future Exploration section in audit trail — three approach options documented.)
+3. **P2 holdout validation:** Run on P2 data (frozen params, one shot) per pipeline rules. Check whether time block pattern and regime distribution hold.
 
-4. **Monte Carlo under LucidFlex rules:** Run the probability framework on the top configs with explicit trailing drawdown, scaling tiers, and consistency rules. The P_pass formula gives ~47% for the best config — Monte Carlo may differ due to trailing MLL.
-
-5. **P2 holdout validation:** Once a final config is selected, run on P2 data (frozen params, one shot) per pipeline rules.
+4. **Time gate + HS combination:** The time gate and HS analyses were done independently. The optimal HS might shift when the bad blocks are excluded (fewer trend cycles in the data → different HS balance point).

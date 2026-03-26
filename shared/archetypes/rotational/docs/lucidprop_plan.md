@@ -113,12 +113,16 @@ HardStop is derived from StepDist and depth — not an independent variable. For
 - [x] **4.4** Results documented in `rotational_findings.md`
 - [x] **4.5** Output: `analysis_time_blocks.csv`, `analysis_regime.csv`
 
-### Phase 5: Follow-up Sweeps & Refinement — NEXT
+### Phase 5: Follow-up Sweeps & Refinement — COMPLETE
 
-- [ ] **5.1** Time gate impact: quantify improvement from excluding 09:30-10:00 on top configs
-- [ ] **5.2** Targeted HS sweep around SD=25: test HS=110-140 in 5-tick increments
-- [ ] **5.3** Evaluate whether 12:30-13:00 exclusion also helps
-- [ ] **5.4** Document refined findings
+- [x] **5.1** Time gate impact: excluding 3 bad blocks doubles E[R] ($33→$66) and PropScore (0.035→0.072)
+  - 09:30-10:00, 12:30-13:00, 13:30-14:00 are all net negative
+  - P_pass eval: 46.8% → 54.3%
+- [x] **5.2** Targeted HS sweep: SD=25, HS=100-160 in 5-tick steps
+  - Sharp peak at HS=125-130 (PropScore 0.035-0.036)
+  - Below 120 drops steeply, above 135 degrades
+- [x] **5.3** Evaluated 12:30-13:00 and 13:30-14:00 exclusions — both help
+- [x] **5.4** Documented in `rotational_findings.md` (Findings 7-8)
 
 ### Phase 6: Monte Carlo Validation
 
