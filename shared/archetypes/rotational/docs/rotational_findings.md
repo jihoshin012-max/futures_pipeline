@@ -361,14 +361,127 @@ Concerns independent of any prop firm — applies to trading this strategy on pe
 
 ---
 
-## Open Questions for Next Analysis
+## Phase 7 Results: P2 Holdout Validation (2026-03-26)
 
-1. **Rotation scale detection:** Can we identify in real-time whether the current market is rotating at the SD=25 scale? (See Future Exploration section in audit trail — three approach options + MA-based trend filter documented.)
+**Config:** SD=25, HS=125, MCS=2 (frozen from P1 best). Full RTH, no time gate.
+**Data:** NQ 1-tick P2 (Dec 17, 2025 – Mar 13, 2026), 29M bars, RTH only.
+**Result: WEAK/FAIL — edge did not survive P2.**
 
-2. **P2 holdout validation:** Run on P2 data (frozen params, one shot) per pipeline rules. Check whether time block pattern, regime distribution, ratios, and SD-by-block dominance hold.
+### Finding 20: P1 vs P2 Direct Comparison
 
-3. **Time gate + HS combination:** The time gate and HS analyses were done independently. The optimal HS might shift when the bad blocks are excluded.
+| Metric | P1 | P2 | Change |
+|--------|-----|-----|--------|
+| Cycles | 3,165 | 3,341 | +5.6% (similar) |
+| Win rate | 73.4% | 71.2% | -2.2pp |
+| Net E[R] | $33.19 | **$0.16** | -99.5% |
+| Sigma | $768.64 | $785.17 | +2.2% (similar) |
+| PropScore | 0.0353 | **0.0002** | -99.4% |
+| Max DD | $20,277 | **$52,150** | +157% |
+| Total profit | $105,034 | **$528** | -99.5% |
+| Max consec losses | 6 | 6 | Same |
+| Sharpe | 4.87 | **0.03** | -99.4% |
+| Sortino | 8.64 | **0.04** | -99.5% |
+| Calmar | 25.82 | **0.05** | -99.8% |
+| Losing days | 19/59 (32%) | 32/60 (53%) | +21pp |
 
-4. **Dynamic SD selection:** Finding 9 shows different SDs dominate different blocks. [SPECULATION] A two-SD approach (e.g., SD=25 for midday, SD=30-50 for morning/afternoon) could capture more edge if the pattern holds in P2.
+**Observation:** The 2.2pp win rate drop (73.4% -> 71.2%) erased virtually all profit. This confirms the WR compression stress test (Finding 15) which predicted PF < 1.0 at ~5% WR reduction. The strategy crossed the breakeven threshold.
 
-5. **Alternative prop firm fit:** The strategy may fit better with a prop firm that has a larger MLL or static (non-trailing) drawdown. The 100% ruin probability at $2,000 MLL is a structural mismatch, not a strategy flaw.
+### Finding 21: Regime Distribution Held — Edge Within Regime Thinned
+
+| Regime | P1 | P2 |
+|--------|-----|-----|
+| Clean rotation | 50.1% | 48.6% |
+| Martingale save | 22.4% | 22.1% |
+| Trend overcame | 25.8% | 27.7% |
+| EOD incomplete | 1.6% | 1.6% |
+
+The regime distribution is remarkably stable. The per-regime P&L is also nearly identical (win avg ~$498, loss avg ~$1,260 in both). The edge erosion came from the 2pp shift from rotation to trend — more cycles ended as stops rather than reversals.
+
+### Finding 22: Time Block Pattern Partially Held, Partially Shifted
+
+**P2 time block detail (SD=25, HS=125):**
+
+| Block | P2 Cycles | P2 WR | P2 E[R] | P1 E[R] | Pattern |
+|-------|-----------|-------|---------|---------|---------|
+| 09:30-10:00 | 844 | 70.7% | -$17.05 | -$19.13 | Held (both negative) |
+| 10:00-10:30 | 550 | 72.9% | +$21.37 | +$16.08 | Held |
+| 10:30-11:00 | 349 | 67.9% | **-$66.20** | +$89.05 | **Flipped** |
+| 11:00-11:30 | 243 | 69.5% | -$38.07 | +$30.45 | **Flipped** |
+| 11:30-12:00 | 223 | 78.0% | +$111.22 | +$29.94 | Held (stronger) |
+| 12:00-12:30 | 180 | 76.1% | +$74.51 | +$73.08 | Held |
+| 12:30-13:00 | 182 | 74.2% | +$43.68 | -$58.70 | **Flipped** |
+| 13:00-13:30 | 143 | 73.4% | +$43.33 | +$227.15 | Held (weaker) |
+| 13:30-14:00 | 139 | 65.5% | -$103.28 | -$133.19 | Held (both negative) |
+| 14:00-14:30 | 119 | 65.5% | -$101.83 | +$48.71 | **Flipped** |
+| 14:30-15:00 | 131 | 75.6% | +$81.57 | +$155.24 | Held (weaker) |
+| 15:00-15:30 | 128 | 64.1% | **-$111.96** | +$66.95 | **Flipped** |
+| 15:30-15:50 | 110 | 67.3% | +$120.68 | -$78.99 | **Flipped** |
+
+**6 of 13 blocks flipped sign between P1 and P2.** The blocks that held consistent: 09:30 (negative), 10:00 (positive), 12:00 (positive), 13:30 (negative). The rest are unreliable.
+
+### Finding 23: SD-by-Block Dominance — Partially Stable
+
+| Block | P1 Best | P2 Best | Match |
+|-------|---------|---------|-------|
+| 09:30-10:00 | SD=10 | SD=50 | No |
+| 10:00-10:30 | SD=50 | SD=50 | **Yes** |
+| 10:30-11:00 | SD=30 | SD=30 | **Yes** |
+| 11:00-11:30 | SD=25 | SD=30 | No |
+| 11:30-12:00 | SD=50 | SD=25 | No |
+| 12:00-12:30 | SD=25 | SD=50 | No |
+| 12:30-13:00 | SD=50 | SD=50 | **Yes** |
+| 13:00-13:30 | SD=30 | SD=30 | **Yes** |
+| 13:30-14:00 | SD=10 | SD=50 | No |
+| 14:00-14:30 | SD=50 | SD=50 | **Yes** |
+| 14:30-15:00 | SD=30 | SD=30 | **Yes** |
+| 15:00-15:30 | SD=20 | SD=10 | No |
+| 15:30-15:50 | SD=50 | SD=50 | **Yes** |
+
+**7 of 13 blocks matched (54%).** Notably, SD=30 and SD=50 are consistently strong in both P1 and P2 — they match in the most blocks. SD=25 won fewer blocks in P2 than P1.
+
+### Finding 24: Other SDs Performed Better Than SD=25 in P2
+
+| SD | Best HS | P2 E[R] | P2 Cycles | P1 E[R] |
+|----|---------|---------|-----------|---------|
+| 10 | 60 | $3.78 | 19,947 | $2.38 |
+| 15 | 150 | $6.30 | 6,921 | $10.02 |
+| 20 | 160 | $20.66 | 4,400 | $9.49 |
+| **25** | **125** | **$0.16** | **3,341** | **$33.19** |
+| 30 | 360 | $78.36 | 1,666 | $49.63 |
+| 50 | 300 | $103.44 | 827 | $23.29 |
+
+SD=25 was the worst-performing SD in P2. SD=30 and SD=50 actually improved from P1 to P2. SD=20 more than doubled. [OPINION] SD=25 may have been the P1-optimal choice due to a market regime that happened to favor that specific scale, not because 25 is structurally superior.
+
+### P2 Verdict
+
+**Per Phase 7 criteria: WEAK/FAIL**
+- E[R] technically positive ($0.16) but effectively zero
+- PropScore degraded >99% (far outside 50% of P1)
+- Regime distribution held (stable structural property)
+- Time block pattern: 6 of 13 blocks flipped — unreliable for time gating
+- SD-by-block: 54% match — some structure but noisy
+
+**What's real (survived P2):**
+- The rotation/martingale mechanic works — regime distribution is stable
+- Per-cycle win/loss sizes are stable ($498 win, $1,260 loss)
+- Cycle frequency is stable (~56 cycles/day)
+- SD=30 and SD=50 performed well in both periods
+
+**What didn't survive:**
+- SD=25 specifically as the optimal step
+- The time block pattern (too noisy for a fixed time gate)
+- The overall edge at SD=25 HS=125
+
+**Data saved:** `p2_cycles_sd25_hs125.csv`, `p2_analysis_sd_by_timeblock.csv`
+
+---
+
+## Open Questions
+
+1. **Why did SD=30/50 improve while SD=25 degraded?** Possible regime shift toward wider rotations in P2 period (Dec-Mar vs Sept-Dec). The rotation scale detection study could help identify this in real-time.
+
+2. **Multi-SD approach:** SD=30 and SD=50 were consistently strong across both P1 and P2. A wider grid may be more robust than SD=25.
+
+3. **Rotation scale detection:** More important than ever — if the dominant rotation scale shifts between periods, a fixed SD will always be vulnerable. The rolling zigzag approach (Option 1 from Future Exploration) would address this directly.
+
+4. **Alternative prop firm fit:** The strategy has genuine structural properties (stable regime split, predictable cycle mechanics) but the edge is thin and scale-dependent. A prop firm with larger MLL or the ability to adjust parameters would be a better fit.
