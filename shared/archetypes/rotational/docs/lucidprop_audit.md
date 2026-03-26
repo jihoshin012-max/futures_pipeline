@@ -131,7 +131,7 @@
 | `lp_sweep.py` | v2 baseline sweep (144 configs, derived HS) | Active | No — updated for each sweep iteration |
 | `lp_analysis.py` | Post-processing: 30-min blocks + regime classification | Active | No |
 | **Documentation (docs/)** | | | |
-| `lucidprop_findings.md` | Evolving findings report — updated as analysis progresses | Active | No |
+| `rotational_findings.md` | Evolving findings report — updated as analysis progresses | Active | No |
 | `rotational_simulator.py` | Original pipeline simulator — not used by LP project | Unchanged | N/A |
 | **Data (stages/01-data/data/bar_data/tick/)** | | | |
 | `NQ_BarData_1tick_rot_P1.csv` | Full P1 1-tick data (32M rows) — sweep input | Source | **Yes — source data, never modify** |

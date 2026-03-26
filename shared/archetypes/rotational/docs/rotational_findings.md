@@ -1,4 +1,4 @@
-# LucidProp — Findings Report
+# Rotational Strategy — Findings Report
 
 **Started:** 2026-03-25
 **Status:** Active — updated as analysis progresses
